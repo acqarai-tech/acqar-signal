@@ -1,0 +1,159 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+
+import socketio
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.events import router as events_router
+from app.api.market import router as market_router
+from app.api.chat import router as chat_router, add_message
+from app.services.pipeline_service import PipelineService
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create Socket.io server
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins='*',
+    logger=False,
+    engineio_logger=False
+)
+
+pipeline = PipelineService()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("Starting ACQAR SIGNAL backend...")
+
+    # Initialize shared state
+    app.state.events_store = {}  # id -> event dict
+    app.state.pipeline_status = {}
+    app.state.monitor_count = 8742
+    app.state.ws_connections = 0
+    app.state.chat_connections = 0
+    app.state.last_event_at = None
+    app.state.sio = sio
+
+    # Start data pipeline
+    await pipeline.start(app.state)
+
+    # Also do an immediate fetch on startup
+    asyncio.create_task(pipeline.fetch_once())
+
+    logger.info("Backend ready!")
+    yield
+
+    # Shutdown
+    await pipeline.stop()
+    logger.info("Backend shutdown complete")
+
+
+# Create FastAPI app
+app = FastAPI(
+    title="ACQAR SIGNAL API",
+    description="Real-time Dubai Real Estate Intelligence",
+    version="0.1.0",
+    lifespan=lifespan
+)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "https://*.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(events_router)
+app.include_router(market_router)
+app.include_router(chat_router)
+
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {"status": "ok", "service": "ACQAR SIGNAL", "version": "0.1.0"}
+
+
+@app.get("/health")
+async def health():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "events_count": len(app.state.events_store),
+        "pipeline": pipeline.get_status()
+    }
+
+
+@app.post("/api/pipeline/trigger")
+async def trigger_pipeline():
+    """Manually trigger a pipeline fetch"""
+    asyncio.create_task(pipeline.fetch_once())
+    return {"message": "Pipeline triggered"}
+
+
+# Socket.io events
+@sio.event
+async def connect(sid, environ):
+    """Handle client connection"""
+    app.state.ws_connections += 1
+    app.state.chat_connections += 1
+    app.state.monitor_count += 1
+    logger.info(f"Client connected: {sid} (total: {app.state.ws_connections})")
+
+    # Send current events on connect
+    events = list(app.state.events_store.values())[-20:]
+    await sio.emit('initial_events', {'events': events}, to=sid)
+    await sio.emit('market_update', {'monitor_count': app.state.monitor_count}, to=sid)
+
+
+@sio.event
+async def disconnect(sid):
+    """Handle client disconnection"""
+    app.state.ws_connections = max(0, app.state.ws_connections - 1)
+    app.state.chat_connections = max(0, app.state.chat_connections - 1)
+    app.state.monitor_count = max(0, app.state.monitor_count - 1)
+    logger.info(f"Client disconnected: {sid}")
+
+
+@sio.event
+async def request_events(sid, data):
+    """Client requests filtered events"""
+    events = list(app.state.events_store.values())
+    await sio.emit('events_batch', {'events': events[-50:]}, to=sid)
+
+
+@sio.event
+async def chat_message(sid, data):
+    """Broadcast a chat message to all connected clients."""
+    username = data.get("username", "Anonymous")
+    text = data.get("text", "").strip()
+    if not text or len(text) > 500:
+        return
+    # Store and broadcast
+    message = add_message(username, text)
+    await sio.emit("chat_message", message)
+
+
+@sio.event
+async def typing(sid, data):
+    """Broadcast typing indicator to others."""
+    username = data.get("username", "Someone")
+    # Broadcast to all except sender
+    await sio.emit("user_typing", {"username": username}, skip_sid=sid)
+
+
+# Mount Socket.io on the ASGI app
+socket_app = socketio.ASGIApp(sio, app)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(socket_app, host="0.0.0.0", port=8000)

@@ -1,0 +1,117 @@
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { useSocket } from './SocketContext'
+
+const EventsContext = createContext(null)
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+export function EventsProvider({ children }) {
+  const [events, setEvents] = useState([])
+  const [filteredEvents, setFilteredEvents] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [filters, setFilters] = useState({
+    categories: [], // empty = all
+    severityMin: 1,
+    severityMax: 5,
+    hours: 24,
+    search: ''
+  })
+  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [mapStyle, setMapStyle] = useState('dark')
+  const { on, off } = useSocket()
+
+  // Fetch initial events from REST API
+  const fetchEvents = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const params = new URLSearchParams({
+        hours: filters.hours,
+        severity_min: filters.severityMin,
+        severity_max: filters.severityMax,
+        limit: 100
+      })
+      if (filters.categories.length === 1) params.append('category', filters.categories[0])
+      if (filters.search) params.append('search', filters.search)
+
+      const res = await fetch(`${API_BASE}/api/events/?${params}`)
+      if (!res.ok) throw new Error('API error')
+      const data = await res.json()
+      setEvents(data.events || [])
+    } catch (err) {
+      console.warn('REST fetch failed, using demo data:', err.message)
+      setEvents(getDemoEvents()) // fallback demo data
+    } finally {
+      setIsLoading(false)
+    }
+  }, [filters.hours, filters.severityMin, filters.severityMax, filters.categories, filters.search])
+
+  useEffect(() => { fetchEvents() }, [fetchEvents])
+
+  // Listen for real-time events via Socket.io
+  useEffect(() => {
+    const handleNewEvent = (event) => {
+      setEvents(prev => {
+        const exists = prev.find(e => e.id === event.id)
+        if (exists) return prev
+        return [event, ...prev].slice(0, 200) // keep max 200
+      })
+    }
+
+    const handleInitialEvents = ({ events: initialEvents }) => {
+      if (initialEvents?.length) setEvents(initialEvents)
+      setIsLoading(false)
+    }
+
+    on('new_event', handleNewEvent)
+    on('initial_events', handleInitialEvents)
+
+    return () => {
+      off('new_event', handleNewEvent)
+      off('initial_events', handleInitialEvents)
+    }
+  }, [on, off])
+
+  // Apply filters to events
+  useEffect(() => {
+    let result = [...events]
+    if (filters.categories.length > 0) {
+      result = result.filter(e => filters.categories.includes(e.category))
+    }
+    result = result.filter(e => e.severity >= filters.severityMin && e.severity <= filters.severityMax)
+    if (filters.search) {
+      const q = filters.search.toLowerCase()
+      result = result.filter(e =>
+        e.title?.toLowerCase().includes(q) ||
+        e.location_name?.toLowerCase().includes(q)
+      )
+    }
+    setFilteredEvents(result)
+  }, [events, filters])
+
+  const updateFilters = (newFilters) => setFilters(prev => ({ ...prev, ...newFilters }))
+
+  return (
+    <EventsContext.Provider value={{
+      events, filteredEvents, isLoading, filters,
+      updateFilters, selectedEvent, setSelectedEvent, fetchEvents,
+      mapStyle, setMapStyle
+    }}>
+      {children}
+    </EventsContext.Provider>
+  )
+}
+
+export const useEvents = () => useContext(EventsContext)
+
+// Demo data fallback (when backend not running)
+function getDemoEvents() {
+  const now = Date.now()
+  return [
+    { id: 'demo1', title: 'Emaar Reports Record Q4 Sales of AED 6.7 Billion', summary: 'Dubai developer Emaar Properties announced record quarterly sales driven by strong demand in Downtown and Creek Harbour.', category: 'transaction', severity: 4, lat: 25.1972, lng: 55.2744, location_name: 'Downtown Dubai', signal_count: 47, confidence: 0.92, source: 'Gulf News', created_at: new Date(now - 300000).toISOString(), is_active: true },
+    { id: 'demo2', title: 'DAMAC Launches Palm Jumeirah Ultra-Luxury Residences', summary: 'New off-plan project priced from AED 15M per unit, targeting UHNWI buyers from Europe and Asia.', category: 'offplan', severity: 3, lat: 25.1124, lng: 55.1390, location_name: 'Palm Jumeirah', signal_count: 31, confidence: 0.88, source: 'Arabian Business', created_at: new Date(now - 900000).toISOString(), is_active: true },
+    { id: 'demo3', title: 'RERA Issues New Short-Term Rental Regulations', summary: 'Dubai Real Estate Regulatory Authority updates licensing requirements for holiday homes and serviced apartments.', category: 'regulatory', severity: 3, lat: 25.2048, lng: 55.2708, location_name: 'Dubai', signal_count: 62, confidence: 0.95, source: 'The National', created_at: new Date(now - 1800000).toISOString(), is_active: true },
+    { id: 'demo4', title: 'Business Bay Records 847 Transactions in November', summary: 'Business Bay continues to be Dubai top performing district with AED 1.2B total transaction value this month.', category: 'transaction', severity: 3, lat: 25.1865, lng: 55.2644, location_name: 'Business Bay', signal_count: 28, confidence: 0.85, source: 'Zawya', created_at: new Date(now - 3600000).toISOString(), is_active: true },
+    { id: 'demo5', title: 'Nakheel Announces Palm Jebel Ali Phase 2 Infrastructure', summary: 'Construction contracts worth AED 3.8B awarded for road and utility infrastructure on Palm Jebel Ali expansion.', category: 'infrastructure', severity: 4, lat: 24.9823, lng: 55.0262, location_name: 'Dubai South', signal_count: 54, confidence: 0.91, source: 'Gulf News', created_at: new Date(now - 5400000).toISOString(), is_active: true },
+    { id: 'demo6', title: 'Dubai Marina Average Rental Yield Hits 7.2%', summary: 'Marina district outperforms all other areas with highest rental yield in Q4, attracting yield-focused investors.', category: 'investment', severity: 2, lat: 25.0761, lng: 55.1403, location_name: 'Dubai Marina', signal_count: 19, confidence: 0.79, source: 'GDELT', created_at: new Date(now - 7200000).toISOString(), is_active: true },
+  ]
+}
