@@ -15,7 +15,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create Socket.io server
-sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*", logger=False, engineio_logger=False)
+sio = socketio.AsyncServer(
+    async_mode="asgi",
+    cors_allowed_origins=[
+        "http://localhost:5173",
+        "https://acqar-signal.vercel.app",
+        "https://*.vercel.app",
+    ],
+    logger=False,
+    engineio_logger=False
+)
 pipeline = PipelineService()
 
 @asynccontextmanager
