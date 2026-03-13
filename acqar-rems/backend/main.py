@@ -42,7 +42,12 @@ app = FastAPI(title="ACQAR SIGNAL API", description="Real-time Dubai Real Estate
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "https://*.vercel.app"],
+  allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://*.vercel.app",
+        "https://acqar-signal.vercel.app",  # ← your actual URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
