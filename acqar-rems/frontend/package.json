@@ -15,7 +15,8 @@
     "socket.io-client": "^4.7.4",
     "date-fns": "^3.3.1",
     "clsx": "^2.1.0",
-    "lucide-react": "^0.344.0"
+    "lucide-react": "^0.344.0",
+    "@supabase/supabase-js": "^2.91.0",
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
