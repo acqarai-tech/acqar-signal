@@ -170,7 +170,7 @@ export default function Header() {
         </div>
 
         {/* Search bar */}
-        <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'380px', margin:'0 8px'}}>
+        <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'280px', margin:'0 8px'}}>
           {searchOpen ? (
             <input
               autoFocus
@@ -179,7 +179,7 @@ export default function Header() {
               onBlur={() => { if (!headerSearch) setSearchOpen(false) }}
               placeholder="Search Dubai RE signals..."
               style={{
-                width:'50%', padding:'9px 16px', fontSize:'14px',
+                width:'100%', padding:'9px 16px', fontSize:'14px',
                 background:'#F5F5F5', border:'1.5px solid #B87333',
                 color:'#111111', borderRadius:'24px', outline:'none'
               }}
