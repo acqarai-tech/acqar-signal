@@ -154,31 +154,20 @@ export default function Header() {
       display:'flex', flexDirection:'column', flexShrink:0, zIndex:20
     }}>
       {/* Main header row */}
-      {/* <div style={{height:'50px', display:'flex', alignItems:'center', paddingLeft:'16px', paddingRight:'16px', gap:'12px'}}>
+      <div style={{height:'50px', display:'flex', alignItems:'center', paddingLeft:'16px', paddingRight:'16px', gap:'12px'}}>
         {/* Logo */}
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🏙️</span>
-          <div>
-            <div style={{color:'#B87333', fontWeight:700, fontSize:'14px', lineHeight:1}}>ACQAR</div>
-            <div style={{color:'#B3B3B3', fontSize:'9px', letterSpacing:'1px'}}>REMS</div>
-          </div>
-        </div> */}
-
-      <div
-            className="hdrLogo flex items-center cursor-pointer shrink-0 whitespace-nowrap"
+        <div
+          className="hdrLogo flex items-center cursor-pointer shrink-0 whitespace-nowrap"
           onClick={() => {
-  trackEvent("nav_click", { item: "logo" });
-
-  navigate("/");
-}}
-
-          >
-            <h1 className="text-xl sm:text-2xl font-black tracking-tighter uppercase whitespace-nowrap">
-              <span style={{ color: "#B87333" }}>ACQ</span>
-              <span style={{ color: "#111111" }}>AR</span>
-            </h1>
-          </div>
-
+            trackEvent("nav_click", { item: "logo" });
+            navigate("/");
+          }}
+        >
+          <h1 className="text-xl sm:text-2xl font-black tracking-tighter uppercase whitespace-nowrap">
+            <span style={{ color: "#B87333" }}>ACQ</span>
+            <span style={{ color: "#111111" }}>AR</span>
+          </h1>
+        </div>
 
         {/* Search bar */}
         <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'280px', margin:'0 8px'}}>
