@@ -166,7 +166,7 @@ export default function EventDetail() {
           ACQAR Intelligence
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <a href="https://acqar.ai" target="_blank" rel="noopener noreferrer"
+          <a href="http://www.acqar.com/" target="_blank" rel="noopener noreferrer"
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '8px 10px', background: 'rgba(184,115,51,0.15)',
