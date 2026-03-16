@@ -346,6 +346,8 @@ export default function ChatPanel() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
+          // Skip messages sent by this user — already added optimistically
+          if (payload.new.username === myName) return
           addMessage(payload.new)
         }
       )
@@ -356,7 +358,7 @@ export default function ChatPanel() {
 
     channelRef.current = channel
     return () => supabase.removeChannel(channel)
-  }, [addMessage])
+  }, [addMessage, myName])
 
   // ── Presence (online count) ───────────────────────────────────────────────
   useEffect(() => {
