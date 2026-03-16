@@ -150,7 +150,7 @@ export default function Header() {
 
   return (
     <header style={{
-      background:'#1A1A2E', borderBottom:'1px solid #0F3460',
+      background:'#1A1A2E', borderBottom:'1px solid white',
       display:'flex', flexDirection:'column', flexShrink:0, zIndex:20
     }}>
       {/* Main header row */}
