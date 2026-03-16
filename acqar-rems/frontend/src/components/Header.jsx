@@ -170,7 +170,7 @@ export default function Header() {
         </div>
 
         {/* Search bar */}
-        <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'480px', margin:'0 8px'}}>
+        <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'380px', margin:'0 8px'}}>
           {searchOpen ? (
             <input
               autoFocus
