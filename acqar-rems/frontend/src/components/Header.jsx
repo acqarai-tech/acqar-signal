@@ -150,7 +150,7 @@ export default function Header() {
 
   return (
     <header style={{
-      background:'#1A1A2E', borderBottom:'1px solid white',
+      background:'#FFFFFF', borderBottom:'1px solid #E0E0E0',
       display:'flex', flexDirection:'column', flexShrink:0, zIndex:20
     }}>
       {/* Main header row */}
@@ -170,7 +170,7 @@ export default function Header() {
         </div>
 
         {/* Search bar */}
-        <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'280px', margin:'0 8px'}}>
+        <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'480px', margin:'0 8px'}}>
           {searchOpen ? (
             <input
               autoFocus
@@ -179,18 +179,19 @@ export default function Header() {
               onBlur={() => { if (!headerSearch) setSearchOpen(false) }}
               placeholder="Search Dubai RE signals..."
               style={{
-                width:'100%', padding:'5px 10px', fontSize:'12px',
-                background:'rgba(255,255,255,0.07)', border:'1px solid #B87333',
-                color:'#FAFAFA', borderRadius:'20px', outline:'none'
+                width:'100%', padding:'9px 16px', fontSize:'14px',
+                background:'#F5F5F5', border:'1.5px solid #B87333',
+                color:'#111111', borderRadius:'24px', outline:'none'
               }}
             />
           ) : (
             <button onClick={() => setSearchOpen(true)} style={{
-              background:'rgba(255,255,255,0.05)', border:'1px solid #0F3460',
-              color:'#B3B3B3', borderRadius:'20px', padding:'5px 12px',
-              fontSize:'11px', cursor:'pointer', display:'flex', alignItems:'center', gap:'4px'
+              background:'#F5F5F5', border:'1.5px solid #D0D0D0',
+              color:'#666', borderRadius:'24px', padding:'9px 20px',
+              fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px',
+              width:'100%'
             }}>
-              🔍 <span>Search...</span>
+              🔍 <span>Search Dubai RE signals...</span>
             </button>
           )}
         </div>
