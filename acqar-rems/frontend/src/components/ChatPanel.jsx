@@ -582,13 +582,13 @@ export default function ChatPanel({ onClose }) {
       }}>
         {/* Header */}
         <div style={{
+          position: 'relative',
           display: 'flex', alignItems: 'center', gap: '7px',
           padding: '0 14px',
           background: '#0d1117',
           borderBottom: '1px solid #1f2937',
           flexShrink: 0,
           height: 48,
-          // Extra top-padding for the drawer handle area
           paddingTop: '4px',
         }}>
           {/* Drag handle indicator */}
