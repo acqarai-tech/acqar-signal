@@ -547,7 +547,7 @@ export default function Header() {
         </div>
 
         {/* Status indicator */}
-        <div className="flex items-center gap-3 ml-2">
+        {/* <div className="flex items-center gap-3 ml-2">
           <div className="flex items-center gap-1.5">
             <div style={{
               width:6, height:6, borderRadius:'50%',
@@ -558,7 +558,20 @@ export default function Header() {
               {isConnected ? 'LIVE' : 'OFFLINE'}
             </span>
           </div>
-        </div>
+        </div> */}
+
+        <div className="flex items-center gap-3 ml-2" style={{flex:1, justifyContent:'center'}}>
+  <div className="flex items-center gap-1.5">
+    <div style={{
+      width:6, height:6, borderRadius:'50%',
+      background: isConnected ? '#27AE60' : '#666',
+      boxShadow: isConnected ? '0 0 6px #27AE60' : 'none'
+    }} />
+    <span style={{fontSize:'11px', color: isConnected ? '#27AE60' : '#666', fontWeight:600}}>
+      {isConnected ? 'LIVE' : 'OFFLINE'}
+    </span>
+  </div>
+</div>
 
         {/* Time filter buttons — centered, disabled (visual only) */}
         {/* <div style={{
@@ -585,8 +598,8 @@ color: '#B3B3B3',
           ))}
         </div> */}
 
-        {/* Time filter buttons */}
-<div style={{display:'flex', gap:'6px'}}>
+       {/* Time filter buttons */}
+<div style={{display:'flex', gap:'6px', flex:1, justifyContent:'center'}}>
   {[6, 24, 72].map(h => (
     <button key={h} disabled style={{
       padding:'4px 8px', fontSize:'10px', fontWeight:700,
