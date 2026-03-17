@@ -582,6 +582,11 @@ export default function AcqarSignal() {
 
   const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light");
 
+  const navigate = useNavigate();
+
+  const [showSignIn, setShowSignIn] = useState(false);
+
+
   return (
     <>
       <style>{styles}</style>
