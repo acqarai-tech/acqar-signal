@@ -83,7 +83,6 @@ const styles = `
   html:not([data-theme="light"]) .stats-section    { background: var(--dark-4) !important; }
   html:not([data-theme="light"]) #features         { background: var(--dark) !important; }
   html:not([data-theme="light"]) #how-it-works     { background: var(--dark-2) !important; }
-  html:not([data-theme="light"]) footer            { background: #111111 !important; }
   html:not([data-theme="light"]) .feature-card.large { background: linear-gradient(135deg, #1C1A17 0%, #181818 60%, #1A1815 100%); }
   html:not([data-theme="light"]) nav { box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 4px 32px rgba(0,0,0,0.6); }
   html:not([data-theme="light"]) body::before {
@@ -133,8 +132,6 @@ const styles = `
   [data-theme="light"] .problem-tag-pill  { border-color: rgba(184,115,51,0.3); }
   [data-theme="light"] #features         { background: #FFFFFF !important; }
   [data-theme="light"] #how-it-works     { background: #FAFAFA !important; }
-  [data-theme="light"] footer       { background: #F5F5F0 !important; border-top-color: rgba(0,0,0,0.08) !important; }
-  [data-theme="light"] .footer-bottom { border-top-color: rgba(0,0,0,0.08) !important; }
   [data-theme="light"] .final-cta-section::before { background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(184,115,51,0.07) 0%, transparent 70%); }
   [data-theme="light"] .sev-5 { background: rgba(239,68,68,0.12); }
   [data-theme="light"] .sev-4 { background: rgba(245,158,11,0.12); }
@@ -414,23 +411,6 @@ const styles = `
   .final-trust span{display:flex;align-items:center;gap:5px}
   .final-trust span::before{content:'✓';color:var(--green);font-weight:700}
 
-  /* FOOTER */
-  footer{background:var(--dark-card);border-top:1px solid var(--border);padding:48px}
-  .footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px}
-  .footer-brand .logo-text{font-size:20px;font-weight:900;margin-bottom:12px}
-  .footer-brand .logo-text span:first-child{color:var(--copper)}
-  .footer-brand p{font-size:13px;color:var(--text-muted);line-height:1.7;max-width:260px;margin-bottom:16px}
-  .footer-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);padding:5px 12px;border-radius:4px}
-  .footer-col h5{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px}
-  .footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
-  .footer-col ul li a{font-size:13px;color:var(--text-secondary);transition:color 0.2s}
-  .footer-col ul li a:hover{color:var(--text-primary)}
-  .footer-bottom{max-width:1200px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted)}
-  .footer-bottom a{color:var(--text-muted)}
-  .footer-bottom a:hover{color:var(--text-primary)}
-  .footer-links{display:flex;gap:24px}
-  .rics-tag{color:var(--copper);font-weight:600;font-size:11px}
-
   /* RESPONSIVE */
   @media(max-width:1100px){
     nav{padding:0 24px}
@@ -506,12 +486,9 @@ const styles = `
     .final-cta-section p{font-size:15px}
     .final-cta-buttons{flex-direction:column;gap:12px}
     .final-trust{flex-wrap:wrap;justify-content:center;gap:8px;font-size:11px}
-    footer{padding:40px 16px}
-    .footer-inner{gap:28px}
-    .footer-bottom{flex-direction:column;gap:10px;text-align:center}
-    .footer-links{flex-wrap:wrap;justify-content:center;gap:12px}
   }
 `;
+
 
 const tickerItems = [
   { sev: "S5", sevClass: "sev-5", text: "Emaar launches AED 3.2B tower adjacent to Burj Khalifa", loc: "Downtown Dubai" },
@@ -557,6 +534,287 @@ const testimonials = [
   },
 ];
 
+/* ── NEW FOOTER COMPONENT ── */
+function Footer() {
+  const navigate = useNavigate();
+  const cols = [
+    [
+      "PRODUCT",
+      [
+        "TruValu™ Products",
+        "ValuCheck™ (FREE)",
+        "DealLens™",
+        "InvestIQ™",
+        "CertiFi™",
+        "Compare Tiers",
+      ],
+    ],
+    [
+      "COMPANY",
+      ["About ACQAR", "How It Works", "Pricing", "Contact Us", "Partners", "Press Kit"],
+    ],
+    [
+      "RESOURCES",
+      ["Help Center", "Market Reports", "Blog ", "Comparisons"],
+    ],
+    [
+      "COMPARISONS",
+      ["vs Bayut TruEstimate", "vs Property Finder", "vs Traditional Valuers", "Why ACQAR?"],
+    ],
+  ];
+
+  return (
+    <>
+      <style>{`
+        .acq-footer {
+          background: #F9F9F9;
+          border-top: 1px solid #EBEBEB;
+          padding: 56px 0 0;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .acq-footer-grid {
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: 0 2rem;
+          display: grid;
+          grid-template-columns: 1.35fr 1fr 1fr 1fr 1fr;
+          gap: 48px;
+          align-items: start;
+          padding-bottom: 48px;
+        }
+
+        .acq-brand-name {
+          font-size: 1rem;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #2B2B2B;
+          display: block;
+          margin-bottom: 14px;
+        }
+        .acq-brand-desc {
+          font-size: 0.75rem;
+          color: rgba(43,43,43,0.58);
+          line-height: 1.75;
+          margin: 0 0 18px;
+          max-width: 240px;
+        }
+        .acq-rics-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 12px;
+          background: #fff;
+          border: 1px solid #EBEBEB;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        }
+        .acq-rics-badge svg { flex-shrink: 0; color: #2B2B2B; }
+        .acq-rics-badge span {
+          font-size: 0.5625rem;
+          font-weight: 800;
+          color: rgba(43,43,43,0.82);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          white-space: nowrap;
+        }
+        .acq-social-row { display: flex; gap: 10px; }
+        .acq-social-btn {
+          width: 34px; height: 34px;
+          border-radius: 50%;
+          border: 1px solid #E5E7EB;
+          display: flex; align-items: center; justify-content: center;
+          color: rgba(43,43,43,0.38);
+          text-decoration: none;
+          transition: color 0.18s, border-color 0.18s;
+          background: transparent;
+          cursor: pointer;
+        }
+        .acq-social-btn:hover { color: #B87333; border-color: #B87333; }
+
+        .acq-col-title {
+          font-size: 0.75rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          color: #2B2B2B;
+          margin: 0 0 20px;
+        }
+        .acq-link-list {
+          list-style: none;
+          padding: 0; margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 13px;
+        }
+        .acq-link-item {
+          font-size: 0.8125rem;
+          color: rgba(43,43,43,0.55);
+          font-weight: 400;
+          cursor: pointer;
+          transition: color 0.16s;
+          line-height: 1.4;
+        }
+        .acq-link-item:hover { color: #B87333; }
+
+        .acq-divider {
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: 0 2rem;
+        }
+        .acq-divider hr {
+          border: none;
+          border-top: 1px solid #E5E7EB;
+          margin: 0;
+        }
+
+        .acq-footer-bottom {
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: 18px 2rem 28px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
+        .acq-copy p {
+          font-size: 0.5625rem;
+          font-weight: 800;
+          color: rgba(43,43,43,0.38);
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          margin: 0 0 3px;
+        }
+        .acq-copy small {
+          font-size: 0.5rem;
+          color: rgba(43,43,43,0.28);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          display: block;
+        }
+        .acq-legal {
+          display: flex;
+          align-items: center;
+          gap: 28px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .acq-legal a {
+          font-size: 0.5625rem;
+          font-weight: 800;
+          color: rgba(43,43,43,0.38);
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: color 0.16s;
+        }
+        .acq-legal a:hover { color: #2B2B2B; }
+        .acq-legal span {
+          font-size: 0.5rem;
+          font-weight: 700;
+          color: rgba(43,43,43,0.35);
+          text-transform: uppercase;
+          letter-spacing: 0.14em;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: color 0.16s ease;
+        }
+        .acq-legal span:hover { color: #B87333; }
+
+        @media (max-width: 1024px) {
+          .acq-footer-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 32px;
+          }
+          .acq-brand-col { grid-column: 1 / -1; }
+          .acq-brand-desc { max-width: 100%; }
+        }
+
+        @media (max-width: 640px) {
+          .acq-footer-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            padding: 0 1rem 40px;
+          }
+          .acq-brand-col { grid-column: 1 / -1; }
+          .acq-footer-bottom {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 14px;
+            padding: 18px 1rem 28px;
+          }
+          .acq-legal { justify-content: center; gap: 18px; }
+          .acq-divider { padding: 0 1rem; }
+        }
+
+        @media (max-width: 420px) {
+          .acq-footer-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
+      <footer className="acq-footer">
+        <div className="acq-footer-grid">
+          <div className="acq-brand-col">
+            <span className="acq-brand-name">ACQAR</span>
+            <p className="acq-brand-desc">
+              The world's first AI-powered property intelligence platform for Dubai real estate.
+              Independent, instant, investment-grade.
+            </p>
+            <div className="acq-rics-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+              <span>RICS-Aligned Intelligence</span>
+            </div>
+            <div className="acq-social-row">
+              <a
+                href="https://www.linkedin.com/company/acqar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="acq-social-btn"
+                aria-label="LinkedIn"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4.98 3.5C4.98 4.88 3.86 6 2.48 6 1.1 6 0 4.88 0 3.5S1.1 1 2.48 1c1.38 0 2.5 1.12 2.5 2.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.67-1.2 2.3-2.4 4.73-2.4C22.2 7.8 24 10.2 24 14.1V24h-5v-8.5c0-2-.04-4.6-2.8-4.6-2.8 0-3.2 2.2-3.2 4.4V24h-5V8z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {cols.map(([title, items]) => (
+            <div key={title}>
+              <h6 className="acq-col-title">{title}</h6>
+              <ul className="acq-link-list">
+                {items.map((item) => (
+                  <li key={item} className="acq-link-item">{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="acq-divider"><hr /></div>
+
+        <div className="acq-footer-bottom">
+          <div className="acq-copy">
+            <p>© 2025 ACQARLABS L.L.C-FZ. All rights reserved.</p>
+          </div>
+          <nav className="acq-legal">
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/terms")}>Terms</span>
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/privacy")}>Privacy</span>
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/cookies")}>Cookies</span>
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/security")}>Security</span>
+          </nav>
+        </div>
+      </footer>
+    </>
+  );
+}
+
 export default function AcqarSignal() {
   const [theme, setTheme] = useState("dark");
 
@@ -586,7 +844,6 @@ export default function AcqarSignal() {
 
   const [showSignIn, setShowSignIn] = useState(false);
 
-
   return (
     <>
       <style>{styles}</style>
@@ -597,19 +854,11 @@ export default function AcqarSignal() {
           <div className="brand"><span>ACQ</span><span>AR</span></div>
           <div className="signal-badge">Signal</div>
         </div>
-        {/* <ul className="nav-links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#dashboard">Dashboard</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="#">Pricing</a></li>
-          <li><a href="https://www.acqar.com" target="_blank" rel="noreferrer">ACQAR.com ↗</a></li>
-        </ul> */}
         <div className="nav-actions">
           <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme" title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             {theme === "dark" ? "☀" : "🌙"}
           </button>
-          {/* <button className="btn-ghost">Sign In</button> */}
-           <button className="btn-primary" onClick={() => setShowSignIn(true)}>
+          <button className="btn-primary" onClick={() => setShowSignIn(true)}>
             Request Access →
           </button>
         </div>
@@ -1109,41 +1358,8 @@ export default function AcqarSignal() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer>
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <div className="logo-text"><span>ACQ</span><span style={{ color: "var(--text-primary)" }}>AR</span> <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>Signal</span></div>
-            <p>The world's only AI-powered real-time intelligence terminal for Dubai real estate. Built on ACQAR's institutional-grade property intelligence platform.</p>
-            <div className="footer-badge">🛡 RICS-Aligned Intelligence</div>
-          </div>
-          <div className="footer-col">
-            <h5>Product</h5>
-            <ul>{["Live Feed", "Map Intelligence", "Reports", "Community Signals", "API Access"].map(l => <li key={l}><a href="#">{l}</a></li>)}</ul>
-          </div>
-          <div className="footer-col">
-            <h5>Company</h5>
-            <ul>
-              <li><a href="https://www.acqar.com/about" target="_blank" rel="noreferrer">About ACQAR</a></li>
-              <li><a href="https://www.acqar.com" target="_blank" rel="noreferrer">ACQAR Platform</a></li>
-              {["Press Kit", "Contact Us", "Partners"].map(l => <li key={l}><a href="#">{l}</a></li>)}
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h5>Resources</h5>
-            <ul>
-              {["Signal Glossary", "Market Reports", "Developer Docs", "Help Center"].map(l => <li key={l}><a href="#">{l}</a></li>)}
-              <li><a href="https://github.com/acqarai-tech/acqar-signal" target="_blank" rel="noreferrer">GitHub ↗</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <div>© 2025 ACQARLABS L.L.C-FZ. All Rights Reserved. &nbsp;<span className="rics-tag">RICS-Aligned Intelligence</span></div>
-          <div className="footer-links">
-            {["Terms", "Privacy", "Cookies", "Security"].map(l => <a href="#" key={l}>{l}</a>)}
-          </div>
-        </div>
-      </footer>
+      {/* ── NEW FOOTER ── */}
+      <Footer />
 
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
     </>
