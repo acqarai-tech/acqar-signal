@@ -1913,7 +1913,7 @@ function Footer() {
               </svg>
               <span>RICS-Aligned Intelligence</span>
             </div>
-            <div className="acq-social-row">
+           <div className="acq-social-row">
               
                 href="https://www.linkedin.com/company/acqar"
                 target="_blank"
