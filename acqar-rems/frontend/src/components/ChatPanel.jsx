@@ -565,7 +565,7 @@ export default function ChatPanel({ onClose }) {
           background: '#0d1117',
           borderBottom: '1px solid #1f2937',
           flexShrink: 0,
-          height: 52,
+          height: 44,
         }}>
           <div style={{
             width: 22, height: 22, borderRadius: '6px', background: '#1f2937',
@@ -594,16 +594,12 @@ export default function ChatPanel({ onClose }) {
           <button
             onClick={onClose}
             style={{
-              width: 44, height: 44, background: '#1f2937',
+              width: 36, height: 36, background: '#1f2937',
               border: '1px solid #374151', borderRadius: '6px',
-              color: '#9ca3af', cursor: 'pointer',
+              color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '16px', flexShrink: 0,
-              touchAction: 'manipulation',
-              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#ef4444' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#1f2937'; e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = '#374151' }}
           >✕</button>
         </div>
       )}
