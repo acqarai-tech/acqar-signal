@@ -561,7 +561,7 @@ export default function Header() {
         </div>
 
         {/* Time filter buttons — centered, disabled (visual only) */}
-        <div style={{
+        {/* <div style={{
           display:'flex', gap:'6px',
           flex:1, justifyContent:'center'
         }}>
@@ -583,7 +583,20 @@ color: '#B3B3B3',
               {h}H
             </button>
           ))}
-        </div>
+        </div> */}
+
+        {/* Time filter buttons */}
+<div style={{display:'flex', gap:'6px'}}>
+  {[6, 24, 72].map(h => (
+    <button key={h} disabled style={{
+      padding:'4px 8px', fontSize:'10px', fontWeight:700,
+      border: activeTimeFilter === h ? '1px solid #B87333' : '1px solid #0F3460',
+      background: activeTimeFilter === h ? 'rgba(184,115,51,0.2)' : 'transparent',
+      color: activeTimeFilter === h ? '#B87333' : '#B3B3B3',
+      borderRadius:'4px', cursor:'not-allowed', pointerEvents:'none'
+    }}>{h}H</button>
+  ))}
+</div>
       </div>
 
       {/* Prediction Ticker Strip */}
