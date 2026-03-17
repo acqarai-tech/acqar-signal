@@ -490,7 +490,7 @@ export default function ChatPanel({ onClose }) {
         .order('created_at', { ascending: true })
         .limit(100)
       if (error) {
-        setError('Could not load: ' + error.message)
+        setError('Could not load messages: ' + error.message)
         setLoading(false)
         return
       }
@@ -500,7 +500,7 @@ export default function ChatPanel({ onClose }) {
     fetchMessages()
   }, [])
 
-  // ── Fetch real total message count ────────────────────────────────────────
+  // ── Real message count ────────────────────────────────────────────────────
   useEffect(() => {
     const fetchCount = async () => {
       const { count } = await supabase
@@ -546,6 +546,11 @@ export default function ChatPanel({ onClose }) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
   }
 
+  const handleClose = (e) => {
+    e.stopPropagation()
+    if (typeof onClose === 'function') onClose()
+  }
+
   return (
     <div style={{
       height: '100%',
@@ -558,16 +563,14 @@ export default function ChatPanel({ onClose }) {
 
       {/* ── Header ── */}
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '7px',
+        display: 'flex', alignItems: 'center', gap: '7px',
         padding: '0 12px',
         background: '#0d1117',
         borderBottom: '1px solid #1f2937',
         flexShrink: 0,
         height: 44,
       }}>
-        {/* Chat bubble icon */}
+        {/* Icon */}
         <div style={{
           width: 22, height: 22, borderRadius: '6px',
           background: '#1f2937',
@@ -575,20 +578,16 @@ export default function ChatPanel({ onClose }) {
           fontSize: '11px', flexShrink: 0,
         }}>💬</div>
 
-        {/* CHAT label */}
-        <span style={{
-          fontSize: '12px', fontWeight: 800,
-          color: '#f9fafb', letterSpacing: '1px',
-        }}>CHAT</span>
+        {/* Title */}
+        <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>
+          CHAT
+        </span>
 
-        {/* "as" */}
+        {/* as username */}
         <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
-
-        {/* Username */}
-        <span style={{
-          fontSize: '10px', fontWeight: 700,
-          color: nameColor(myName),
-        }}>{myName}</span>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: nameColor(myName) }}>
+          {myName}
+        </span>
 
         <div style={{ flex: 1 }} />
 
@@ -615,10 +614,10 @@ export default function ChatPanel({ onClose }) {
           onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
         >↺</button>
 
-        {/* Close — always visible */}
+        {/* ✕ Close — ALWAYS visible, works on desktop + mobile */}
         <button
-          onClick={() => onClose && onClose()}
-          title="Close chat"
+          onClick={handleClose}
+          title="Close"
           style={{
             width: 26, height: 26,
             background: '#1f2937',
@@ -659,8 +658,7 @@ export default function ChatPanel({ onClose }) {
 
       {/* ── Messages ── */}
       <div style={{
-        flex: 1,
-        overflowY: 'auto',
+        flex: 1, overflowY: 'auto',
         padding: '4px 0 8px',
         scrollbarWidth: 'thin',
         scrollbarColor: '#1f2937 transparent',
@@ -670,51 +668,32 @@ export default function ChatPanel({ onClose }) {
             Loading messages...
           </div>
         )}
-
         {!loading && messages.length === 0 && (
           <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
             No messages yet. Say something!
           </div>
         )}
-
         {messages.map((msg, i) => {
           const isOwn = msg.user_name === myName
           const color = isOwn ? '#B87333' : nameColor(msg.user_name)
           const prevMsg = messages[i - 1]
           const sameUser = prevMsg && prevMsg.user_name === msg.user_name
           const timeDiff = prevMsg
-            ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000
-            : 999
+            ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000 : 999
           const showHeader = !sameUser || timeDiff > 120
-
           return (
-            <div
-              key={msg.id}
-              style={{
-                padding: showHeader ? '10px 14px 2px' : '1px 14px',
-                background: isOwn ? 'rgba(184,115,51,0.05)' : 'transparent',
-                borderLeft: isOwn ? '2px solid rgba(184,115,51,0.5)' : '2px solid transparent',
-              }}
-            >
+            <div key={msg.id} style={{
+              padding: showHeader ? '10px 14px 2px' : '1px 14px',
+              background: isOwn ? 'rgba(184,115,51,0.05)' : 'transparent',
+              borderLeft: isOwn ? '2px solid rgba(184,115,51,0.5)' : '2px solid transparent',
+            }}>
               {showHeader && (
-                <div style={{
-                  display: 'flex', alignItems: 'baseline',
-                  gap: '6px', marginBottom: '2px',
-                }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color }}>
-                    {msg.user_name}
-                  </span>
-                  <span style={{ fontSize: '9px', color: '#374151' }}>
-                    {formatTime(msg.created_at)}
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color }}>{msg.user_name}</span>
+                  <span style={{ fontSize: '9px', color: '#374151' }}>{formatTime(msg.created_at)}</span>
                 </div>
               )}
-              <div style={{
-                fontSize: '13px',
-                color: '#d1d5db',
-                lineHeight: 1.5,
-                wordBreak: 'break-word',
-              }}>
+              <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: 1.5, wordBreak: 'break-word' }}>
                 {msg.content}
               </div>
             </div>
@@ -724,16 +703,13 @@ export default function ChatPanel({ onClose }) {
       </div>
 
       {/* ── Input ── */}
-      <form
-        onSubmit={sendMessage}
-        style={{
-          padding: '10px 12px',
-          borderTop: '1px solid #1f2937',
-          background: '#0d1117',
-          flexShrink: 0,
-          display: 'flex', gap: '8px', alignItems: 'center',
-        }}
-      >
+      <form onSubmit={sendMessage} style={{
+        padding: '10px 12px',
+        borderTop: '1px solid #1f2937',
+        background: '#0d1117',
+        flexShrink: 0,
+        display: 'flex', gap: '8px', alignItems: 'center',
+      }}>
         <input
           ref={inputRef}
           value={input}
@@ -743,8 +719,7 @@ export default function ChatPanel({ onClose }) {
           maxLength={200}
           style={{
             flex: 1, padding: '9px 14px', fontSize: '13px',
-            background: '#1f2937',
-            border: '1px solid #374151',
+            background: '#1f2937', border: '1px solid #374151',
             color: '#f9fafb', borderRadius: '8px', outline: 'none',
             transition: 'border-color 0.15s',
           }}
