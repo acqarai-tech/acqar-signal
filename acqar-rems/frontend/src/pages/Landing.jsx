@@ -406,8 +406,8 @@ const styles = `
   .final-cta-section::after{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent)}
   .final-cta-content{position:relative;z-index:1;max-width:700px;margin:0 auto}
   .final-cta-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--copper);margin-bottom:24px}
-  .final-cta-section h2{font-size:80px;font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bottom:20px}
-  .final-cta-section p{font-size:20px;color:var(--text-secondary);line-height:1.7;margin-bottom:40px}
+  .final-cta-section h2{font-size:60px;font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bottom:20px}
+  .final-cta-section p{font-size:16px;color:var(--text-secondary);line-height:1.7;margin-bottom:40px}
   .final-cta-buttons{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:24px}
   .final-trust{font-size:12px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:20px}
   .final-trust span{display:flex;align-items:center;gap:5px}
