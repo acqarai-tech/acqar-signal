@@ -1437,40 +1437,7 @@ export default function AcqarSignal() {
       </section>
 
       /* {/* ── FOOTER ── */}
-      <footer>
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <div className="logo-text"><span>ACQ</span><span style={{ color: "var(--text-primary)" }}>AR</span> <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>Signal</span></div>
-            <p>The world's only AI-powered real-time intelligence terminal for Dubai real estate. Built on ACQAR's institutional-grade property intelligence platform.</p>
-            <div className="footer-badge">🛡 RICS-Aligned Intelligence</div>
-          </div>
-          <div className="footer-col">
-            <h5>Product</h5>
-            <ul>{["Live Feed", "Map Intelligence", "Reports", "Community Signals", "API Access"].map(l => <li key={l}><a href="#">{l}</a></li>)}</ul>
-          </div>
-          <div className="footer-col">
-            <h5>Company</h5>
-            <ul>
-              <li><a href="https://www.acqar.com/about" target="_blank" rel="noreferrer">About ACQAR</a></li>
-              <li><a href="https://www.acqar.com" target="_blank" rel="noreferrer">ACQAR Platform</a></li>
-              {["Press Kit", "Contact Us", "Partners"].map(l => <li key={l}><a href="#">{l}</a></li>)}
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h5>Resources</h5>
-            <ul>
-              {["Signal Glossary", "Market Reports", "Developer Docs", "Help Center"].map(l => <li key={l}><a href="#">{l}</a></li>)}
-              <li><a href="https://github.com/acqarai-tech/acqar-signal" target="_blank" rel="noreferrer">GitHub ↗</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <div>© 2025 ACQARLABS L.L.C-FZ. All Rights Reserved. &nbsp;<span className="rics-tag">RICS-Aligned Intelligence</span></div>
-          <div className="footer-links">
-            {["Terms", "Privacy", "Cookies", "Security"].map(l => <a href="#" key={l}>{l}</a>)}
-          </div>
-        </div>
-      </footer> */
+    
 <Footer />
      
 
