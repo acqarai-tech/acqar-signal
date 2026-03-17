@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // Add this import at the top alongside your other imports
-import SignInModal from "./components/SignInModal";
+import SignInModal from "../components/SignInModal";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
