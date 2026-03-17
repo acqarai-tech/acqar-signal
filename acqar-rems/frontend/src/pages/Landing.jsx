@@ -414,7 +414,9 @@ const styles = `
   .final-trust span::before{content:'✓';color:var(--green);font-weight:700}
 
   /* FOOTER */
-  footer{background:var(--dark-card);border-top:1px solid var(--border);padding:48px}
+ .footer{background:var(--dark-card);border-top:1px solid var(--border);padding:48px}
+.footer-main-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:32px;margin-bottom:80px;}
+.footer-bottom-bar{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(10,10,10,0.06);padding-top:32px;flex-wrap:wrap;gap:16px;}
   .footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px}
   .footer-brand .logo-text{font-size:20px;font-weight:900;margin-bottom:12px}
   .footer-brand .logo-text span:first-child{color:var(--copper)}
@@ -429,6 +431,8 @@ const styles = `
   .footer-bottom a:hover{color:var(--text-primary)}
   .footer-links{display:flex;gap:24px}
   .rics-tag{color:var(--copper);font-weight:600;font-size:11px}
+
+
 
   /* RESPONSIVE */
   @media(max-width:1100px){
@@ -1155,13 +1159,9 @@ const [showSignIn, setShowSignIn] = useState(false);
   <div style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 48px 32px' }}>
     
     {/* Main grid */}
-    <div style={{
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
-  gap: '40px 24px',
-  marginBottom: 80
-}}
+   <div
   className="footer-main-grid"
+  style={{ marginBottom: 80 }}
 >
       
       {/* Brand column */}
@@ -1270,7 +1270,7 @@ const [showSignIn, setShowSignIn] = useState(false);
     </div>
 
     {/* Bottom bar */}
-   <div className="footer-bottom-bar" style={{ borderTop: '1px solid rgba(10,10,10,0.06)', paddingTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+ <div className="footer-bottom-bar">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ fontWeight: 900, fontSize: 10, letterSpacing: '0.05em' }}>
           <span style={{ color: '#B87333' }}>ACQ</span><span style={{ color: '#0A0A0A' }}>AR</span>
