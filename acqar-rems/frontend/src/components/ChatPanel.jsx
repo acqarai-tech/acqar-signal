@@ -580,68 +580,6 @@ export default function ChatPanel({ onClose, isMobile = false }) {
         fontFamily: "'Inter', sans-serif",
         overflow: 'hidden',
       }}>
-        {/* Header */}
-        <div style={{
-          position: 'relative',
-          display: 'flex', alignItems: 'center', gap: '7px',
-          padding: '0 14px',
-          background: '#0d1117',
-          borderBottom: '1px solid #1f2937',
-          flexShrink: 0,
-          height: 48,
-          paddingTop: '4px',
-        }}>
-          {/* Drag handle indicator */}
-          <div style={{
-            position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
-            width: 36, height: 4, borderRadius: 2, background: '#374151',
-          }} />
-
-          <div style={{
-            width: 24, height: 24, borderRadius: '6px', background: '#1f2937',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '13px', flexShrink: 0,
-          }}>💬</div>
-
-          <span style={{ fontSize: '13px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>CHAT</span>
-          <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: nameColor(myName) }}>{myName}</span>
-
-          <div style={{ flex: 1 }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: '13px' }}>🟠</span>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#f9fafb' }}>
-              {msgCount !== null ? msgCount.toLocaleString() : '—'}
-            </span>
-          </div>
-
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              background: 'none', border: 'none', color: '#4b5563',
-              cursor: 'pointer', fontSize: '16px', padding: '6px',
-              touchAction: 'manipulation',
-            }}
-          >↺</button>
-
-          {/* Close button — dismisses the mobile drawer */}
-          <button
-            onClick={handleClose}
-            style={{
-              width: 34, height: 34,
-              background: '#1f2937',
-              border: '1px solid #374151',
-              borderRadius: '8px',
-              color: '#9ca3af',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '15px', flexShrink: 0,
-              touchAction: 'manipulation',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >✕</button>
-        </div>
 
         {/* Error */}
         {error && (
