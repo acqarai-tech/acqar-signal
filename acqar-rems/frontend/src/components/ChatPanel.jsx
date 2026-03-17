@@ -463,18 +463,21 @@ export default function ChatPanel({ onClose }) {
             style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '15px', padding: '4px' }}
           >↺</button>
 
-          {/* <button
-            onClick={onClose}
-            style={{
-              width: 36, height: 36, background: '#1f2937',
-              border: '1px solid #374151', borderRadius: '6px',
-              color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
-            }}
-          >✕</button> */}
+           <button
+           {onClose && (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: '7px',
+    padding: '0 12px',
+    background: '#0d1117',
+    borderBottom: '1px solid #1f2937',
+    flexShrink: 0,
+    height: 44,
+    position: 'relative',   // ← add this
+    zIndex: 10,             // ← add this
+  }}>
+          >✕</button> 
 
-          <button
+          {/* <button
   onClick={onClose}
   style={{
     width: 36, height: 36, background: '#1f2937',
@@ -484,7 +487,7 @@ export default function ChatPanel({ onClose }) {
     touchAction: 'manipulation',                    // ← add this
     WebkitTapHighlightColor: 'transparent',         // ← add this
   }}
->✕</button>
+>✕</button> */}
         </div>
       )}
 
