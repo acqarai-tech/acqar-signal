@@ -411,7 +411,7 @@ export default function OverlayPanel() {
                 onClick={() => setIsMapStyleOpen(!isMapStyleOpen)}
                 style={{
                   width: '100%',
-                  display: 'flex',
+                  display: 'none',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '6px 0',
@@ -430,7 +430,7 @@ export default function OverlayPanel() {
               </button>
 
               {isMapStyleOpen && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'none', flexDirection: 'column', gap: '4px' }}>
                   {['dark', 'satellite', 'street'].map(style => (
                     <button
                       key={style}
