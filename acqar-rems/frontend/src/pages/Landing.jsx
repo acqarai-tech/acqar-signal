@@ -454,6 +454,7 @@ const styles = `
     .footer-inner{grid-template-columns:1fr 1fr;gap:36px}
     .final-cta-section{padding:100px 24px}
     .final-cta-section h2{font-size:44px}
+    .footer-main-grid { grid-template-columns: 1fr 1fr 1fr !important; gap: 32px !important; }
   }
   @media(max-width:768px){
     section{padding:60px 24px}
@@ -467,6 +468,8 @@ const styles = `
     .footer-inner{grid-template-columns:1fr;gap:32px}
     .footer-bottom{flex-direction:column;gap:12px;text-align:center}
     .footer-links{flex-wrap:wrap;justify-content:center;gap:16px}
+    .footer-main-grid { grid-template-columns: 1fr 1fr !important; gap: 32px 16px !important; }
+.footer-bottom-bar { flex-direction: column !important; gap: 12px !important; text-align: center !important; }
   }
   @media(max-width:480px){
     section{padding:52px 16px}
@@ -509,7 +512,10 @@ const styles = `
     .footer-inner{gap:28px}
     .footer-bottom{flex-direction:column;gap:10px;text-align:center}
     .footer-links{flex-wrap:wrap;justify-content:center;gap:12px}
+    .footer-main-grid { grid-template-columns: 1fr 1fr !important; gap: 28px 12px !important; }
+.footer-bottom-bar { flex-direction: column !important; gap: 10px !important; text-align: center !important; }
   }
+  
 `;
 
 const tickerItems = [
@@ -1149,7 +1155,14 @@ const [showSignIn, setShowSignIn] = useState(false);
   <div style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 48px 32px' }}>
     
     {/* Main grid */}
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '32px 32px', marginBottom: 80 }}>
+    <div style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, 1fr)',
+  gap: '40px 24px',
+  marginBottom: 80
+}}
+  className="footer-main-grid"
+>
       
       {/* Brand column */}
       <div>
@@ -1218,18 +1231,28 @@ const [showSignIn, setShowSignIn] = useState(false);
         </ul>
       </div>
 
-      {/* Legal column */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
-          <h6 style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Legal & Info</h6>
-        </div>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {['Intelligence Blog', 'Terms of Use', 'Privacy Policy'].map(l => (
-            <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
-          ))}
-        </ul>
-      </div>
+     {/* Legal column */}
+<div>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
+    <h6 style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Legal & Info</h6>
+  </div>
+  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    {[
+      { label: 'Intelligence Blog', href: 'https://www.acqar.com/blogs' },
+      { label: 'Terms of Use', href: 'https://www.acqar.com/terms' },
+      { label: 'Privacy Policy', href: '#' },
+    ].map(({ label, href }) => (
+      <li key={label}>
+        <a href={href} target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', textDecoration: 'none', cursor: 'pointer' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#B87333'}
+          onMouseLeave={e => e.currentTarget.style.color = 'rgba(10,10,10,0.55)'}
+        >{label}</a>
+      </li>
+    ))}
+  </ul>
+</div>
 
       {/* Comparisons column */}
       <div>
@@ -1247,7 +1270,7 @@ const [showSignIn, setShowSignIn] = useState(false);
     </div>
 
     {/* Bottom bar */}
-    <div style={{ borderTop: '1px solid rgba(10,10,10,0.06)', paddingTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+   <div className="footer-bottom-bar" style={{ borderTop: '1px solid rgba(10,10,10,0.06)', paddingTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ fontWeight: 900, fontSize: 10, letterSpacing: '0.05em' }}>
           <span style={{ color: '#B87333' }}>ACQ</span><span style={{ color: '#0A0A0A' }}>AR</span>
