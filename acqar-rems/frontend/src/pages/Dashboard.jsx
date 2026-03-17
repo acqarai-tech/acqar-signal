@@ -300,6 +300,7 @@ function useIsMobile() {
 
 export default function Dashboard() {
   const [leftCollapsed, setLeftCollapsed] = useState(false)
+  const [chatOpen, setChatOpen] = useState(true)       // desktop chat column
   const isMobile = useIsMobile()
   const [mobileDrawer, setMobileDrawer] = useState(null)
 
@@ -351,7 +352,7 @@ export default function Dashboard() {
             <EventFeed />
           </div>
 
-          {/* Chat Drawer — ChatPanel manages its own open/close internally */}
+          {/* Chat Drawer */}
           <div style={{
             position: 'absolute',
             bottom: mobileDrawer === 'chat' ? 0 : '-110%',
@@ -363,10 +364,11 @@ export default function Dashboard() {
             zIndex: 50,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
-            <ChatPanel />
+            {/* Pass onClose so ChatPanel's ✕ button closes the drawer */}
+            <ChatPanel onClose={() => setMobileDrawer(null)} />
           </div>
 
-          {/* Floating buttons */}
+          {/* Floating buttons — hide when a drawer is open */}
           <div style={{
             position: 'absolute', bottom: 16, left: 0, right: 0,
             display: 'flex', justifyContent: 'space-between',
@@ -413,6 +415,7 @@ export default function Dashboard() {
       <Header />
       <div className="flex flex-1 overflow-hidden">
 
+        {/* Left feed column */}
         <div
           className={`flex-none transition-all duration-300 ${leftCollapsed ? 'w-0' : 'w-80'} overflow-hidden border-r border-border`}
           style={{ position: 'relative' }}
@@ -424,6 +427,7 @@ export default function Dashboard() {
           <EventDetail />
         </div>
 
+        {/* Left collapse toggle */}
         <button
           onClick={() => setLeftCollapsed(!leftCollapsed)}
           className="flex-none w-5 bg-panel hover:bg-border border-r border-border flex items-center justify-center text-text-secondary hover:text-copper transition-colors z-10"
@@ -431,17 +435,54 @@ export default function Dashboard() {
           <span className="text-xs" style={{ writingMode: 'vertical-rl' }}>{leftCollapsed ? '›' : '‹'}</span>
         </button>
 
+        {/* Map */}
         <div className="flex-1 relative overflow-hidden">
           <MapView />
           <OverlayPanel />
         </div>
 
-        {/* ChatPanel manages its own open/close — just render it */}
-        <div className="flex-none border-l border-border" style={{ width: 340 }}>
-          <div style={{ width: 340, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <ChatPanel />
+        {/* Right chat column — only rendered when chatOpen */}
+        {chatOpen ? (
+          <div
+            className="flex-none border-l border-border"
+            style={{ width: 340 }}
+          >
+            <div style={{ width: 340, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <ChatPanel onClose={() => setChatOpen(false)} />
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Reopen chat button when column is closed */
+          <button
+            onClick={() => setChatOpen(true)}
+            style={{
+              flexShrink: 0,
+              width: 36,
+              height: '100%',
+              background: '#111827',
+              borderLeft: '1px solid #1f2937',
+              border: 'none',
+              borderLeft: '1px solid #1f2937',
+              color: '#6366f1',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#1f2937'}
+            onMouseLeave={e => e.currentTarget.style.background = '#111827'}
+            title="Open chat"
+          >
+            <span style={{ fontSize: '16px' }}>💬</span>
+            <span style={{
+              fontSize: '9px', fontWeight: 700, color: '#6366f1',
+              writingMode: 'vertical-rl', letterSpacing: '1px',
+            }}>CHAT</span>
+          </button>
+        )}
 
       </div>
     </div>
