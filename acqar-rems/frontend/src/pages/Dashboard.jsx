@@ -383,7 +383,7 @@ export default function Dashboard() {
           {/* Floating buttons */}
           <div style={{
             position: 'absolute', bottom: 16, left: 0, right: 0,
-            display: 'flex', justifyContent: 'space-between',
+              display: mobileDrawer !== null ? 'none' : 'flex',  // ← change this
             paddingLeft: 16, paddingRight: 16,
             zIndex: mobileDrawer !== null ? 0 : 40,
             pointerEvents: mobileDrawer !== null ? 'none' : 'auto',
