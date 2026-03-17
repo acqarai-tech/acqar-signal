@@ -1104,7 +1104,7 @@ const [showSignIn, setShowSignIn] = useState(false);
       </section>
 
       {/* ── FOOTER ── */}
-      <footer>
+      {/* <footer>
         <div className="footer-inner">
           <div className="footer-brand">
             <div className="logo-text"><span>ACQ</span><span style={{ color: "var(--text-primary)" }}>AR</span> <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>Signal</span></div>
@@ -1137,8 +1137,134 @@ const [showSignIn, setShowSignIn] = useState(false);
             {["Terms", "Privacy", "Cookies", "Security"].map(l => <a href="#" key={l}>{l}</a>)}
           </div>
         </div>
-      </footer>
+      </footer> */}
 
+
+      {/* ── FOOTER ── */}
+<footer style={{ position: 'relative', background: '#F5F5F4', borderTop: '1px solid rgba(10,10,10,0.06)', fontFamily: "'Inter', sans-serif" }}>
+  
+  {/* Copper accent line */}
+  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent 0%, #B87333 35%, #B87333 65%, transparent 100%)' }}></div>
+
+  <div style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 48px 32px' }}>
+    
+    {/* Main grid */}
+    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '32px 32px', marginBottom: 80 }}>
+      
+      {/* Brand column */}
+      <div>
+        <div style={{ marginBottom: 24, lineHeight: 1 }}>
+          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.5px' }}>
+            <span style={{ color: '#B87333' }}>ACQ</span><span style={{ color: '#111111' }}>AR</span>
+          </span>
+        </div>
+        <p style={{ fontSize: 12, lineHeight: 1.75, color: 'rgba(10,10,10,0.5)', fontWeight: 500, marginBottom: 28, maxWidth: 280 }}>
+          The world's first AI-powered property intelligence platform for Dubai real estate. Independent, instant, investment-grade.
+        </p>
+        {/* RICS badge */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'white', border: '1px solid rgba(184,115,51,0.2)', borderRadius: 999, marginBottom: 32 }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 12l2 2 4-4" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(10,10,10,0.7)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>RICS-Aligned Intelligence</span>
+        </div>
+        {/* Social links */}
+        <div style={{ display: 'flex', gap: 12 }}>
+          {[
+            { href: 'https://www.linkedin.com/company/acqar', label: 'LinkedIn', icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> },
+            { href: 'https://www.instagram.com/acqar.dxb/', label: 'Instagram', icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg> },
+          ].map(({ href, label, icon }) => (
+            <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+              style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(10,10,10,0.09)', background: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.35)', textDecoration: 'none', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#B87333'; e.currentTarget.style.borderColor = 'rgba(184,115,51,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(10,10,10,0.35)'; e.currentTarget.style.borderColor = 'rgba(10,10,10,0.09)'; }}
+            >{icon}</a>
+          ))}
+        </div>
+      </div>
+
+      {/* Product column */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
+          <h6 style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Product</h6>
+        </div>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[
+            { label: 'ValuCheck™', active: true },
+            { label: 'ACQAR Signal™', soon: true },
+            { label: 'ACQAR Passport™', soon: true },
+            { label: 'Pricing Tiers', active: true },
+          ].map(({ label, active, soon }) => (
+            <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 600, color: active ? 'rgba(10,10,10,0.55)' : 'rgba(10,10,10,0.2)', cursor: active ? 'pointer' : 'default' }}>
+              {label}
+              {soon && <span style={{ padding: '1px 6px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', background: 'rgba(184,115,51,0.1)', color: '#B87333', border: '1px solid rgba(184,115,51,0.2)', borderRadius: 4 }}>Soon</span>}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Company column */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
+          <h6 style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Company</h6>
+        </div>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {['About ACQAR', 'How It Works', 'Pricing', 'Contact Us', 'Partners'].map(l => (
+            <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Legal column */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
+          <h6 style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Legal & Info</h6>
+        </div>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {['Intelligence Blog', 'Terms of Use', 'Privacy Policy'].map(l => (
+            <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Comparisons column */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
+          <h6 style={{ fontSize: 9.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Comparisons</h6>
+        </div>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {['vs Bayut TruEstimate', 'vs Property Finder', 'vs Traditional Valuers', 'Why ACQAR?'].map(l => (
+            <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
+          ))}
+        </ul>
+      </div>
+
+    </div>
+
+    {/* Bottom bar */}
+    <div style={{ borderTop: '1px solid rgba(10,10,10,0.06)', paddingTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontWeight: 900, fontSize: 10, letterSpacing: '0.05em' }}>
+          <span style={{ color: '#B87333' }}>ACQ</span><span style={{ color: '#0A0A0A' }}>AR</span>
+        </span>
+        <span style={{ width: 1, height: 12, background: 'rgba(10,10,10,0.15)' }}></span>
+        <span style={{ fontWeight: 600, color: 'rgba(10,10,10,0.35)', fontSize: 10, letterSpacing: '0.05em' }}>Dubai, United Arab Emirates</span>
+      </div>
+      <p style={{ fontWeight: 700, color: 'rgba(10,10,10,0.3)', textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.2em', textAlign: 'center', margin: 0 }}>
+        © 2026 ACQARLABS L.L.C-FZ. All rights reserved.
+      </p>
+      <p style={{ fontWeight: 500, color: 'rgba(10,10,10,0.25)', fontSize: 10, margin: 0 }}>
+        Not financial advice.
+      </p>
+    </div>
+
+  </div>
+</footer>
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
     </>
   );
