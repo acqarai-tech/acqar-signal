@@ -279,7 +279,7 @@
 
 
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import EventFeed from '../components/EventFeed'
 import MapView from '../components/MapView'
@@ -298,20 +298,12 @@ function useIsMobile() {
   return isMobile
 }
 
-const CHAT_WIDTH = 340
-
 export default function Dashboard() {
   const [leftCollapsed, setLeftCollapsed] = useState(false)
-  const [chatOpen, setChatOpen] = useState(true)
   const isMobile = useIsMobile()
   const [mobileDrawer, setMobileDrawer] = useState(null)
 
-  const closeDrawer = useCallback(() => setMobileDrawer(null), [])
-  const toggleDrawer = useCallback((name) => {
-    setMobileDrawer(prev => prev === name ? null : name)
-  }, [])
-
-  // ── MOBILE ─────────────────────────────────────────────────────────────────
+  // ── MOBILE ──────────────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div style={{
@@ -345,14 +337,13 @@ export default function Dashboard() {
             }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#B87333', letterSpacing: '1px' }}>◆ FEED</span>
               <button
-                onClick={closeDrawer}
+                onClick={() => setMobileDrawer(null)}
                 style={{
                   width: 36, height: 36, background: '#1f2937',
                   border: '1px solid #374151', borderRadius: '6px',
                   color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  touchAction: 'manipulation',
-                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
                 }}
               >✕</button>
             </div>
@@ -360,13 +351,11 @@ export default function Dashboard() {
             <EventFeed />
           </div>
 
-          {/* Chat Drawer — close button lives HERE, not in ChatPanel */}
+          {/* Chat Drawer — ChatPanel manages its own open/close internally */}
           <div style={{
             position: 'absolute',
             bottom: mobileDrawer === 'chat' ? 0 : '-110%',
             left: 0, right: 0, height: '72%',
-            background: '#111827',
-            borderTop: '2px solid #6366f1',
             borderRadius: '16px 16px 0 0',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
@@ -374,44 +363,7 @@ export default function Dashboard() {
             zIndex: 50,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
-            {/* Mobile-only header with working close button */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '0 12px', height: 44,
-              background: '#0d1117', borderBottom: '1px solid #1f2937',
-              flexShrink: 0,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                <div style={{
-                  width: 22, height: 22, borderRadius: '6px', background: '#1f2937',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px',
-                }}>💬</div>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>CHAT</span>
-              </div>
-
-              {/* This button is a direct child of Dashboard — no ChatPanel interference */}
-              <button
-                onClick={closeDrawer}
-                style={{
-                  width: 36, height: 36,
-                  background: '#1f2937',
-                  border: '1px solid #374151',
-                  borderRadius: '6px',
-                  color: '#f9fafb',
-                  cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '16px', fontWeight: 700,
-                  touchAction: 'manipulation',
-                  WebkitTapHighlightColor: 'transparent',
-                  flexShrink: 0,
-                }}
-              >✕</button>
-            </div>
-
-            {/* ChatPanel without its own header on mobile */}
-            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <ChatPanel isMobile={true} />
-            </div>
+            <ChatPanel />
           </div>
 
           {/* Floating buttons */}
@@ -425,31 +377,27 @@ export default function Dashboard() {
             transition: 'opacity 0.2s',
           }}>
             <button
-              onClick={() => toggleDrawer('feed')}
+              onClick={() => setMobileDrawer('feed')}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '10px 20px',
-                background: 'rgba(13,27,42,0.95)',
+                padding: '10px 20px', background: 'rgba(13,27,42,0.95)',
                 border: '1px solid #0F3460', borderRadius: '24px',
                 color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
                 cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                backdropFilter: 'blur(10px)',
-                touchAction: 'manipulation',
+                backdropFilter: 'blur(10px)', touchAction: 'manipulation',
                 WebkitTapHighlightColor: 'transparent',
               }}
             ><span>☰</span> Feed</button>
 
             <button
-              onClick={() => toggleDrawer('chat')}
+              onClick={() => setMobileDrawer('chat')}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '10px 20px',
-                background: 'rgba(13,27,42,0.95)',
+                padding: '10px 20px', background: 'rgba(13,27,42,0.95)',
                 border: '1px solid #0F3460', borderRadius: '24px',
                 color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
                 cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                backdropFilter: 'blur(10px)',
-                touchAction: 'manipulation',
+                backdropFilter: 'blur(10px)', touchAction: 'manipulation',
                 WebkitTapHighlightColor: 'transparent',
               }}
             ><span>💬</span> Chat</button>
@@ -459,7 +407,7 @@ export default function Dashboard() {
     )
   }
 
-  // ── DESKTOP ────────────────────────────────────────────────────────────────
+  // ── DESKTOP ──────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col w-full h-screen bg-dark overflow-hidden">
       <Header />
@@ -488,31 +436,13 @@ export default function Dashboard() {
           <OverlayPanel />
         </div>
 
-        {!chatOpen && (
-          <button
-            onClick={() => setChatOpen(true)}
-            style={{
-              position: 'absolute', right: 0, top: '50%',
-              transform: 'translateY(-50%)', zIndex: 20,
-              background: '#0d1117', border: '1px solid #1f2937',
-              borderRight: 'none', borderRadius: '6px 0 0 6px',
-              color: '#9ca3af', padding: '12px 6px', cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-            }}
-          >
-            <span style={{ fontSize: '14px' }}>💬</span>
-            <span style={{ writingMode: 'vertical-rl', fontSize: '9px', fontWeight: 700, color: '#6b7280', letterSpacing: '1px' }}>CHAT</span>
-          </button>
-        )}
-
-        {chatOpen && (
-          <div className="flex-none border-l border-border" style={{ width: CHAT_WIDTH }}>
-            <div style={{ width: CHAT_WIDTH, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              {/* Desktop: close button is inside ChatPanel */}
-              <ChatPanel onClose={() => setChatOpen(false)} isMobile={false} />
-            </div>
+        {/* ChatPanel manages its own open/close — just render it */}
+        <div className="flex-none border-l border-border" style={{ width: 340 }}>
+          <div style={{ width: 340, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <ChatPanel />
           </div>
-        )}
+        </div>
+
       </div>
     </div>
   )
