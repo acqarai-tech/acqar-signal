@@ -180,7 +180,7 @@ export default function EventDetail() {
           </a>
           <a href="https://acqar.ai" target="_blank" rel="noopener noreferrer"
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              display: 'none', alignItems: 'center', justifyContent: 'space-between',
               padding: '8px 10px', background: 'rgba(41,128,185,0.1)',
               border: '1px solid #2980B9', borderRadius: '6px', textDecoration: 'none',
             }}>
