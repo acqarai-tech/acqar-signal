@@ -10,7 +10,11 @@ export default function App() {
       <EventsProvider>
         <Routes>
             <Route path="/" element={<Landing />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={
+  <ProtectedRoute>
+    <Dashboard />
+  </ProtectedRoute>
+} />
         </Routes>
       </EventsProvider>
     </SocketProvider>
