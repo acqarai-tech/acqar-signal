@@ -336,7 +336,7 @@ export default function Dashboard() {
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
             transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
-            zIndex: 110,
+            zIndex: 51,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
             <div style={{
@@ -371,7 +371,7 @@ export default function Dashboard() {
   display: 'flex', flexDirection: 'column',
   overflow: 'hidden',
   transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
-  zIndex: 110,                              // ← increase from 50 to 51
+  zIndex: 51,                              // ← increase from 50 to 51
   boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
 }}>
   <ChatPanel onClose={() => setMobileDrawer(null)} />
