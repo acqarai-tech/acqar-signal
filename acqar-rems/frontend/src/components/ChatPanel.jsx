@@ -546,8 +546,10 @@ export default function ChatPanel({ onClose }) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
   }
 
-  const handleClose = (e) => {
+  // ── Close handler — works on both touch and mouse ─────────────────────────
+  const triggerClose = (e) => {
     e.stopPropagation()
+    e.preventDefault()
     if (typeof onClose === 'function') onClose()
   }
 
@@ -569,6 +571,9 @@ export default function ChatPanel({ onClose }) {
         borderBottom: '1px solid #1f2937',
         flexShrink: 0,
         height: 44,
+        // Ensure header is always on top and touchable
+        position: 'relative',
+        zIndex: 10,
       }}>
         {/* Icon */}
         <div style={{
@@ -583,7 +588,6 @@ export default function ChatPanel({ onClose }) {
           CHAT
         </span>
 
-        {/* as username */}
         <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
         <span style={{ fontSize: '10px', fontWeight: 700, color: nameColor(myName) }}>
           {myName}
@@ -608,36 +612,25 @@ export default function ChatPanel({ onClose }) {
             color: '#4b5563', cursor: 'pointer',
             fontSize: '15px', padding: '4px',
             lineHeight: 1, borderRadius: '4px',
-            transition: 'color 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.color = '#9ca3af'}
-          onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
         >↺</button>
 
-        {/* ✕ Close — ALWAYS visible, works on desktop + mobile */}
+        {/* ✕ Close button — onTouchEnd for mobile, onClick for desktop */}
         <button
-          onClick={handleClose}
+          onTouchEnd={triggerClose}
+          onClick={triggerClose}
           title="Close"
           style={{
-            width: 26, height: 26,
+            width: 36, height: 36,         // larger touch target for mobile
             background: '#1f2937',
             border: '1px solid #374151',
             borderRadius: '6px',
             color: '#9ca3af',
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '13px', flexShrink: 0,
-            transition: 'all 0.15s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = '#ef4444'
-            e.currentTarget.style.borderColor = '#ef4444'
-            e.currentTarget.style.color = '#fff'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = '#1f2937'
-            e.currentTarget.style.borderColor = '#374151'
-            e.currentTarget.style.color = '#9ca3af'
+            fontSize: '14px', flexShrink: 0,
+            WebkitTapHighlightColor: 'transparent', // remove iOS tap flash
+            touchAction: 'manipulation',
           }}
         >✕</button>
       </div>
@@ -737,6 +730,7 @@ export default function ChatPanel({ onClose }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '15px', flexShrink: 0,
             transition: 'background 0.15s',
+            touchAction: 'manipulation',
           }}
         >↗</button>
       </form>
