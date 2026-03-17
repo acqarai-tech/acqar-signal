@@ -170,7 +170,7 @@ export default function Header() {
         </div>
 
         {/* Search bar */}
-        <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'280px', margin:'0 8px'}}>
+        {/* <div style={{display:'flex', alignItems:'center', gap:'6px', flex:1, maxWidth:'280px', margin:'0 8px'}}>
           {searchOpen ? (
             <input
               autoFocus
@@ -194,7 +194,7 @@ export default function Header() {
               🔍 <span>Search Dubai RE signals...</span>
             </button>
           )}
-        </div>
+        </div> */}
 
         {/* Status indicator */}
         <div className="flex items-center gap-3 ml-2">
