@@ -389,7 +389,7 @@ const styles = `
   .t-persona{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--copper);background:var(--copper-tint);border:1px solid var(--border-copper);padding:3px 9px;border-radius:20px;margin-bottom:14px;align-self:flex-start}
   .t-persona-dot{width:4px;height:4px;border-radius:50%;background:var(--copper)}
   .t-quote{font-size:13.5px;color:var(--text-secondary);line-height:1.72;margin-bottom:20px;flex:1}
-  .t-quote strong{color:var(--text-primary);font-weight:600}
+  .t-quote strong{color:var(--text-primary);font-weight:800}
   .t-author{display:flex;align-items:center;gap:12px;border-top:1px solid var(--border);padding-top:16px}
   .t-avatar{width:38px;height:38px;border-radius:50%;background:var(--copper-tint);border:1.5px solid var(--border-copper);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--copper);flex-shrink:0;letter-spacing:0.5px}
   .t-info .name{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text-primary)}
