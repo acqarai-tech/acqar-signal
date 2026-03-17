@@ -23,8 +23,11 @@
       "dest": "https://acqar-signal-production.up.railway.app/socket.io/$1"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/frontend/dist/index.html"
     }
   ]
 }
