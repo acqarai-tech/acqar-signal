@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+// Add this import at the top alongside your other imports
+import SignInModal from "./components/SignInModal";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -584,6 +586,8 @@ export default function AcqarSignal() {
 
   const navigate = useNavigate();
 
+  const [showSignIn, setShowSignIn] = useState(false);
+
   return (
     <>
       <style>{styles}</style>
@@ -606,7 +610,7 @@ export default function AcqarSignal() {
             {theme === "dark" ? "☀" : "🌙"}
           </button>
           {/* <button className="btn-ghost">Sign In</button> */}
-          <button className="btn-primary" onClick={() => navigate("/dashboard")}>
+          <button className="btn-primary" onClick={() => setShowSignIn(true)}>
   Request Access →
 </button>
         </div>
