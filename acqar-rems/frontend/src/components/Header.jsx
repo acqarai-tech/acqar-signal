@@ -546,21 +546,10 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* Status indicator */}
-        {/* <div className="flex items-center gap-3 ml-2">
-          <div className="flex items-center gap-1.5">
-            <div style={{
-              width:6, height:6, borderRadius:'50%',
-              background: isConnected ? '#27AE60' : '#666',
-              boxShadow: isConnected ? '0 0 6px #27AE60' : 'none'
-            }} />
-            <span style={{fontSize:'11px', color: isConnected ? '#27AE60' : '#666', fontWeight:600}}>
-              {isConnected ? 'LIVE' : 'OFFLINE'}
-            </span>
-          </div>
-        </div> */}
-
-        <div className="flex items-center gap-3 ml-2" style={{flex:1, justifyContent:'center'}}>
+        {/* Center group: status + time filters */}
+<div style={{flex:1, display:'flex', justifyContent:'center', alignItems:'center', gap:'12px'}}>
+  
+  {/* Status indicator */}
   <div className="flex items-center gap-1.5">
     <div style={{
       width:6, height:6, borderRadius:'50%',
@@ -571,46 +560,21 @@ export default function Header() {
       {isConnected ? 'LIVE' : 'OFFLINE'}
     </span>
   </div>
-</div>
 
-        {/* Time filter buttons — centered, disabled (visual only) */}
-        {/* <div style={{
-          display:'flex', gap:'6px',
-          flex:1, justifyContent:'center'
-        }}>
-          {[6, 24, 72].map(h => (
-            <button
-              key={h}
-              disabled
-              style={{
-                padding:'4px 8px', fontSize:'10px', fontWeight:700,
-                border: '1px solid #0F3460',
-color: '#B3B3B3',
-                color: '#C0C0C0',
-                borderRadius:'4px',
-                cursor:'not-allowed',
-                opacity:0.5,
-                pointerEvents:'none',
-              }}
-            >
-              {h}H
-            </button>
-          ))}
-        </div> */}
+  {/* Time filter buttons */}
+  <div style={{display:'flex', gap:'6px'}}>
+    {[6, 24, 72].map(h => (
+      <button key={h} disabled style={{
+        padding:'4px 8px', fontSize:'10px', fontWeight:700,
+        border: activeTimeFilter === h ? '1px solid #B87333' : '1px solid #0F3460',
+        background: activeTimeFilter === h ? 'rgba(184,115,51,0.2)' : 'transparent',
+        color: activeTimeFilter === h ? '#B87333' : '#B3B3B3',
+        borderRadius:'4px', cursor:'not-allowed', pointerEvents:'none'
+      }}>{h}H</button>
+    ))}
+  </div>
 
-       {/* Time filter buttons */}
-<div style={{display:'flex', gap:'6px', flex:1, justifyContent:'center'}}>
-  {[6, 24, 72].map(h => (
-    <button key={h} disabled style={{
-      padding:'4px 8px', fontSize:'10px', fontWeight:700,
-      border: activeTimeFilter === h ? '1px solid #B87333' : '1px solid #0F3460',
-      background: activeTimeFilter === h ? 'rgba(184,115,51,0.2)' : 'transparent',
-      color: activeTimeFilter === h ? '#B87333' : '#B3B3B3',
-      borderRadius:'4px', cursor:'not-allowed', pointerEvents:'none'
-    }}>{h}H</button>
-  ))}
 </div>
-      </div>
 
       {/* Prediction Ticker Strip */}
       <div style={{
