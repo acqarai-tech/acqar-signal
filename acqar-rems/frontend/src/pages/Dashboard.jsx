@@ -298,15 +298,15 @@ function useIsMobile() {
   return isMobile
 }
 
+const CHAT_WIDTH = 340 // wider desktop chat panel
+
 export default function Dashboard() {
   const [leftCollapsed, setLeftCollapsed] = useState(false)
+  const [chatOpen, setChatOpen] = useState(true) // desktop chat open state
   const isMobile = useIsMobile()
   const [mobileDrawer, setMobileDrawer] = useState(null)
 
-  const closeDrawer = useCallback(() => {
-    setMobileDrawer(null)
-  }, [])
-
+  const closeDrawer = useCallback(() => setMobileDrawer(null), [])
   const toggleDrawer = useCallback((name) => {
     setMobileDrawer(prev => prev === name ? null : name)
   }, [])
@@ -320,7 +320,6 @@ export default function Dashboard() {
         position: 'relative', display: 'flex', flexDirection: 'column',
       }}>
         <Header />
-
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <MapView />
           <OverlayPanel />
@@ -332,7 +331,7 @@ export default function Dashboard() {
               onClick={closeDrawer}
               style={{
                 position: 'absolute', inset: 0,
-                background: 'rgba(0,0,0,0.4)',
+                background: 'rgba(0,0,0,0.5)',
                 zIndex: 49,
               }}
             />
@@ -342,8 +341,7 @@ export default function Dashboard() {
           <div style={{
             position: 'absolute',
             bottom: mobileDrawer === 'feed' ? 0 : '-110%',
-            left: 0, right: 0,
-            height: '65%',
+            left: 0, right: 0, height: '65%',
             background: '#0D1B2A',
             borderTop: '2px solid #B87333',
             borderRadius: '16px 16px 0 0',
@@ -372,12 +370,11 @@ export default function Dashboard() {
             <EventFeed />
           </div>
 
-          {/* Chat Drawer */}
+          {/* Chat Drawer — zIndex 51 so it's above backdrop */}
           <div style={{
             position: 'absolute',
             bottom: mobileDrawer === 'chat' ? 0 : '-110%',
-            left: 0, right: 0,
-            height: '72%',
+            left: 0, right: 0, height: '72%',
             borderRadius: '16px 16px 0 0',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
@@ -398,32 +395,26 @@ export default function Dashboard() {
             opacity: mobileDrawer !== null ? 0 : 1,
             transition: 'opacity 0.2s',
           }}>
-            <button
-              onClick={() => toggleDrawer('feed')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '10px 20px',
-                background: 'rgba(13,27,42,0.95)',
-                border: '1px solid #0F3460', borderRadius: '24px',
-                color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
-                cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                backdropFilter: 'blur(10px)',
-              }}
-            >
+            <button onClick={() => toggleDrawer('feed')} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '10px 20px',
+              background: 'rgba(13,27,42,0.95)',
+              border: '1px solid #0F3460', borderRadius: '24px',
+              color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
+              cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(10px)',
+            }}>
               <span>☰</span> Feed
             </button>
-            <button
-              onClick={() => toggleDrawer('chat')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '10px 20px',
-                background: 'rgba(13,27,42,0.95)',
-                border: '1px solid #0F3460', borderRadius: '24px',
-                color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
-                cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                backdropFilter: 'blur(10px)',
-              }}
-            >
+            <button onClick={() => toggleDrawer('chat')} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '10px 20px',
+              background: 'rgba(13,27,42,0.95)',
+              border: '1px solid #0F3460', borderRadius: '24px',
+              color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
+              cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(10px)',
+            }}>
               <span>💬</span> Chat
             </button>
           </div>
@@ -450,7 +441,7 @@ export default function Dashboard() {
           <EventDetail />
         </div>
 
-        {/* Collapse Toggle Left */}
+        {/* Collapse Left */}
         <button
           onClick={() => setLeftCollapsed(!leftCollapsed)}
           className="flex-none w-5 bg-panel hover:bg-border border-r border-border flex items-center justify-center text-text-secondary hover:text-copper transition-colors z-10"
@@ -467,12 +458,46 @@ export default function Dashboard() {
           <OverlayPanel />
         </div>
 
-        {/* Right Panel - Chat always visible, no toggle */}
-        <div className="flex-none border-l border-border" style={{ width: 288 }}>
-          <div style={{ width: 288, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <ChatPanel onClose={() => {}} />
+        {/* Chat open button — shown when chat is closed */}
+        {!chatOpen && (
+          <button
+            onClick={() => setChatOpen(true)}
+            style={{
+              position: 'absolute', right: 0, top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 20,
+              background: '#0d1117',
+              border: '1px solid #1f2937',
+              borderRight: 'none',
+              borderRadius: '6px 0 0 6px',
+              color: '#9ca3af',
+              padding: '12px 6px',
+              cursor: 'pointer',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '6px',
+            }}
+          >
+            <span style={{ fontSize: '14px' }}>💬</span>
+            <span style={{
+              writingMode: 'vertical-rl', fontSize: '9px',
+              fontWeight: 700, color: '#6b7280', letterSpacing: '1px'
+            }}>CHAT</span>
+          </button>
+        )}
+
+        {/* Right Chat Panel — wider, closeable */}
+        {chatOpen && (
+          <div
+            className="flex-none border-l border-border"
+            style={{
+              width: CHAT_WIDTH,
+              display: 'flex', flexDirection: 'column',
+              transition: 'width 0.3s',
+            }}
+          >
+            <ChatPanel onClose={() => setChatOpen(false)} />
           </div>
-        </div>
+        )}
 
       </div>
     </div>
