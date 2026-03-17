@@ -66,7 +66,7 @@
 
 
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import EventFeed from '../components/EventFeed'
 import MapView from '../components/MapView'
@@ -75,14 +75,13 @@ import FilterBar from '../components/FilterBar'
 import EventDetail from '../components/EventDetail'
 import OverlayPanel from '../components/OverlayPanel'
 
-// Hook to detect mobile
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
-  useState(() => {
+  useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768)
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
-  })
+  }, [])
   return isMobile
 }
 
@@ -91,69 +90,136 @@ export default function Dashboard() {
   const [rightCollapsed, setRightCollapsed] = useState(false)
   const isMobile = useIsMobile()
 
-  // Mobile active tab: 'map' | 'feed' | 'chat'
-  const [mobileTab, setMobileTab] = useState('map')
+  // Mobile: which drawer is open — null | 'feed' | 'chat'
+  const [mobileDrawer, setMobileDrawer] = useState(null)
+
+  const toggleDrawer = (name) => setMobileDrawer(prev => prev === name ? null : name)
 
   // ── MOBILE LAYOUT ──────────────────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100dvh', background: '#0D1B2A', overflow: 'hidden' }}>
+      <div style={{
+        width: '100%', height: '100dvh',
+        background: '#0D1B2A', overflow: 'hidden',
+        position: 'relative', display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Header */}
         <Header />
 
-        {/* Content area */}
-        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+        {/* Map always fullscreen underneath */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <MapView />
+          <OverlayPanel />
+          <EventDetail />
 
-          {/* MAP TAB */}
-          <div style={{ display: mobileTab === 'map' ? 'block' : 'none', width: '100%', height: '100%', position: 'relative' }}>
-            <MapView />
-            <OverlayPanel />
-            <EventDetail />
-          </div>
-
-          {/* FEED TAB */}
-          <div style={{ display: mobileTab === 'feed' ? 'flex' : 'none', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden' }}>
+          {/* Feed Drawer — slides up from bottom left */}
+          <div style={{
+            position: 'absolute',
+            bottom: mobileDrawer === 'feed' ? 0 : '-100%',
+            left: 0, right: 0,
+            height: '65%',
+            background: '#0D1B2A',
+            borderTop: '1px solid #0F3460',
+            borderRadius: '14px 14px 0 0',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+            transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
+            zIndex: 50,
+            boxShadow: '0 -8px 32px rgba(0,0,0,0.6)',
+          }}>
+            {/* Drawer handle */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 16px 6px',
+              borderBottom: '1px solid #0F3460', flexShrink: 0,
+            }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#B87333', letterSpacing: '1px' }}>◆ FEED</span>
+              <button
+                onClick={() => setMobileDrawer(null)}
+                style={{ background: 'none', border: 'none', color: '#555', fontSize: '16px', cursor: 'pointer', padding: '0 4px' }}
+              >✕</button>
+            </div>
             <FilterBar />
             <EventFeed />
-            <EventDetail />
           </div>
 
-          {/* CHAT TAB */}
-          <div style={{ display: mobileTab === 'chat' ? 'flex' : 'none', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden' }}>
+          {/* Chat Drawer — slides up from bottom right */}
+          <div style={{
+            position: 'absolute',
+            bottom: mobileDrawer === 'chat' ? 0 : '-100%',
+            left: 0, right: 0,
+            height: '65%',
+            background: '#16213E',
+            borderTop: '1px solid #0F3460',
+            borderRadius: '14px 14px 0 0',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+            transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
+            zIndex: 50,
+            boxShadow: '0 -8px 32px rgba(0,0,0,0.6)',
+          }}>
+            {/* Drawer handle */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 16px 6px',
+              borderBottom: '1px solid #0F3460', flexShrink: 0,
+            }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#B87333', letterSpacing: '1px' }}>◆ LIVE CHAT</span>
+              <button
+                onClick={() => setMobileDrawer(null)}
+                style={{ background: 'none', border: 'none', color: '#555', fontSize: '16px', cursor: 'pointer', padding: '0 4px' }}
+              >✕</button>
+            </div>
             <ChatPanel />
           </div>
 
-        </div>
+          {/* Floating bottom buttons — Feed (left) + Chat (right) */}
+          {mobileDrawer === null && (
+            <div style={{
+              position: 'absolute', bottom: 16, left: 0, right: 0,
+              display: 'flex', justifyContent: 'space-between',
+              paddingLeft: 16, paddingRight: 16,
+              zIndex: 40, pointerEvents: 'none',
+            }}>
+              {/* Feed button */}
+              <button
+                onClick={() => toggleDrawer('feed')}
+                style={{
+                  pointerEvents: 'all',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '9px 18px',
+                  background: 'rgba(13,27,42,0.92)',
+                  border: '1px solid #0F3460',
+                  borderRadius: '24px',
+                  color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <span style={{ fontSize: '14px' }}>☰</span> Feed
+              </button>
 
-        {/* Bottom Tab Bar */}
-        <div style={{
-          display: 'flex', flexShrink: 0,
-          borderTop: '1px solid #0F3460',
-          background: '#0A1628',
-          height: 52,
-        }}>
-          {[
-            { key: 'map', icon: '🗺️', label: 'Map' },
-            { key: 'feed', icon: '📡', label: 'Feed' },
-            { key: 'chat', icon: '💬', label: 'Chat' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setMobileTab(tab.key)}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: '2px',
-                background: 'none', border: 'none', cursor: 'pointer',
-                borderTop: mobileTab === tab.key ? '2px solid #B87333' : '2px solid transparent',
-                transition: 'all 0.15s',
-              }}
-            >
-              <span style={{ fontSize: '18px' }}>{tab.icon}</span>
-              <span style={{
-                fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px',
-                color: mobileTab === tab.key ? '#B87333' : '#444',
-              }}>{tab.label}</span>
-            </button>
-          ))}
+              {/* Chat button */}
+              <button
+                onClick={() => toggleDrawer('chat')}
+                style={{
+                  pointerEvents: 'all',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '9px 18px',
+                  background: 'rgba(13,27,42,0.92)',
+                  border: '1px solid #0F3460',
+                  borderRadius: '24px',
+                  color: '#FAFAFA', fontSize: '13px', fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <span style={{ fontSize: '14px' }}>💬</span> Chat
+              </button>
+            </div>
+          )}
         </div>
       </div>
     )
