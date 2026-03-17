@@ -480,7 +480,8 @@ function useIsMobile() {
   return isMobile
 }
 
-export default function ChatPanel() {
+// onClose: called when user closes the panel (desktop: collapses column, mobile: closes drawer)
+export default function ChatPanel({ onClose }) {
   const myName = GUEST_NAME
   const isMobile = useIsMobile()
 
@@ -490,9 +491,16 @@ export default function ChatPanel() {
   const [error, setError] = useState(null)
   const [msgCount, setMsgCount] = useState(null)
 
-  // On DESKTOP only: self-managed open/close
-  // On MOBILE: Dashboard's drawer controls visibility — ChatPanel is always "open"
   const [desktopOpen, setDesktopOpen] = useState(true)
+
+  const handleClose = () => {
+    if (isMobile) {
+      onClose?.()
+    } else {
+      setDesktopOpen(false)
+      onClose?.()
+    }
+  }
 
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
@@ -616,6 +624,23 @@ export default function ChatPanel() {
               touchAction: 'manipulation',
             }}
           >↺</button>
+
+          {/* Close button — dismisses the mobile drawer */}
+          <button
+            onClick={handleClose}
+            style={{
+              width: 34, height: 34,
+              background: '#1f2937',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              color: '#9ca3af',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '15px', flexShrink: 0,
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >✕</button>
         </div>
 
         {/* Error */}
@@ -725,31 +750,14 @@ export default function ChatPanel() {
 
   // ── DESKTOP ─────────────────────────────────────────────────────────────
 
+  // When closed on desktop, render nothing — Dashboard collapses the column
+  if (!desktopOpen) return null
+
   return (
     <>
-      {/* Desktop floating reopen button (when closed) */}
-      {!desktopOpen && (
-        <button
-          onClick={() => setDesktopOpen(true)}
-          style={{
-            position: 'fixed',
-            bottom: 20, right: 20,
-            zIndex: 200,
-            width: 52, height: 52,
-            borderRadius: '50%',
-            background: '#6366f1',
-            border: 'none', color: '#fff',
-            fontSize: '22px',
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(99,102,241,0.5)',
-          }}
-        >💬</button>
-      )}
-
       <div style={{
         height: '100%',
-        display: desktopOpen ? 'flex' : 'none',
+        display: 'flex',
         flexDirection: 'column',
         background: '#111827',
         fontFamily: "'Inter', sans-serif",
@@ -789,7 +797,7 @@ export default function ChatPanel() {
           >↺</button>
 
           <button
-            onClick={() => setDesktopOpen(false)}
+            onClick={handleClose}
             style={{
               width: 30, height: 30,
               background: '#1f2937',
