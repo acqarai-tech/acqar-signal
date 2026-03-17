@@ -185,7 +185,7 @@ export default function EventDetail() {
               border: '1px solid #2980B9', borderRadius: '6px', textDecoration: 'none',
             }}>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#2980B9' }}>📊 DealLens™ — AED 149</div>
+              
               <div style={{ fontSize: '10px', color: '#B3B3B3' }}>Buy/Pass rating + 3-year prediction</div>
             </div>
             <span style={{ color: '#2980B9', fontSize: '14px' }}>→</span>
