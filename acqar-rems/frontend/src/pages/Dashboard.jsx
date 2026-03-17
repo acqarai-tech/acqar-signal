@@ -279,7 +279,7 @@
 
 
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Header from '../components/Header'
 import EventFeed from '../components/EventFeed'
 import MapView from '../components/MapView'
@@ -303,8 +303,13 @@ export default function Dashboard() {
   const isMobile = useIsMobile()
   const [mobileDrawer, setMobileDrawer] = useState(null)
 
-  const closeDrawer = () => setMobileDrawer(null)
-  const toggleDrawer = (name) => setMobileDrawer(prev => prev === name ? null : name)
+  const closeDrawer = useCallback(() => {
+    setMobileDrawer(null)
+  }, [])
+
+  const toggleDrawer = useCallback((name) => {
+    setMobileDrawer(prev => prev === name ? null : name)
+  }, [])
 
   // ── MOBILE ─────────────────────────────────────────────────────────────────
   if (isMobile) {
@@ -317,12 +322,11 @@ export default function Dashboard() {
         <Header />
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          {/* Map always visible */}
           <MapView />
           <OverlayPanel />
           <EventDetail />
 
-          {/* Backdrop — tap outside to close drawer */}
+          {/* Backdrop */}
           {mobileDrawer !== null && (
             <div
               onClick={closeDrawer}
@@ -378,14 +382,13 @@ export default function Dashboard() {
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
             transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
-            zIndex: 50,
+            zIndex: 51,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
-            {/* ChatPanel handles its own close via onClose prop */}
             <ChatPanel onClose={closeDrawer} />
           </div>
 
-          {/* Floating buttons — only when no drawer open */}
+          {/* Floating buttons */}
           <div style={{
             position: 'absolute', bottom: 16, left: 0, right: 0,
             display: 'flex', justifyContent: 'space-between',
@@ -435,7 +438,7 @@ export default function Dashboard() {
       <Header />
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Left Panel - Feed */}
+        {/* Left Panel */}
         <div
           className={`flex-none transition-all duration-300 ${leftCollapsed ? 'w-0' : 'w-80'} overflow-hidden border-r border-border`}
           style={{ position: 'relative' }}
@@ -464,13 +467,9 @@ export default function Dashboard() {
           <OverlayPanel />
         </div>
 
-        {/* Right Panel - Chat (always visible, no toggle) */}
-        <div
-          className="flex-none border-l border-border"
-          style={{ width: 288 }}
-        >
+        {/* Right Panel - Chat always visible, no toggle */}
+        <div className="flex-none border-l border-border" style={{ width: 288 }}>
           <div style={{ width: 288, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* On desktop the X button does nothing visible — pass no-op */}
             <ChatPanel onClose={() => {}} />
           </div>
         </div>
