@@ -306,9 +306,13 @@ function useIsMobile() {
 export default function Dashboard() {
   const isMobile = useIsMobile()
   const [leftCollapsed, setLeftCollapsed] = useState(false)
-  // const [chatOpen, setChatOpen] = useState(true)
-  const [chatOpen, setChatOpen] = useState(() => !window.matchMedia('(max-width: 767px)').matches)
+  const [chatOpen, setChatOpen] = useState(false) // always false on init, desktop opens via useEffect
   const [mobileDrawer, setMobileDrawer] = useState(null)
+
+  // Open chat by default on desktop only
+  useEffect(() => {
+    if (!isMobile) setChatOpen(true)
+  }, [isMobile])
 
   // Close drawer when switching from mobile to desktop
   useEffect(() => {
@@ -383,12 +387,10 @@ export default function Dashboard() {
           {/* Floating buttons */}
           <div style={{
             position: 'absolute', bottom: 16, left: 0, right: 0,
-              display: mobileDrawer !== null ? 'none' : 'flex',  // ← change this
+            display: mobileDrawer !== null ? 'none' : 'flex',
+            justifyContent: 'space-between',
             paddingLeft: 16, paddingRight: 16,
-            zIndex: mobileDrawer !== null ? 0 : 40,
-            pointerEvents: mobileDrawer !== null ? 'none' : 'auto',
-            opacity: mobileDrawer !== null ? 0 : 1,
-            transition: 'opacity 0.2s',
+            zIndex: 40,
           }}>
             <button
               onClick={() => setMobileDrawer('feed')}
@@ -480,5 +482,3 @@ export default function Dashboard() {
     </div>
   )
 }
-
-
