@@ -1768,12 +1768,12 @@ useEffect(() => {
               <div className="terminal-title">ACQAR SIGNAL — Dubai RE Intelligence&nbsp;&nbsp;<span className="terminal-live-badge">● Live</span></div>
               <div style={{ width: 60 }}></div>
             </div>
-            <div className="terminal-stats-bar">
+            {/* <div className="terminal-stats-bar">
               <div className="t-stat"><div className="label">Signals Today</div><div className="value up">247</div><div className="delta">↑ 18% vs yesterday</div></div>
               <div className="t-stat"><div className="label">S4/S5 Alerts</div><div className="value" style={{ color: "#EF4444" }}>12</div><div className="delta" style={{ color: "var(--text-muted)" }}>Active now</div></div>
               <div className="t-stat"><div className="label">Areas Monitored</div><div className="value copper">43</div><div className="delta" style={{ color: "var(--text-muted)" }}>All Dubai zones</div></div>
               <div className="t-stat"><div className="label">Last Update</div><div className="value" style={{ fontSize: 12, color: "var(--green)" }}>14s ago</div><div className="delta" style={{ color: "var(--text-muted)" }}>Auto-refresh 3min</div></div>
-            </div>
+            </div> */}
             <div className="terminal-map">
               <div className="map-grid-line h" style={{ top: "33%" }}></div>
               <div className="map-grid-line h" style={{ top: "66%" }}></div>
