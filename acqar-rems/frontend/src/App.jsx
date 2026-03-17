@@ -9,8 +9,8 @@ export default function App() {
     <SocketProvider>
       <EventsProvider>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </EventsProvider>
     </SocketProvider>
