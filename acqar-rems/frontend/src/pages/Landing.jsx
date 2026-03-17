@@ -1058,7 +1058,7 @@ const [showSignIn, setShowSignIn] = useState(false);
       {/* ── TESTIMONIALS ── */}
       <section>
         <div>
-          <div style={{ maxWidth: 1200, margin: "0 auto 52px", textAlign: "center", padding: "0 48px" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto 52px", textAlign: "center", padding: "0 24px" }}>
             <div className="section-label" style={{ justifyContent: "center" }}>Trusted By Those Who Act First</div>
             <h2 className="section-title" style={{ textAlign: "center" }}>The Edge Every<br /><span className="text-copper">Market Player Needs.</span></h2>
           </div>
