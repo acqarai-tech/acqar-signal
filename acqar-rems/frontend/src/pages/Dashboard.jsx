@@ -369,23 +369,7 @@ export default function Dashboard() {
             zIndex: 50,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 16px 8px', borderBottom: '1px solid #0F3460', flexShrink: 0,
-            }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#B87333', letterSpacing: '1px' }}>💬 CHAT</span>
-              <button
-                onClick={() => setMobileDrawer(null)}
-                style={{
-                  width: 36, height: 36, background: '#1f2937',
-                  border: '1px solid #374151', borderRadius: '6px',
-                  color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
-                }}
-              >✕</button>
-            </div>
-            <ChatPanel />
+            <ChatPanel onClose={() => setMobileDrawer(null)} />
           </div>
 
           {/* Floating buttons — hide when a drawer is open */}
