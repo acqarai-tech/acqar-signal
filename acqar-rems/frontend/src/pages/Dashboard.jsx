@@ -357,6 +357,7 @@ export default function Dashboard() {
             position: 'absolute',
             bottom: mobileDrawer === 'chat' ? 0 : '-110%',
             left: 0, right: 0, height: '72%',
+            background: '#111827',
             borderRadius: '16px 16px 0 0',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
@@ -364,8 +365,29 @@ export default function Dashboard() {
             zIndex: 50,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
-            {/* Pass onClose so ChatPanel's ✕ button closes the drawer */}
-            <ChatPanel isMobile={true} onClose={() => setMobileDrawer(null)} />
+            {/* Close button lives here in Dashboard — same pattern as Feed drawer */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 16px 8px',
+              background: '#0d1117',
+              borderBottom: '1px solid #1f2937',
+              flexShrink: 0,
+            }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>
+                💬 CHAT
+              </span>
+              <button
+                onClick={() => setMobileDrawer(null)}
+                style={{
+                  width: 36, height: 36, background: '#1f2937',
+                  border: '1px solid #374151', borderRadius: '6px',
+                  color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
+                }}
+              >✕</button>
+            </div>
+            <ChatPanel isMobile={true} />
           </div>
 
           {/* Floating buttons — hide when a drawer is open */}
