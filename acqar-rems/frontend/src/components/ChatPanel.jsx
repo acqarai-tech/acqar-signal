@@ -481,9 +481,9 @@ function useIsMobile() {
 }
 
 // onClose: called when user closes the panel (desktop: collapses column, mobile: closes drawer)
-export default function ChatPanel({ onClose }) {
+// isMobile: passed explicitly from Dashboard so there's no ambiguity about which layout to use
+export default function ChatPanel({ onClose, isMobile = false }) {
   const myName = GUEST_NAME
-  const isMobile = useIsMobile()
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
