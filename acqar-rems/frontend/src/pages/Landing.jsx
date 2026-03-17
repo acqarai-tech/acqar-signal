@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import SignInModal from "../components/SignInModal";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -590,19 +592,21 @@ export default function AcqarSignal() {
           <div className="brand"><span>ACQ</span><span>AR</span></div>
           <div className="signal-badge">Signal</div>
         </div>
-        <ul className="nav-links">
+        {/* <ul className="nav-links">
           <li><a href="#features">Features</a></li>
           <li><a href="#dashboard">Dashboard</a></li>
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#">Pricing</a></li>
           <li><a href="https://www.acqar.com" target="_blank" rel="noreferrer">ACQAR.com ↗</a></li>
-        </ul>
+        </ul> */}
         <div className="nav-actions">
           <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme" title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             {theme === "dark" ? "☀" : "🌙"}
           </button>
-          <button className="btn-ghost">Sign In</button>
-          <button className="btn-primary">Request Access →</button>
+          {/* <button className="btn-ghost">Sign In</button> */}
+           <button className="btn-primary" onClick={() => setShowSignIn(true)}>
+            Request Access →
+          </button>
         </div>
       </nav>
 
@@ -1135,6 +1139,8 @@ export default function AcqarSignal() {
           </div>
         </div>
       </footer>
+
+      {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
     </>
   );
 }
