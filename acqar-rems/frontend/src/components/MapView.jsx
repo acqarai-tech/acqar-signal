@@ -177,7 +177,8 @@ export default function MapView() {
       <div ref={mapContainer} className="w-full h-full" />
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 bg-panel/90 border border-border rounded-lg p-3 text-xs space-y-1.5">
+      {/* <div className="absolute bottom-4 left-4 bg-panel/90 border border-border rounded-lg p-3 text-xs space-y-1.5"> */}
+      <div className="map-legend absolute bottom-4 left-4 bg-panel/90 border border-border rounded-lg p-3 text-xs space-y-1.5">
         {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
           <div key={cat} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full flex-none" style={{background: color}} />
@@ -206,6 +207,9 @@ export default function MapView() {
 
       {/* Pulse animation style */}
       <style>{`
+      @media (max-width: 767px) {
+    .map-legend { display: none !important; }
+  }
         @keyframes pulse {
           0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.7); }
           70% { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
