@@ -277,7 +277,6 @@ function formatTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-// Fallback display name from Supabase auth metadata
 function getDisplayName(user) {
   if (!user) return null
   const meta = user.user_metadata || {}
@@ -287,34 +286,29 @@ function getDisplayName(user) {
   return 'User_' + user.id.slice(0, 6).toUpperCase()
 }
 
-// ChatPanel renders ONLY messages + input.
-// On mobile: Dashboard drawer owns the header and close button.
-// On desktop: pass onClose prop to show the header with a close button.
 export default function ChatPanel({ onClose }) {
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   const [authUser, setAuthUser] = useState(null)
 
   useEffect(() => {
-    // Get current session on mount
     supabase.auth.getUser().then(({ data }) => {
       setAuthUser(data?.user ?? null)
     })
-    // Keep in sync if session changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setAuthUser(session?.user ?? null)
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  // ── Fetch name from users table by email ──────────────────────────────────
+  // ── Fetch name from users table ───────────────────────────────────────────
   const [dbName, setDbName] = useState(null)
 
   useEffect(() => {
     if (!authUser?.email) return
     supabase
       .from('users')
-      .select('name')              // ← change 'name' if your column is called something else
+      .select('name')
       .eq('email', authUser.email)
       .single()
       .then(({ data }) => {
@@ -322,7 +316,6 @@ export default function ChatPanel({ onClose }) {
       })
   }, [authUser])
 
-  // Final display name: DB name → auth metadata → null
   const myName = dbName ?? (authUser ? getDisplayName(authUser) : null)
 
   // ── Chat state ────────────────────────────────────────────────────────────
@@ -385,13 +378,13 @@ export default function ChatPanel({ onClose }) {
   // ── Send ──────────────────────────────────────────────────────────────────
   const sendMessage = async (e) => {
     e?.preventDefault()
-    if (!authUser || !myName) return   // block if not signed in
+    if (!authUser || !myName) return
     const text = input.trim()
     if (!text) return
     setInput('')
     const { error } = await supabase.from('messages').insert({
-      user_id: authUser.id,            // real UUID from Supabase auth
-      user_name: myName,               // name from users table (or fallback)
+      user_id: authUser.id,
+      user_name: myName,
       content: text,
     })
     if (error) setError('Failed to send: ' + error.message)
@@ -411,7 +404,7 @@ export default function ChatPanel({ onClose }) {
       overflow: 'hidden',
     }}>
 
-      {/* Header — only shown on desktop (when onClose prop is passed) */}
+      {/* Header — only shown when onClose prop is passed (desktop + mobile drawer) */}
       {onClose && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '7px',
@@ -420,6 +413,8 @@ export default function ChatPanel({ onClose }) {
           borderBottom: '1px solid #1f2937',
           flexShrink: 0,
           height: 44,
+          position: 'relative',
+          zIndex: 10,
         }}>
           <div style={{
             width: 22, height: 22, borderRadius: '6px', background: '#1f2937',
@@ -429,7 +424,6 @@ export default function ChatPanel({ onClose }) {
 
           <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>CHAT</span>
 
-          {/* Show logged-in name or "Not signed in" */}
           {myName ? (
             <>
               <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
@@ -463,31 +457,17 @@ export default function ChatPanel({ onClose }) {
             style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '15px', padding: '4px' }}
           >↺</button>
 
-           <button
-           {onClose && (
-  <div style={{
-    display: 'flex', alignItems: 'center', gap: '7px',
-    padding: '0 12px',
-    background: '#0d1117',
-    borderBottom: '1px solid #1f2937',
-    flexShrink: 0,
-    height: 44,
-    position: 'relative',   // ← add this
-    zIndex: 10,             // ← add this
-  }}>
-          >✕</button> 
-
-          {/* <button
-  onClick={onClose}
-  style={{
-    width: 36, height: 36, background: '#1f2937',
-    border: '1px solid #374151', borderRadius: '6px',
-    color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    touchAction: 'manipulation',                    // ← add this
-    WebkitTapHighlightColor: 'transparent',         // ← add this
-  }}
->✕</button> */}
+          <button
+            onClick={onClose}
+            style={{
+              width: 36, height: 36, background: '#1f2937',
+              border: '1px solid #374151', borderRadius: '6px',
+              color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >✕</button>
         </div>
       )}
 
@@ -548,7 +528,7 @@ export default function ChatPanel({ onClose }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input — disabled if not signed in */}
+      {/* Input */}
       <div style={{
         padding: '10px 12px',
         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
