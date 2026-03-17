@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import SignInModal from "../components/SignInModal";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -577,7 +578,7 @@ export default function AcqarSignal() {
   }, [theme]);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
-
+const [showSignIn, setShowSignIn] = useState(false);
   const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light");
 
   return (
@@ -602,7 +603,9 @@ export default function AcqarSignal() {
             {theme === "dark" ? "☀" : "🌙"}
           </button>
           {/* <button className="btn-ghost">Sign In</button> */}
-          <button className="btn-primary">Request Access →</button>
+         <button className="btn-primary" onClick={() => setShowSignIn(true)}>
+  Request Access →
+</button>
         </div>
       </nav>
 
@@ -1135,6 +1138,8 @@ export default function AcqarSignal() {
           </div>
         </div>
       </footer>
+
+      {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
     </>
   );
 }
