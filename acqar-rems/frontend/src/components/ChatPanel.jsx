@@ -347,7 +347,7 @@ export default function ChatPanel() {
         display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0
       }}>
         <div style={{ flex: 1 }}>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA' }}>Community Signal</span>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA' }}>Acqar Community Signal</span>
           <span style={{ fontSize: '9px', color: '#555', display: 'block', marginTop: '1px' }}>
             chatting as <span style={{ color: '#B87333', fontWeight: 600 }}>{myName}</span>
           </span>
