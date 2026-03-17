@@ -469,7 +469,9 @@ function formatTime(ts) {
 
 const GUEST_NAME = 'Guest_' + Math.random().toString(36).slice(2, 6).toUpperCase()
 
-export default function ChatPanel({ onClose }) {
+// isMobile: if true, no close button in header (Dashboard handles it)
+// onClose: called when desktop close button clicked
+export default function ChatPanel({ onClose, isMobile = false }) {
   const myName = GUEST_NAME
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -479,7 +481,6 @@ export default function ChatPanel({ onClose }) {
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
-  // ── Fetch messages ────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchMessages = async () => {
       setLoading(true)
@@ -489,18 +490,13 @@ export default function ChatPanel({ onClose }) {
         .select('id, user_name, content, created_at')
         .order('created_at', { ascending: true })
         .limit(100)
-      if (error) {
-        setError('Could not load messages: ' + error.message)
-        setLoading(false)
-        return
-      }
+      if (error) { setError('Could not load: ' + error.message); setLoading(false); return }
       setMessages(data || [])
       setLoading(false)
     }
     fetchMessages()
   }, [])
 
-  // ── Real message count ────────────────────────────────────────────────────
   useEffect(() => {
     const fetchCount = async () => {
       const { count } = await supabase
@@ -511,7 +507,6 @@ export default function ChatPanel({ onClose }) {
     fetchCount()
   }, [messages])
 
-  // ── Supabase Realtime ─────────────────────────────────────────────────────
   useEffect(() => {
     const channel = supabase
       .channel('chat-room-' + Math.random())
@@ -525,12 +520,10 @@ export default function ChatPanel({ onClose }) {
     return () => supabase.removeChannel(channel)
   }, [])
 
-  // ── Auto scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ── Send ──────────────────────────────────────────────────────────────────
   const sendMessage = async (e) => {
     e.preventDefault()
     const text = input.trim()
@@ -546,56 +539,31 @@ export default function ChatPanel({ onClose }) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
   }
 
-  // ── Close handler — works on both touch and mouse ─────────────────────────
-  const triggerClose = (e) => {
-    e.stopPropagation()
-    e.preventDefault()
-    if (typeof onClose === 'function') onClose()
-  }
-
   return (
     <div style={{
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      background: '#111827',
-      fontFamily: "'Inter', sans-serif",
-      overflow: 'hidden',
+      height: '100%', display: 'flex', flexDirection: 'column',
+      background: '#111827', fontFamily: "'Inter', sans-serif", overflow: 'hidden',
     }}>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: '7px',
-        padding: '0 12px',
-        background: '#0d1117',
+        padding: '0 12px', background: '#0d1117',
         borderBottom: '1px solid #1f2937',
-        flexShrink: 0,
-        height: 44,
-        // Ensure header is always on top and touchable
-        position: 'relative',
-        zIndex: 10,
+        flexShrink: 0, height: 44,
       }}>
-        {/* Icon */}
         <div style={{
-          width: 22, height: 22, borderRadius: '6px',
-          background: '#1f2937',
+          width: 22, height: 22, borderRadius: '6px', background: '#1f2937',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '11px', flexShrink: 0,
         }}>💬</div>
 
-        {/* Title */}
-        <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>
-          CHAT
-        </span>
-
+        <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>CHAT</span>
         <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: nameColor(myName) }}>
-          {myName}
-        </span>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: nameColor(myName) }}>{myName}</span>
 
         <div style={{ flex: 1 }} />
 
-        {/* Real message count */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontSize: '13px' }}>🟠</span>
           <span style={{ fontSize: '12px', fontWeight: 700, color: '#f9fafb' }}>
@@ -603,76 +571,55 @@ export default function ChatPanel({ onClose }) {
           </span>
         </div>
 
-        {/* Refresh */}
         <button
           onClick={() => window.location.reload()}
-          title="Refresh"
-          style={{
-            background: 'none', border: 'none',
-            color: '#4b5563', cursor: 'pointer',
-            fontSize: '15px', padding: '4px',
-            lineHeight: 1, borderRadius: '4px',
-          }}
+          style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '15px', padding: '4px' }}
         >↺</button>
 
-        {/* ✕ Close button — onTouchEnd for mobile, onClick for desktop */}
-        <button
-          onTouchEnd={triggerClose}
-          onClick={triggerClose}
-          title="Close"
-          style={{
-            width: 36, height: 36,         // larger touch target for mobile
-            background: '#1f2937',
-            border: '1px solid #374151',
-            borderRadius: '6px',
-            color: '#9ca3af',
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '14px', flexShrink: 0,
-            WebkitTapHighlightColor: 'transparent', // remove iOS tap flash
-            touchAction: 'manipulation',
-          }}
-        >✕</button>
+        {/* Close button — ONLY on desktop */}
+        {!isMobile && (
+          <button
+            onClick={() => typeof onClose === 'function' && onClose()}
+            style={{
+              width: 30, height: 30, background: '#1f2937',
+              border: '1px solid #374151', borderRadius: '6px',
+              color: '#9ca3af', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '14px', flexShrink: 0, transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#1f2937'; e.currentTarget.style.color = '#9ca3af' }}
+          >✕</button>
+        )}
       </div>
 
-      {/* ── Error ── */}
+      {/* Error */}
       {error && (
         <div style={{
           padding: '5px 12px', background: 'rgba(239,68,68,0.15)',
           borderBottom: '1px solid rgba(239,68,68,0.4)',
           fontSize: '10px', color: '#f87171',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          flexShrink: 0,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
         }}>
           {error}
           <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer' }}>✕</button>
         </div>
       )}
 
-      {/* ── Messages ── */}
+      {/* Messages */}
       <div style={{
-        flex: 1, overflowY: 'auto',
-        padding: '4px 0 8px',
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#1f2937 transparent',
+        flex: 1, overflowY: 'auto', padding: '4px 0 8px',
+        scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent',
       }}>
-        {loading && (
-          <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
-            Loading messages...
-          </div>
-        )}
-        {!loading && messages.length === 0 && (
-          <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
-            No messages yet. Say something!
-          </div>
-        )}
+        {loading && <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>Loading messages...</div>}
+        {!loading && messages.length === 0 && <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>No messages yet. Say something!</div>}
+
         {messages.map((msg, i) => {
           const isOwn = msg.user_name === myName
           const color = isOwn ? '#B87333' : nameColor(msg.user_name)
           const prevMsg = messages[i - 1]
           const sameUser = prevMsg && prevMsg.user_name === msg.user_name
-          const timeDiff = prevMsg
-            ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000 : 999
+          const timeDiff = prevMsg ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000 : 999
           const showHeader = !sameUser || timeDiff > 120
           return (
             <div key={msg.id} style={{
@@ -695,12 +642,10 @@ export default function ChatPanel({ onClose }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Input ── */}
+      {/* Input */}
       <form onSubmit={sendMessage} style={{
-        padding: '10px 12px',
-        borderTop: '1px solid #1f2937',
-        background: '#0d1117',
-        flexShrink: 0,
+        padding: '10px 12px', borderTop: '1px solid #1f2937',
+        background: '#0d1117', flexShrink: 0,
         display: 'flex', gap: '8px', alignItems: 'center',
       }}>
         <input
@@ -728,8 +673,7 @@ export default function ChatPanel({ onClose }) {
             border: 'none', color: 'white',
             cursor: input.trim() ? 'pointer' : 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '15px', flexShrink: 0,
-            transition: 'background 0.15s',
+            fontSize: '15px', flexShrink: 0, transition: 'background 0.15s',
             touchAction: 'manipulation',
           }}
         >↗</button>
