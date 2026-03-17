@@ -278,8 +278,7 @@
 // }
 
 
-
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Header from '../components/Header'
 import EventFeed from '../components/EventFeed'
 import MapView from '../components/MapView'
@@ -288,29 +287,15 @@ import FilterBar from '../components/FilterBar'
 import EventDetail from '../components/EventDetail'
 import OverlayPanel from '../components/OverlayPanel'
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(
-    () => window.matchMedia('(max-width: 767px)').matches
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-  return isMobile
-}
-
 export default function Dashboard() {
   const [leftCollapsed, setLeftCollapsed] = useState(false)
-  const [chatOpen, setChatOpen] = useState(true)       // desktop chat column
-  const isMobile = useIsMobile()
+  const [chatOpen, setChatOpen] = useState(true)
   const [mobileDrawer, setMobileDrawer] = useState(null)
 
-  // ── MOBILE ──────────────────────────────────────────────────────────────
-  if (isMobile) {
-    return (
-      <div style={{
+  return (
+    <>
+      {/* ── MOBILE layout — visible only on small screens via CSS ── */}
+      <div className="mobile-only" style={{
         width: '100%', height: '100dvh',
         background: '#0D1B2A', overflow: 'hidden',
         position: 'relative', display: 'flex', flexDirection: 'column',
@@ -372,7 +357,7 @@ export default function Dashboard() {
             <ChatPanel onClose={() => setMobileDrawer(null)} />
           </div>
 
-          {/* Floating buttons — hide when a drawer is open */}
+          {/* Floating buttons */}
           <div style={{
             position: 'absolute', bottom: 16, left: 0, right: 0,
             display: 'flex', justifyContent: 'space-between',
@@ -410,85 +395,76 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    )
-  }
 
-  // ── DESKTOP ──────────────────────────────────────────────────────────────
-  return (
-    <div className="flex flex-col w-full h-screen bg-dark overflow-hidden">
-      <Header />
-      <div className="flex flex-1 overflow-hidden">
+      {/* ── DESKTOP layout — visible only on large screens via CSS ── */}
+      <div className="desktop-only" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', overflow: 'hidden' }}>
+        <Header />
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
-        {/* Left feed column */}
-        <div
-          className={`flex-none transition-all duration-300 ${leftCollapsed ? 'w-0' : 'w-80'} overflow-hidden border-r border-border`}
-          style={{ position: 'relative' }}
-        >
-          <div className="w-80 h-full flex flex-col">
-            <FilterBar />
-            <EventFeed />
-          </div>
-          <EventDetail />
-        </div>
-
-        {/* Left collapse toggle */}
-        <button
-          onClick={() => setLeftCollapsed(!leftCollapsed)}
-          className="flex-none w-5 bg-panel hover:bg-border border-r border-border flex items-center justify-center text-text-secondary hover:text-copper transition-colors z-10"
-        >
-          <span className="text-xs" style={{ writingMode: 'vertical-rl' }}>{leftCollapsed ? '›' : '‹'}</span>
-        </button>
-
-        {/* Map */}
-        <div className="flex-1 relative overflow-hidden">
-          <MapView />
-          <OverlayPanel />
-        </div>
-
-        {/* Right chat column — only rendered when chatOpen */}
-        {chatOpen ? (
-          <div
-            className="flex-none border-l border-border"
-            style={{ width: 340 }}
-          >
-            <div style={{ width: 340, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <ChatPanel isMobile={false} onClose={() => setChatOpen(false)} />
+          {/* Left feed column */}
+          <div style={{
+            flexShrink: 0, width: leftCollapsed ? 0 : 320,
+            overflow: 'hidden', borderRight: '1px solid #0F3460',
+            transition: 'width 0.3s', position: 'relative',
+          }}>
+            <div style={{ width: 320, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <FilterBar />
+              <EventFeed />
             </div>
+            <EventDetail />
           </div>
-        ) : (
-          /* Reopen chat button when column is closed */
-          <button
-            onClick={() => setChatOpen(true)}
-            style={{
-              flexShrink: 0,
-              width: 36,
-              height: '100%',
-              background: '#111827',
-              borderLeft: '1px solid #1f2937',
-              border: 'none',
-              borderLeft: '1px solid #1f2937',
-              color: '#6366f1',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#1f2937'}
-            onMouseLeave={e => e.currentTarget.style.background = '#111827'}
-            title="Open chat"
-          >
-            <span style={{ fontSize: '16px' }}>💬</span>
-            <span style={{
-              fontSize: '9px', fontWeight: 700, color: '#6366f1',
-              writingMode: 'vertical-rl', letterSpacing: '1px',
-            }}>CHAT</span>
-          </button>
-        )}
 
+          {/* Left collapse toggle */}
+          <button
+            onClick={() => setLeftCollapsed(!leftCollapsed)}
+            style={{
+              flexShrink: 0, width: 20,
+              background: '#16213E', border: 'none', borderRight: '1px solid #0F3460',
+              color: '#666', cursor: 'pointer', fontSize: '12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <span style={{ writingMode: 'vertical-rl' }}>{leftCollapsed ? '›' : '‹'}</span>
+          </button>
+
+          {/* Map */}
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+            <MapView />
+            <OverlayPanel />
+          </div>
+
+          {/* Right chat column */}
+          {chatOpen ? (
+            <div style={{ flexShrink: 0, width: 340, borderLeft: '1px solid #0F3460', display: 'flex', flexDirection: 'column' }}>
+              <ChatPanel onClose={() => setChatOpen(false)} />
+            </div>
+          ) : (
+            <button
+              onClick={() => setChatOpen(true)}
+              style={{
+                flexShrink: 0, width: 36, background: '#111827',
+                borderLeft: '1px solid #1f2937', border: 'none',
+                color: '#6366f1', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: '6px',
+              }}
+              title="Open chat"
+            >
+              <span style={{ fontSize: '16px' }}>💬</span>
+              <span style={{ fontSize: '9px', fontWeight: 700, color: '#6366f1', writingMode: 'vertical-rl', letterSpacing: '1px' }}>CHAT</span>
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+
+      <style>{`
+        .mobile-only  { display: flex !important; }
+        .desktop-only { display: none !important; }
+        @media (min-width: 768px) {
+          .mobile-only  { display: none !important; }
+          .desktop-only { display: flex !important; }
+        }
+      `}</style>
+    </>
   )
 }
