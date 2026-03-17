@@ -469,16 +469,30 @@ function formatTime(ts) {
 
 const GUEST_NAME = 'Guest_' + Math.random().toString(36).slice(2, 6).toUpperCase()
 
+// Detect mobile once
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
+
 export default function ChatPanel() {
   const myName = GUEST_NAME
+  const isMobile = useIsMobile()
+
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [msgCount, setMsgCount] = useState(null)
 
-  // Self-managed open/close state
-  const [isOpen, setIsOpen] = useState(true)
+  // On DESKTOP only: self-managed open/close
+  // On MOBILE: Dashboard's drawer controls visibility — ChatPanel is always "open"
+  const [desktopOpen, setDesktopOpen] = useState(true)
 
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
@@ -527,8 +541,9 @@ export default function ChatPanel() {
 
   // ── Auto scroll ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (isOpen) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isOpen])
+    const isVisible = isMobile ? true : desktopOpen
+    if (isVisible) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, desktopOpen, isMobile])
 
   // ── Send ────────────────────────────────────────────────────────────────
   const sendMessage = async (e) => {
@@ -546,46 +561,200 @@ export default function ChatPanel() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
   }
 
-  // ── MOBILE: slide-up drawer ─────────────────────────────────────────────
-  // ── DESKTOP: inline panel (height 100%) ────────────────────────────────
-  // Both use the same component, layout adapts via CSS
-
-  return (
-    <>
-      {/* ── Mobile floating Chat button (shown when closed) ── */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          style={{
-            position: 'fixed',
-            bottom: 20,
-            right: 20,
-            zIndex: 200,
-            width: 52, height: 52,
-            borderRadius: '50%',
-            background: '#6366f1',
-            border: 'none',
-            color: '#fff',
-            fontSize: '22px',
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(99,102,241,0.5)',
-            touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >💬</button>
-      )}
-
-      {/* ── Chat Panel ── */}
+  // ── MOBILE: always render fully (drawer parent controls visibility) ──────
+  if (isMobile) {
+    return (
       <div style={{
         height: '100%',
-        display: isOpen ? 'flex' : 'none',
+        display: 'flex',
         flexDirection: 'column',
         background: '#111827',
         fontFamily: "'Inter', sans-serif",
         overflow: 'hidden',
       }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '7px',
+          padding: '0 14px',
+          background: '#0d1117',
+          borderBottom: '1px solid #1f2937',
+          flexShrink: 0,
+          height: 48,
+          // Extra top-padding for the drawer handle area
+          paddingTop: '4px',
+        }}>
+          {/* Drag handle indicator */}
+          <div style={{
+            position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+            width: 36, height: 4, borderRadius: 2, background: '#374151',
+          }} />
 
+          <div style={{
+            width: 24, height: 24, borderRadius: '6px', background: '#1f2937',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '13px', flexShrink: 0,
+          }}>💬</div>
+
+          <span style={{ fontSize: '13px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>CHAT</span>
+          <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: nameColor(myName) }}>{myName}</span>
+
+          <div style={{ flex: 1 }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '13px' }}>🟠</span>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#f9fafb' }}>
+              {msgCount !== null ? msgCount.toLocaleString() : '—'}
+            </span>
+          </div>
+
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              background: 'none', border: 'none', color: '#4b5563',
+              cursor: 'pointer', fontSize: '16px', padding: '6px',
+              touchAction: 'manipulation',
+            }}
+          >↺</button>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{
+            padding: '6px 14px', background: 'rgba(239,68,68,0.15)',
+            borderBottom: '1px solid rgba(239,68,68,0.4)',
+            fontSize: '11px', color: '#f87171',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
+          }}>
+            {error}
+            <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+          </div>
+        )}
+
+        {/* Messages */}
+        <div style={{
+          flex: 1, overflowY: 'auto', padding: '4px 0 8px',
+          scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent',
+          // Prevent bounce scroll interfering with drawer
+          WebkitOverflowScrolling: 'touch',
+        }}>
+          {loading && (
+            <div style={{ fontSize: '12px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
+              Loading messages...
+            </div>
+          )}
+          {!loading && messages.length === 0 && (
+            <div style={{ fontSize: '12px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
+              No messages yet. Say something!
+            </div>
+          )}
+          {messages.map((msg, i) => {
+            const isOwn = msg.user_name === myName
+            const color = isOwn ? '#B87333' : nameColor(msg.user_name)
+            const prevMsg = messages[i - 1]
+            const sameUser = prevMsg && prevMsg.user_name === msg.user_name
+            const timeDiff = prevMsg ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000 : 999
+            const showHeader = !sameUser || timeDiff > 120
+            return (
+              <div key={msg.id} style={{
+                padding: showHeader ? '10px 14px 2px' : '1px 14px',
+                background: isOwn ? 'rgba(184,115,51,0.05)' : 'transparent',
+                borderLeft: isOwn ? '2px solid rgba(184,115,51,0.5)' : '2px solid transparent',
+              }}>
+                {showHeader && (
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '2px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color }}>{msg.user_name}</span>
+                    <span style={{ fontSize: '10px', color: '#374151' }}>{formatTime(msg.created_at)}</span>
+                  </div>
+                )}
+                <div style={{ fontSize: '14px', color: '#d1d5db', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                  {msg.content}
+                </div>
+              </div>
+            )
+          })}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input — extra bottom padding for safe area (iPhone home bar) */}
+        <div style={{
+          padding: '10px 12px',
+          paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+          borderTop: '1px solid #1f2937',
+          background: '#0d1117', flexShrink: 0,
+          display: 'flex', gap: '8px', alignItems: 'center',
+        }}>
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            maxLength={200}
+            style={{
+              flex: 1, padding: '10px 14px', fontSize: '15px',
+              background: '#1f2937', border: '1px solid #374151',
+              color: '#f9fafb', borderRadius: '10px', outline: 'none',
+              transition: 'border-color 0.15s',
+              // Prevent iOS zoom on focus (font-size >= 16px)
+              WebkitAppearance: 'none',
+            }}
+            onFocus={e => e.target.style.borderColor = '#6366f1'}
+            onBlur={e => e.target.style.borderColor = '#374151'}
+          />
+          <button
+            type="button"
+            onClick={sendMessage}
+            disabled={!input.trim()}
+            style={{
+              width: 44, height: 44, borderRadius: '10px',
+              background: input.trim() ? '#6366f1' : '#1f2937',
+              border: 'none', color: 'white',
+              cursor: input.trim() ? 'pointer' : 'default',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px', flexShrink: 0,
+              transition: 'background 0.15s',
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >↗</button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── DESKTOP ─────────────────────────────────────────────────────────────
+
+  return (
+    <>
+      {/* Desktop floating reopen button (when closed) */}
+      {!desktopOpen && (
+        <button
+          onClick={() => setDesktopOpen(true)}
+          style={{
+            position: 'fixed',
+            bottom: 20, right: 20,
+            zIndex: 200,
+            width: 52, height: 52,
+            borderRadius: '50%',
+            background: '#6366f1',
+            border: 'none', color: '#fff',
+            fontSize: '22px',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(99,102,241,0.5)',
+          }}
+        >💬</button>
+      )}
+
+      <div style={{
+        height: '100%',
+        display: desktopOpen ? 'flex' : 'none',
+        flexDirection: 'column',
+        background: '#111827',
+        fontFamily: "'Inter', sans-serif",
+        overflow: 'hidden',
+      }}>
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '7px',
@@ -619,9 +788,8 @@ export default function ChatPanel() {
             style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '15px', padding: '4px' }}
           >↺</button>
 
-          {/* ✕ Close — works on both mobile and desktop */}
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={() => setDesktopOpen(false)}
             style={{
               width: 30, height: 30,
               background: '#1f2937',
@@ -631,8 +799,6 @@ export default function ChatPanel() {
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '14px', flexShrink: 0,
-              touchAction: 'manipulation',
-              WebkitTapHighlightColor: 'transparent',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#ef4444' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#1f2937'; e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = '#374151' }}
@@ -726,8 +892,8 @@ export default function ChatPanel() {
               border: 'none', color: 'white',
               cursor: input.trim() ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '15px', flexShrink: 0, transition: 'background 0.15s',
-              touchAction: 'manipulation',
+              fontSize: '15px', flexShrink: 0,
+              transition: 'background 0.15s',
             }}
           >↗</button>
         </form>
