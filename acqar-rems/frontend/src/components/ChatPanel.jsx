@@ -248,36 +248,46 @@ function formatTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+// Temporary guest name until auth is integrated
+const GUEST_NAME = 'Guest_' + Math.random().toString(36).slice(2, 6).toUpperCase()
+
 export default function ChatPanel() {
-  const [myName, setMyName] = useState('')
-  const [nameInput, setNameInput] = useState('')
+  const myName = GUEST_NAME
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
-  // ── Fetch last 100 messages once name is set ──────────────────────────────
+  // ── Fetch messages on mount ───────────────────────────────────────────────
   useEffect(() => {
-    if (!myName) return
-    setLoading(true)
-    supabase
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(100)
-      .then(({ data }) => {
-        setMessages(data || [])
+    const fetchMessages = async () => {
+      setLoading(true)
+      setError(null)
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id, user_name, content, created_at')
+        .order('created_at', { ascending: true })
+        .limit(100)
+
+      if (error) {
+        console.error('Fetch error:', error)
+        setError('Could not load messages: ' + error.message)
         setLoading(false)
-      })
-  }, [myName])
+        return
+      }
+      setMessages(data || [])
+      setLoading(false)
+    }
 
-  // ── Supabase Realtime subscription ────────────────────────────────────────
+    fetchMessages()
+  }, [])
+
+  // ── Supabase Realtime ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (!myName) return
-
     const channel = supabase
-      .channel('messages-realtime')
+      .channel('chat-room-' + Math.random())
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
@@ -288,81 +298,44 @@ export default function ChatPanel() {
           })
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Realtime status:', status)
+      })
 
     return () => supabase.removeChannel(channel)
-  }, [myName])
+  }, [])
 
-  // ── Auto scroll to bottom on new message ─────────────────────────────────
+  // ── Auto scroll to bottom ─────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  // ── Submit name ───────────────────────────────────────────────────────────
-  const submitName = (e) => {
-    e.preventDefault()
-    const name = nameInput.trim()
-    if (!name) return
-    setMyName(name)
-    setTimeout(() => inputRef.current?.focus(), 100)
-  }
 
   // ── Send message ──────────────────────────────────────────────────────────
   const sendMessage = async (e) => {
     e.preventDefault()
     const text = input.trim()
-    if (!text || !myName) return
+    if (!text) return
     setInput('')
 
-    await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       user_id: myName,
       user_name: myName,
       content: text,
     })
+
+    if (error) {
+      console.error('Send error:', error)
+      setError('Failed to send: ' + error.message)
+    }
   }
 
-  // ── Name entry screen ─────────────────────────────────────────────────────
-  if (!myName) {
-    return (
-      <div style={{
-        height: '100%', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        background: '#16213E', padding: '24px', gap: '12px'
-      }}>
-        <span style={{ fontSize: '22px' }}>💬</span>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA' }}>Community Signal</span>
-        <span style={{ fontSize: '11px', color: '#555', textAlign: 'center' }}>Enter your name to join the chat</span>
-        <form onSubmit={submitName} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <input
-            autoFocus
-            value={nameInput}
-            onChange={e => setNameInput(e.target.value)}
-            placeholder="Your name..."
-            maxLength={30}
-            style={{
-              width: '100%', padding: '9px 12px', fontSize: '13px',
-              background: '#1A1A2E', border: '1px solid #0F3460',
-              color: '#FAFAFA', borderRadius: '6px', outline: 'none',
-              boxSizing: 'border-box',
-            }}
-            onFocus={e => e.target.style.borderColor = '#B87333'}
-            onBlur={e => e.target.style.borderColor = '#0F3460'}
-          />
-          <button type="submit" disabled={!nameInput.trim()} style={{
-            padding: '9px', fontSize: '12px', fontWeight: 700,
-            background: nameInput.trim() ? '#B87333' : '#333',
-            color: 'white', border: 'none', borderRadius: '6px',
-            cursor: nameInput.trim() ? 'pointer' : 'default',
-            transition: 'background 0.15s',
-          }}>
-            Join Chat →
-          </button>
-        </form>
-      </div>
-    )
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage(e)
+    }
   }
 
-  // ── Chat screen ───────────────────────────────────────────────────────────
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
@@ -382,6 +355,19 @@ export default function ChatPanel() {
         <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#27AE60', boxShadow: '0 0 6px #27AE60' }} />
         <span style={{ fontSize: '10px', color: '#27AE60', fontWeight: 600 }}>LIVE</span>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div style={{
+          padding: '6px 12px', background: 'rgba(231,76,60,0.15)',
+          borderBottom: '1px solid #E74C3C',
+          fontSize: '10px', color: '#E74C3C',
+          display: 'flex', justifyContent: 'space-between'
+        }}>
+          {error}
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#E74C3C', cursor: 'pointer' }}>✕</button>
+        </div>
+      )}
 
       {/* Messages */}
       <div style={{
@@ -432,6 +418,7 @@ export default function ChatPanel() {
           ref={inputRef}
           value={input}
           onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Signal the community..."
           maxLength={200}
           style={{
