@@ -278,7 +278,7 @@
 // }
 
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import EventFeed from '../components/EventFeed'
 import MapView from '../components/MapView'
@@ -287,16 +287,32 @@ import FilterBar from '../components/FilterBar'
 import EventDetail from '../components/EventDetail'
 import OverlayPanel from '../components/OverlayPanel'
 
-// Read ONCE at module load — never changes, never causes re-render
-const IS_MOBILE = window.matchMedia('(max-width: 767px)').matches
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia('(max-width: 767px)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isMobile
+}
 
 export default function Dashboard() {
+  const isMobile = useIsMobile()
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [chatOpen, setChatOpen] = useState(true)
   const [mobileDrawer, setMobileDrawer] = useState(null)
 
+  // Close drawer when switching from mobile to desktop
+  useEffect(() => {
+    if (!isMobile) setMobileDrawer(null)
+  }, [isMobile])
+
   // ── MOBILE ────────────────────────────────────────────────────────────────
-  if (IS_MOBILE) {
+  if (isMobile) {
     return (
       <div style={{
         width: '100%', height: '100dvh',
