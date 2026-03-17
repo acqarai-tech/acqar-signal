@@ -571,8 +571,8 @@ export default function Header() {
               disabled
               style={{
                 padding:'4px 8px', fontSize:'10px', fontWeight:700,
-                border: '1px solid #D0D0D0',
-                background: 'transparent',
+                border: '1px solid #0F3460',
+color: '#B3B3B3',
                 color: '#C0C0C0',
                 borderRadius:'4px',
                 cursor:'not-allowed',
