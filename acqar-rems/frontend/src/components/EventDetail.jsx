@@ -174,7 +174,7 @@ export default function EventDetail() {
             }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#B87333' }}>🏷️ ValuCheck™ — Free</div>
-              <div style={{ fontSize: '10px', color: '#B3B3B3' }}>Instant AI valuation for {event.location_name}</div>
+              {/* <div style={{ fontSize: '10px', color: '#B3B3B3' }}>Instant AI valuation for {event.location_name}</div> */}
             </div>
             <span style={{ color: '#B87333', fontSize: '14px' }}>→</span>
           </a>
