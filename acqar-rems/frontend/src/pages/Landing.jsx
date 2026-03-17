@@ -417,7 +417,7 @@ const styles = `
  footer{background:var(--dark-card);border-top:1px solid var(--border);padding:48px}
 .footer-main-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
 .footer-bottom-bar{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(10,10,10,0.06);padding-top:32px;flex-wrap:wrap;gap:16px;}
-.footer-inner-wrap { max-width: 1280px; margin: 0 auto; padding: 48px 48px 32px 48px; }
+.footer-inner-wrap { max-width: 1280px; margin: 0 auto; padding: 48px 80px 32px 80px; }
   .footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px}
   .footer-brand .logo-text{font-size:20px;font-weight:900;margin-bottom:12px}
   .footer-brand .logo-text span:first-child{color:var(--copper)}
