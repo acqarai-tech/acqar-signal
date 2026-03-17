@@ -184,10 +184,10 @@ export default function EventDetail() {
               padding: '8px 10px', background: 'rgba(41,128,185,0.1)',
               border: '1px solid #2980B9', borderRadius: '6px', textDecoration: 'none',
             }}>
-            <div>
+            {/* <div> */}
               
               {/* <div style={{ fontSize: '10px', color: '#B3B3B3' }}>Buy/Pass rating + 3-year prediction</div> */}
-            </div>
+            {/* </div> */}
             {/* <span style={{ color: '#2980B9', fontSize: '14px' }}>→</span> */}
           </a>
         </div>
