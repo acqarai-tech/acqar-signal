@@ -335,7 +335,7 @@ export default function OverlayPanel() {
                 onClick={() => setIsMapOptionsOpen(!isMapOptionsOpen)}
                 style={{
                   width: '100%',
-                  display: 'flex',
+                  display: 'none',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '6px 0',
@@ -354,7 +354,7 @@ export default function OverlayPanel() {
               </button>
 
               {isMapOptionsOpen && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'none', flexDirection: 'column', gap: '4px' }}>
                   {[
                     { key: 'events', label: 'Events' },
                     { key: 'weather', label: 'Weather' },
@@ -370,7 +370,7 @@ export default function OverlayPanel() {
                         key={opt.key}
                         onClick={() => setMapOptions(prev => ({ ...prev, [opt.key]: !prev[opt.key] }))}
                         style={{
-                          display: 'flex',
+                          display: 'none',
                           alignItems: 'center',
                           gap: '6px',
                           padding: '4px 6px',
@@ -389,7 +389,7 @@ export default function OverlayPanel() {
                           height: '12px',
                           borderRadius: '50%',
                           border: '1px solid #555',
-                          display: 'flex',
+                          display: 'none',
                           alignItems: 'center',
                           justifyContent: 'center',
                           background: active ? '#B87333' : 'transparent',
