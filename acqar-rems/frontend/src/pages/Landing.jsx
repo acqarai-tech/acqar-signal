@@ -1160,7 +1160,6 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// Add this import at the top alongside your other imports
 import SignInModal from "../components/SignInModal";
 
 const styles = `
@@ -1209,7 +1208,7 @@ const styles = `
     --text-muted:    #9CA3AF;
   }
 
-  html { scroll-behavior: smooth; transition: color 0.25s ease, background 0.25s ease; }
+  html { scroll-behavior: smooth; transition: color 0.25s ease, background 0.25s ease; overflow-y: scroll; }
 
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -1244,7 +1243,6 @@ const styles = `
   html:not([data-theme="light"]) .stats-section    { background: var(--dark-4) !important; }
   html:not([data-theme="light"]) #features         { background: var(--dark) !important; }
   html:not([data-theme="light"]) #how-it-works     { background: var(--dark-2) !important; }
-  html:not([data-theme="light"]) footer            { background: #111111 !important; }
   html:not([data-theme="light"]) .feature-card.large { background: linear-gradient(135deg, #1C1A17 0%, #181818 60%, #1A1815 100%); }
   html:not([data-theme="light"]) nav { box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 4px 32px rgba(0,0,0,0.6); }
   html:not([data-theme="light"]) body::before {
@@ -1294,13 +1292,18 @@ const styles = `
   [data-theme="light"] .problem-tag-pill  { border-color: rgba(184,115,51,0.3); }
   [data-theme="light"] #features         { background: #FFFFFF !important; }
   [data-theme="light"] #how-it-works     { background: #FAFAFA !important; }
-  [data-theme="light"] footer       { background: #F5F5F0 !important; border-top-color: rgba(0,0,0,0.08) !important; }
-  [data-theme="light"] .footer-bottom { border-top-color: rgba(0,0,0,0.08) !important; }
   [data-theme="light"] .final-cta-section::before { background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(184,115,51,0.07) 0%, transparent 70%); }
   [data-theme="light"] .sev-5 { background: rgba(239,68,68,0.12); }
   [data-theme="light"] .sev-4 { background: rgba(245,158,11,0.12); }
   [data-theme="light"] .sev-3 { background: rgba(184,115,51,0.12); }
   [data-theme="light"] .sev-2 { background: rgba(59,130,246,0.12); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark-2); }
+  ::-webkit-scrollbar-thumb { background: var(--copper-dark); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--copper); }
+  * { scrollbar-width: thin; scrollbar-color: var(--copper-dark) var(--dark-2); }
 
   /* THEME TOGGLE */
   .theme-toggle { width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;color:var(--text-secondary);transition:border-color 0.2s,color 0.2s,background 0.2s;flex-shrink:0; }
@@ -1315,7 +1318,7 @@ const styles = `
   .nav-logo .signal-badge { font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--copper);border:1px solid var(--border-copper);padding:2px 8px;border-radius:4px;background:var(--copper-tint);text-transform:uppercase; }
   .nav-links { display:flex;align-items:center;gap:32px;list-style:none;font-size:14px;color:var(--text-secondary); }
   .nav-links a:hover { color:var(--text-primary); }
-  .nav-actions { display:flex;gap:12px; }
+  .nav-actions { display:flex;gap:12px;align-items:center; }
   .btn-ghost { font-size:14px;font-weight:600;color:var(--text-secondary);padding:9px 20px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;transition:color 0.2s,border-color 0.2s; }
   .btn-ghost:hover { color:var(--text-primary);border-color:rgba(255,255,255,0.2); }
   .btn-primary { font-size:14px;font-weight:700;color:#fff;padding:9px 22px;border:none;border-radius:var(--radius-sm);background:var(--copper);cursor:pointer;transition:background 0.2s,transform 0.1s; }
@@ -1548,7 +1551,7 @@ const styles = `
   .t-persona{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--copper);background:var(--copper-tint);border:1px solid var(--border-copper);padding:3px 9px;border-radius:20px;margin-bottom:14px;align-self:flex-start}
   .t-persona-dot{width:4px;height:4px;border-radius:50%;background:var(--copper)}
   .t-quote{font-size:13.5px;color:var(--text-secondary);line-height:1.72;margin-bottom:20px;flex:1}
-  .t-quote strong{color:var(--text-primary);font-weight:600}
+  .t-quote strong{color:var(--text-primary);font-weight:800}
   .t-author{display:flex;align-items:center;gap:12px;border-top:1px solid var(--border);padding-top:16px}
   .t-avatar{width:38px;height:38px;border-radius:50%;background:var(--copper-tint);border:1.5px solid var(--border-copper);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--copper);flex-shrink:0;letter-spacing:0.5px}
   .t-info .name{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text-primary)}
@@ -1561,63 +1564,12 @@ const styles = `
   .final-cta-section::after{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--copper),transparent)}
   .final-cta-content{position:relative;z-index:1;max-width:700px;margin:0 auto}
   .final-cta-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--copper);margin-bottom:24px}
-  .final-cta-section h2{font-size:60px;font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bottom:20px}
-  .final-cta-section p{font-size:18px;color:var(--text-secondary);line-height:1.7;margin-bottom:40px}
+  .final-cta-section h2{font-size:80px;font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bottom:20px}
+  .final-cta-section p{font-size:20px;color:var(--text-secondary);line-height:1.7;margin-bottom:40px}
   .final-cta-buttons{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:24px}
   .final-trust{font-size:12px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:20px}
   .final-trust span{display:flex;align-items:center;gap:5px}
   .final-trust span::before{content:'✓';color:var(--green);font-weight:700}
-
-
-  /* SCROLLBAR */
-/* SCROLLBAR */
-html, body {
-  height: 100%;
-  overflow-y: auto;
-}
-
-#root {
-  min-height: 100%;
-  overflow-y: auto;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--dark-2);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--copper-dark);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--copper);
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--copper-dark) var(--dark-2);
-}
-  /* FOOTER */
-  footer{background:var(--dark-card);border-top:1px solid var(--border);padding:48px}
-  .footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px}
-  .footer-brand .logo-text{font-size:20px;font-weight:900;margin-bottom:12px}
-  .footer-brand .logo-text span:first-child{color:var(--copper)}
-  .footer-brand p{font-size:13px;color:var(--text-muted);line-height:1.7;max-width:260px;margin-bottom:16px}
-  .footer-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);padding:5px 12px;border-radius:4px}
-  .footer-col h5{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px}
-  .footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
-  .footer-col ul li a{font-size:13px;color:var(--text-secondary);transition:color 0.2s}
-  .footer-col ul li a:hover{color:var(--text-primary)}
-  .footer-bottom{max-width:1200px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted)}
-  .footer-bottom a{color:var(--text-muted)}
-  .footer-bottom a:hover{color:var(--text-primary)}
-  .footer-links{display:flex;gap:24px}
-  .rics-tag{color:var(--copper);font-weight:600;font-size:11px}
 
   /* RESPONSIVE */
   @media(max-width:1100px){
@@ -1694,12 +1646,9 @@ html, body {
     .final-cta-section p{font-size:15px}
     .final-cta-buttons{flex-direction:column;gap:12px}
     .final-trust{flex-wrap:wrap;justify-content:center;gap:8px;font-size:11px}
-    footer{padding:40px 16px}
-    .footer-inner{gap:28px}
-    .footer-bottom{flex-direction:column;gap:10px;text-align:center}
-    .footer-links{flex-wrap:wrap;justify-content:center;gap:12px}
   }
 `;
+
 
 const tickerItems = [
   { sev: "S5", sevClass: "sev-5", text: "Emaar launches AED 3.2B tower adjacent to Burj Khalifa", loc: "Downtown Dubai" },
@@ -1713,13 +1662,318 @@ const tickerItems = [
 ];
 
 const testimonials = [
-  { initials: "RM", persona: "Property Owner · UAE", stars: "★★★★★", quote: <>I own three units across JVC, Dubai Hills, and Arjan. In Q1 2026, the Arjan metro extension approval came through as an S4 infrastructure signal on ACQAR before any of my WhatsApp groups picked it up. <strong>I listed my unit the same afternoon. It sold in six days at asking price.</strong></>, name: "Rajan Mehta", role: "Property Owner — 3 Units", location: "Dubai, UAE" },
-  { initials: "EV", persona: "Property Owner · Abroad", stars: "★★★★★", quote: <>I manage my Palm Jumeirah apartment from London. A RERA short-term rental circular hit as S4 Regulatory at 7am Dubai time — 9pm my time — <strong>before my own Dubai agent knew it existed.</strong> I responded, updated my NOC, and avoided a fine. That single alert justified everything.</>, name: "Elena Vassiliev", role: "Property Owner — Palm Jumeirah", location: "London, United Kingdom" },
-  { initials: "KA", persona: "Property Buyer · UAE", stars: "★★★★★", quote: <>I'd been hunting in Dubai Creek Harbour for eight months, always too late. Three weeks into using ACQAR Signal, <strong>I caught a DLD transaction cluster — 18 deals in four days — before any portal repriced.</strong> I offered that week and paid AED 85,000 below where identical floors listed two weeks later.</>, name: "Khalid Al-Ansari", role: "First-Time Property Buyer", location: "Abu Dhabi, UAE" },
-  { initials: "MF", persona: "Property Buyer · International", stars: "★★★★★", quote: <>By the time any Dubai launch reaches European media, the good units are gone. ACQAR Signal gave me an <strong>S5 alert on a Nakheel Dubai Islands launch three hours before reservations opened.</strong> I called my broker at midnight Milan time and reserved a unit. Simply not possible otherwise.</>, name: "Marco Ferretti", role: "Property Buyer — Dubai Islands", location: "Milan, Italy" },
-  { initials: "PN", persona: "Portfolio Investor", stars: "★★★★★", quote: <>I treat Dubai real estate like an equity portfolio — entry timing, area rotation, yield arbitrage. <strong>The area momentum overlay showed JVC accumulating S3+ signals 11 weeks before Bayut's quarterly report flagged the same trend.</strong> I added two more units in that window. That changes your return profile permanently.</>, name: "Priya Nair", role: "Portfolio Investor — 9 Units", location: "Dubai, UAE" },
-  { initials: "JC", persona: "Luxury RE Broker · DIFC", stars: "★★★★★", quote: <>In the AED 10M-plus segment, clients pay for intelligence no one else has. <strong>When an Emaar ultra-luxury launch hit as S5, I had pre-qualified four UHNW clients before the developer's press briefing.</strong> Three transacted. Over AED 80M in deals from a single early signal. ACQAR Signal is the first screen I open every morning.</>, name: "James Crawford", role: "Director, Ultra-Prime Sales", location: "DIFC, Dubai" },
+  {
+    initials: "RM", persona: "Property Owner · UAE", stars: "★★★★★",
+    quote: (<>I own three units across JVC, Dubai Hills, and Arjan. In Q1 2026, the Arjan metro extension approval came through as an S4 infrastructure signal on ACQAR before any of my WhatsApp groups picked it up. <strong>I listed my unit the same afternoon. It sold in six days at asking price.</strong></>),
+    name: "Rajan Mehta", role: "Property Owner — 3 Units", location: "Dubai, UAE"
+  },
+  {
+    initials: "EV", persona: "Property Owner · Abroad", stars: "★★★★★",
+    quote: (<>I manage my Palm Jumeirah apartment from London. A RERA short-term rental circular hit as S4 Regulatory at 7am Dubai time — 9pm my time — <strong>before my own Dubai agent knew it existed.</strong> I responded, updated my NOC, and avoided a fine. That single alert justified everything.</>),
+    name: "Elena Vassiliev", role: "Property Owner — Palm Jumeirah", location: "London, United Kingdom"
+  },
+  {
+    initials: "KA", persona: "Property Buyer · UAE", stars: "★★★★★",
+    quote: (<>I'd been hunting in Dubai Creek Harbour for eight months, always too late. Three weeks into using ACQAR Signal, <strong>I caught a DLD transaction cluster — 18 deals in four days — before any portal repriced.</strong> I offered that week and paid AED 85,000 below where identical floors listed two weeks later.</>),
+    name: "Khalid Al-Ansari", role: "First-Time Property Buyer", location: "Abu Dhabi, UAE"
+  },
+  {
+    initials: "MF", persona: "Property Buyer · International", stars: "★★★★★",
+    quote: (<>By the time any Dubai launch reaches European media, the good units are gone. ACQAR Signal gave me an <strong>S5 alert on a Nakheel Dubai Islands launch three hours before reservations opened.</strong> I called my broker at midnight Milan time and reserved a unit. Simply not possible otherwise.</>),
+    name: "Marco Ferretti", role: "Property Buyer — Dubai Islands", location: "Milan, Italy"
+  },
+  {
+    initials: "PN", persona: "Portfolio Investor", stars: "★★★★★",
+    quote: (<>I treat Dubai real estate like an equity portfolio — entry timing, area rotation, yield arbitrage. <strong>The area momentum overlay showed JVC accumulating S3+ signals 11 weeks before Bayut's quarterly report flagged the same trend.</strong> I added two more units in that window. That changes your return profile permanently.</>),
+    name: "Priya Nair", role: "Portfolio Investor — 9 Units", location: "Dubai, UAE"
+  },
+  {
+    initials: "JC", persona: "Luxury RE Broker · DIFC", stars: "★★★★★",
+    quote: (<>In the AED 10M-plus segment, clients pay for intelligence no one else has. <strong>When an Emaar ultra-luxury launch hit as S5, I had pre-qualified four UHNW clients before the developer's press briefing.</strong> Three transacted. Over AED 80M in deals from a single early signal. ACQAR Signal is the first screen I open every morning.</>),
+    name: "James Crawford", role: "Director, Ultra-Prime Sales", location: "DIFC, Dubai"
+  },
 ];
+
+/* ── NEW FOOTER COMPONENT ── */
+function Footer() {
+  const navigate = useNavigate();
+  const cols = [
+    [
+      "PRODUCT",
+      [
+        "TruValu™ Products",
+        "ValuCheck™ (FREE)",
+        "DealLens™",
+        "InvestIQ™",
+        "CertiFi™",
+        "Compare Tiers",
+      ],
+    ],
+    [
+      "COMPANY",
+      ["About ACQAR", "How It Works", "Pricing", "Contact Us", "Partners", "Press Kit"],
+    ],
+    [
+      "RESOURCES",
+      ["Help Center", "Market Reports", "Blog ", "Comparisons"],
+    ],
+    [
+      "COMPARISONS",
+      ["vs Bayut TruEstimate", "vs Property Finder", "vs Traditional Valuers", "Why ACQAR?"],
+    ],
+  ];
+
+  return (
+    <>
+      <style>{`
+        .acq-footer {
+          background: #F9F9F9;
+          border-top: 1px solid #EBEBEB;
+          padding: 56px 0 0;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .acq-footer-grid {
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: 0 2rem;
+          display: grid;
+          grid-template-columns: 1.35fr 1fr 1fr 1fr 1fr;
+          gap: 48px;
+          align-items: start;
+          padding-bottom: 48px;
+        }
+
+        .acq-brand-name {
+          font-size: 1rem;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #2B2B2B;
+          display: block;
+          margin-bottom: 14px;
+        }
+        .acq-brand-desc {
+          font-size: 0.75rem;
+          color: rgba(43,43,43,0.58);
+          line-height: 1.75;
+          margin: 0 0 18px;
+          max-width: 240px;
+        }
+        .acq-rics-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 12px;
+          background: #fff;
+          border: 1px solid #EBEBEB;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        }
+        .acq-rics-badge svg { flex-shrink: 0; color: #2B2B2B; }
+        .acq-rics-badge span {
+          font-size: 0.5625rem;
+          font-weight: 800;
+          color: rgba(43,43,43,0.82);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          white-space: nowrap;
+        }
+        .acq-social-row { display: flex; gap: 10px; }
+        .acq-social-btn {
+          width: 34px; height: 34px;
+          border-radius: 50%;
+          border: 1px solid #E5E7EB;
+          display: flex; align-items: center; justify-content: center;
+          color: rgba(43,43,43,0.38);
+          text-decoration: none;
+          transition: color 0.18s, border-color 0.18s;
+          background: transparent;
+          cursor: pointer;
+        }
+        .acq-social-btn:hover { color: #B87333; border-color: #B87333; }
+
+        .acq-col-title {
+          font-size: 0.75rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.16em;
+          color: #2B2B2B;
+          margin: 0 0 20px;
+        }
+        .acq-link-list {
+          list-style: none;
+          padding: 0; margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 13px;
+        }
+        .acq-link-item {
+          font-size: 0.8125rem;
+          color: rgba(43,43,43,0.55);
+          font-weight: 400;
+          cursor: pointer;
+          transition: color 0.16s;
+          line-height: 1.4;
+        }
+        .acq-link-item:hover { color: #B87333; }
+
+        .acq-divider {
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: 0 2rem;
+        }
+        .acq-divider hr {
+          border: none;
+          border-top: 1px solid #E5E7EB;
+          margin: 0;
+        }
+
+        .acq-footer-bottom {
+          max-width: 80rem;
+          margin: 0 auto;
+          padding: 18px 2rem 28px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
+        .acq-copy p {
+          font-size: 0.5625rem;
+          font-weight: 800;
+          color: rgba(43,43,43,0.38);
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          margin: 0 0 3px;
+        }
+        .acq-copy small {
+          font-size: 0.5rem;
+          color: rgba(43,43,43,0.28);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          display: block;
+        }
+        .acq-legal {
+          display: flex;
+          align-items: center;
+          gap: 28px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .acq-legal a {
+          font-size: 0.5625rem;
+          font-weight: 800;
+          color: rgba(43,43,43,0.38);
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: color 0.16s;
+        }
+        .acq-legal a:hover { color: #2B2B2B; }
+        .acq-legal span {
+          font-size: 0.5rem;
+          font-weight: 700;
+          color: rgba(43,43,43,0.35);
+          text-transform: uppercase;
+          letter-spacing: 0.14em;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: color 0.16s ease;
+        }
+        .acq-legal span:hover { color: #B87333; }
+
+        @media (max-width: 1024px) {
+          .acq-footer-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 32px;
+          }
+          .acq-brand-col { grid-column: 1 / -1; }
+          .acq-brand-desc { max-width: 100%; }
+        }
+
+        @media (max-width: 640px) {
+          .acq-footer-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            padding: 0 1rem 40px;
+          }
+          .acq-brand-col { grid-column: 1 / -1; }
+          .acq-footer-bottom {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 14px;
+            padding: 18px 1rem 28px;
+          }
+          .acq-legal { justify-content: center; gap: 18px; }
+          .acq-divider { padding: 0 1rem; }
+        }
+
+        @media (max-width: 420px) {
+          .acq-footer-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
+      <footer className="acq-footer">
+        <div className="acq-footer-grid">
+          <div className="acq-brand-col">
+            <span className="acq-brand-name">ACQAR</span>
+            <p className="acq-brand-desc">
+              The world's first AI-powered property intelligence platform for Dubai real estate.
+              Independent, instant, investment-grade.
+            </p>
+            <div className="acq-rics-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+              <span>RICS-Aligned Intelligence</span>
+            </div>
+            <div className="acq-social-row">
+              <a
+                href="https://www.linkedin.com/company/acqar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="acq-social-btn"
+                aria-label="LinkedIn"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4.98 3.5C4.98 4.88 3.86 6 2.48 6 1.1 6 0 4.88 0 3.5S1.1 1 2.48 1c1.38 0 2.5 1.12 2.5 2.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.67-1.2 2.3-2.4 4.73-2.4C22.2 7.8 24 10.2 24 14.1V24h-5v-8.5c0-2-.04-4.6-2.8-4.6-2.8 0-3.2 2.2-3.2 4.4V24h-5V8z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {cols.map(([title, items]) => (
+            <div key={title}>
+              <h6 className="acq-col-title">{title}</h6>
+              <ul className="acq-link-list">
+                {items.map((item) => (
+                  <li key={item} className="acq-link-item">{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="acq-divider"><hr /></div>
+
+        <div className="acq-footer-bottom">
+          <div className="acq-copy">
+            <p>© 2025 ACQARLABS L.L.C-FZ. All rights reserved.</p>
+          </div>
+          <nav className="acq-legal">
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/terms")}>Terms</span>
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/privacy")}>Privacy</span>
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/cookies")}>Cookies</span>
+            <span style={{ cursor: "pointer" }} onClick={() => navigate("/security")}>Security</span>
+          </nav>
+        </div>
+      </footer>
+    </>
+  );
+}
 
 export default function AcqarSignal() {
   const [theme, setTheme] = useState("dark");
@@ -1733,8 +1987,6 @@ export default function AcqarSignal() {
     }
   }, []);
 
-  
-
   useEffect(() => {
     if (theme === "light") {
       document.documentElement.setAttribute("data-theme", "light");
@@ -1744,42 +1996,35 @@ export default function AcqarSignal() {
     localStorage.setItem("acqar-theme", theme);
   }, [theme]);
 
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light");
 
-  // Add this after your existing useEffects
-useEffect(() => {
-  window.scrollTo(0, 0);
-}, []);
+  const navigate = useNavigate();
+
+  const [showSignIn, setShowSignIn] = useState(false);
 
   return (
     <>
       <style>{styles}</style>
 
-      {/* NAV */}
+      {/* ── NAV ── */}
       <nav>
         <div className="nav-logo">
           <div className="brand"><span>ACQ</span><span>AR</span></div>
           <div className="signal-badge">Signal</div>
         </div>
-        {/* <ul className="nav-links">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#dashboard">Dashboard</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="#">Pricing</a></li>
-          <li><a href="https://www.acqar.com" target="_blank" rel="noreferrer">ACQAR.com ↗</a></li>
-        </ul> */}
         <div className="nav-actions">
           <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme" title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             {theme === "dark" ? "☀" : "🌙"}
           </button>
-          {/* <button className="btn-ghost">Sign In</button> */}
           <button className="btn-primary" onClick={() => setShowSignIn(true)}>
-  Request Access →
-</button>
+            Request Access →
+          </button>
         </div>
       </nav>
 
-      {/* LIVE TICKER */}
+      {/* ── LIVE TICKER ── */}
       <div className="live-ticker">
         <div className="ticker-label"><div className="ticker-dot"></div> Live Signals</div>
         <div style={{ overflow: "hidden", flex: 1 }}>
@@ -1795,7 +2040,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* HERO */}
+      {/* ── HERO ── */}
       <section className="hero" id="hero" style={{ marginTop: 96 }}>
         <div className="hero-grid-bg"></div>
         <div className="hero-content">
@@ -1868,7 +2113,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* PROBLEM SECTION */}
+      {/* ── PROBLEM SECTION ── */}
       <section className="problem-section" id="problem">
         <div className="problem-layout">
           <div className="problem-intro">
@@ -1878,12 +2123,12 @@ useEffect(() => {
           </div>
           <div className="problem-list">
             {[
-              { num: "01", tag: "Speed", title: "By The Time You Read It, It's Gone", desc: <>News sites, portals, and newsletters publish 6–24 hours after an event. <strong>Binghatti Apex sold 180 units in 4 hours.</strong> Your inbox never stood a chance.</> },
-              { num: "02", tag: "Fragmentation", title: "Manual Monitoring Is Chaos", desc: <>You're juggling <strong>10 WhatsApp groups, 5 property portals, 4 news sites, and 3 developer newsletters</strong> — manually, every single day. And still missing signals.</> },
-              { num: "03", tag: "Intelligence Gap", title: "The Smart Money Has Better Data", desc: <>Institutional investors and tier-1 brokers have teams dedicated to monitoring this market. Without the same intelligence, <strong>you're always reacting, never anticipating.</strong></> },
-              { num: "04", tag: "Compliance", title: "Regulatory Surprises Kill Deals", desc: <>RERA circulars, DLD policy changes, golden visa thresholds — <strong>one missed regulation can invalidate a deal or trigger a penalty.</strong> These come with no warning.</> },
-              { num: "05", tag: "Momentum", title: "Area Momentum Is Invisible", desc: <>Which neighbourhood is quietly accumulating deals? Which area just got a school, metro line, or park approved? <strong>These signals are buried in 200 news articles a day.</strong></> },
-              { num: "06", tag: "Sentiment", title: "Community Signals Get Lost in Noise", desc: <>Reddit discussions, broker WhatsApp leaks, r/DubaiRealEstate threads — <strong>real sentiment from real investors</strong> is scattered and unsynthesised.</> },
+              { num: "01", tag: "Speed", title: "By The Time You Read It, It's Gone", desc: (<>News sites, portals, and newsletters publish 6–24 hours after an event. <strong>Binghatti Apex sold 180 units in 4 hours.</strong> Your inbox never stood a chance.</>) },
+              { num: "02", tag: "Fragmentation", title: "Manual Monitoring Is Chaos", desc: (<>You're juggling <strong>10 WhatsApp groups, 5 property portals, 4 news sites, and 3 developer newsletters</strong> — manually, every single day. And still missing signals.</>) },
+              { num: "03", tag: "Intelligence Gap", title: "The Smart Money Has Better Data", desc: (<>Institutional investors and tier-1 brokers have teams dedicated to monitoring this market. Without the same intelligence, <strong>you're always reacting, never anticipating.</strong></>) },
+              { num: "04", tag: "Compliance", title: "Regulatory Surprises Kill Deals", desc: (<>RERA circulars, DLD policy changes, golden visa thresholds — <strong>one missed regulation can invalidate a deal or trigger a penalty.</strong> These come with no warning.</>) },
+              { num: "05", tag: "Momentum", title: "Area Momentum Is Invisible", desc: (<>Which neighbourhood is quietly accumulating deals? Which area just got a school, metro line, or park approved? <strong>These signals are buried in 200 news articles a day.</strong></>) },
+              { num: "06", tag: "Sentiment", title: "Community Signals Get Lost in Noise", desc: (<>Reddit discussions, broker WhatsApp leaks, r/DubaiRealEstate threads — <strong>real sentiment from real investors</strong> is scattered and unsynthesised.</>) },
             ].map((row, i) => (
               <div className="problem-row" key={i}>
                 <div className="problem-num">{row.num}</div>
@@ -1905,7 +2150,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* FEATURES */}
+      {/* ── FEATURES ── */}
       <section id="features">
         <div className="features-section">
           <div className="features-header">
@@ -1914,7 +2159,6 @@ useEffect(() => {
             <p className="section-sub">ACQAR Signal deploys a persistent AI agent that monitors 14 data sources simultaneously, classifies every event by category and severity, and surfaces exactly what matters — plotted on a live map of Dubai.</p>
           </div>
           <div className="features-grid">
-            {/* Large card */}
             <div className="feature-card large">
               <div>
                 <div className="feature-icon">
@@ -1929,25 +2173,24 @@ useEffect(() => {
               </div>
               <div className="source-list">
                 {[
-                  { name: "Gulf News Property RSS", status: "Live", active: true },
-                  { name: "The National Property RSS", status: "Live", active: true },
-                  { name: "Arabian Business RE RSS", status: "Live", active: true },
-                  { name: "DLD Transaction Signals", status: "Live", active: true },
-                  { name: "Reddit r/DubaiRealEstate", status: "Live", active: true },
-                  { name: "Google News: RERA / DLD", status: "Live", active: true },
-                  { name: "GDELT Global Events", status: "Live", active: true },
-                  { name: "Twitter / LinkedIn", status: "Soon", active: false },
+                  { name: "Gulf News Property RSS", active: true },
+                  { name: "The National Property RSS", active: true },
+                  { name: "Arabian Business RE RSS", active: true },
+                  { name: "DLD Transaction Signals", active: true },
+                  { name: "Reddit r/DubaiRealEstate", active: true },
+                  { name: "Google News: RERA / DLD", active: true },
+                  { name: "GDELT Global Events", active: true },
+                  { name: "Twitter / LinkedIn", active: false },
                 ].map((s, i) => (
                   <div className="source-item" key={i}>
                     <div className="src-dot" style={!s.active ? { background: "var(--text-muted)" } : {}}></div>
                     {s.name}
-                    <span className="src-count" style={!s.active ? { color: "var(--text-muted)" } : {}}>{s.status}</span>
+                    <span className="src-count" style={!s.active ? { color: "var(--text-muted)" } : {}}>{s.active ? "Live" : "Soon"}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Severity */}
             <div className="feature-card">
               <div className="feature-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01"/><path d="M6 12h3M15 12h3"/><path d="M9 12a1.5 1.5 0 0 0 0 3h6a1.5 1.5 0 0 0 0-3"/></svg>
@@ -1963,7 +2206,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Map */}
             <div className="feature-card">
               <div className="feature-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
@@ -1976,7 +2218,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Community */}
             <div className="feature-card">
               <div className="feature-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01" strokeWidth="2"/></svg>
@@ -1990,7 +2231,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Reports */}
             <div className="feature-card">
               <div className="feature-icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16l4-5 4 3 4-7"/><circle cx="7" cy="16" r="1" fill="currentColor" stroke="none"/><circle cx="11" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="7" r="1" fill="currentColor" stroke="none"/></svg>
@@ -2007,7 +2247,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* DASHBOARD */}
+      {/* ── DASHBOARD ── */}
       <section className="dashboard-section" id="dashboard">
         <div className="dashboard-intro">
           <div className="section-label" style={{ justifyContent: "center" }}>The Terminal</div>
@@ -2019,13 +2259,13 @@ useEffect(() => {
             <div className="dash-logo"><span>ACQ</span><span style={{ color: "var(--text-primary)" }}>AR</span>&nbsp;<span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12 }}>SIGNAL</span></div>
             <div className="dash-tabs">
               {[
-                { label: "Live Feed", active: true, icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg> },
-                { label: "Map View", icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> },
-                { label: "Reports", icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}><path d="M3 3v18h18"/><path d="M7 16l4-5 4 3 4-7"/></svg> },
-                { label: "Community", icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
-                { label: "Analytics", icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 5 }}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> },
+                { label: "Live Feed", active: true },
+                { label: "Map View" },
+                { label: "Reports" },
+                { label: "Community" },
+                { label: "Analytics" },
               ].map((tab, i) => (
-                <div className={`dash-tab${tab.active ? " active" : ""}`} key={i}>{tab.icon}{tab.label}</div>
+                <div className={`dash-tab${tab.active ? " active" : ""}`} key={i}>{tab.label}</div>
               ))}
             </div>
             <div className="dash-status">
@@ -2186,7 +2426,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      {/* ── HOW IT WORKS ── */}
       <section id="how-it-works">
         <div className="hiw-section">
           <div className="features-header" style={{ textAlign: "center", marginBottom: 0 }}>
@@ -2212,7 +2452,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* STATS */}
+      {/* ── STATS ── */}
       <section className="stats-section">
         <div className="stats-grid">
           {[
@@ -2230,10 +2470,10 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* ── TESTIMONIALS ── */}
       <section>
-        <div className="testimonials-section">
-          <div className="testimonials-header" style={{ maxWidth: 1200, margin: "0 auto 52px", textAlign: "center", padding: "0 48px" }}>
+        <div>
+          <div style={{ maxWidth: 1200, margin: "0 auto 52px", textAlign: "center", padding: "0 48px" }}>
             <div className="section-label" style={{ justifyContent: "center" }}>Trusted By Those Who Act First</div>
             <h2 className="section-title" style={{ textAlign: "center" }}>The Edge Every<br /><span className="text-copper">Market Player Needs.</span></h2>
           </div>
@@ -2259,7 +2499,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* FINAL CTA */}
+      {/* ── FINAL CTA ── */}
       <section className="final-cta-section" id="final-cta">
         <div className="final-cta-content">
           <div className="final-cta-eyebrow"><div className="ticker-dot"></div> ACQAR Signal — Early Access Open</div>
@@ -2278,41 +2518,8 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer>
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <div className="logo-text"><span>ACQ</span><span style={{ color: "var(--text-primary)" }}>AR</span> <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>Signal</span></div>
-            <p>The world's only AI-powered real-time intelligence terminal for Dubai real estate. Built on ACQAR's institutional-grade property intelligence platform.</p>
-            <div className="footer-badge">🛡 RICS-Aligned Intelligence</div>
-          </div>
-          <div className="footer-col">
-            <h5>Product</h5>
-            <ul>{["Live Feed", "Map Intelligence", "Reports", "Community Signals", "API Access"].map(l => <li key={l}><a href="#">{l}</a></li>)}</ul>
-          </div>
-          <div className="footer-col">
-            <h5>Company</h5>
-            <ul>
-              <li><a href="https://www.acqar.com/about" target="_blank" rel="noreferrer">About ACQAR</a></li>
-              <li><a href="https://www.acqar.com" target="_blank" rel="noreferrer">ACQAR Platform</a></li>
-              {["Press Kit", "Contact Us", "Partners"].map(l => <li key={l}><a href="#">{l}</a></li>)}
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h5>Resources</h5>
-            <ul>
-              {["Signal Glossary", "Market Reports", "Developer Docs", "Help Center"].map(l => <li key={l}><a href="#">{l}</a></li>)}
-              <li><a href="https://github.com/acqarai-tech/acqar-signal" target="_blank" rel="noreferrer">GitHub ↗</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <div>© 2025 ACQARLABS L.L.C-FZ. All Rights Reserved. &nbsp;<span className="rics-tag">RICS-Aligned Intelligence</span></div>
-          <div className="footer-links">
-            {["Terms", "Privacy", "Cookies", "Security"].map(l => <a href="#" key={l}>{l}</a>)}
-          </div>
-        </div>
-      </footer>
+      {/* ── NEW FOOTER ── */}
+      <Footer />
 
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
     </>
