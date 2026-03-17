@@ -1145,6 +1145,8 @@ export default function AcqarSignal() {
           </div>
         </div>
       </footer>
+
+      {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
     </>
   );
 }
