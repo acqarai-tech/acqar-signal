@@ -289,11 +289,14 @@ import EventDetail from '../components/EventDetail'
 import OverlayPanel from '../components/OverlayPanel'
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia('(max-width: 767px)').matches
+  )
   useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [])
   return isMobile
 }
@@ -357,7 +360,8 @@ export default function Dashboard() {
             position: 'absolute',
             bottom: mobileDrawer === 'chat' ? 0 : '-110%',
             left: 0, right: 0, height: '72%',
-            background: '#111827',
+            background: '#0D1B2A',
+            borderTop: '2px solid #B87333',
             borderRadius: '16px 16px 0 0',
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
@@ -365,17 +369,11 @@ export default function Dashboard() {
             zIndex: 50,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
-            {/* Close button lives here in Dashboard — same pattern as Feed drawer */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 16px 8px',
-              background: '#0d1117',
-              borderBottom: '1px solid #1f2937',
-              flexShrink: 0,
+              padding: '12px 16px 8px', borderBottom: '1px solid #0F3460', flexShrink: 0,
             }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>
-                💬 CHAT
-              </span>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#B87333', letterSpacing: '1px' }}>💬 CHAT</span>
               <button
                 onClick={() => setMobileDrawer(null)}
                 style={{
@@ -387,7 +385,7 @@ export default function Dashboard() {
                 }}
               >✕</button>
             </div>
-            <ChatPanel isMobile={true} />
+            <ChatPanel />
           </div>
 
           {/* Floating buttons — hide when a drawer is open */}
