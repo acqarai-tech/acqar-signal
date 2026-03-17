@@ -1193,8 +1193,8 @@ const [showSignIn, setShowSignIn] = useState(false);
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {[
             { label: 'ValuCheck™', active: true },
-            { label: 'ACQAR Signal™', soon: true },
-            { label: 'ACQAR Passport™', soon: true },
+            { label: 'ACQAR Signal™' },
+            { label: 'ACQAR Passport™' },
             { label: 'Pricing Tiers', active: true },
           ].map(({ label, active, soon }) => (
             <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 600, color: active ? 'rgba(10,10,10,0.55)' : 'rgba(10,10,10,0.2)', cursor: active ? 'pointer' : 'default' }}>
