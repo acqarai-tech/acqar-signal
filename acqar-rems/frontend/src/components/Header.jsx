@@ -375,16 +375,16 @@
 
 
 
+
+
 import { useEffect, useRef, useState } from 'react'
 import { useSocket } from '../context/SocketContext'
 import SignalRow from './SignalRow'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-// Fetch predictions — tries Manifold directly from the browser first (real data),
-// then falls back to our backend /api/market/predictions (signal-derived).
 async function fetchPredictions() {
-  // 1. Try Manifold Markets directly (browser has internet, no CORS issues)
+  // 1. Try Manifold Markets directly
   try {
     const queries = [
       'Federal Reserve rate cut',
@@ -416,11 +416,9 @@ async function fetchPredictions() {
       })
     )
     if (results.length >= 3) return results
-  } catch (_) {
-    // network blocked — fall through to backend
-  }
+  } catch (_) {}
 
-  // 2. Try Polymarket events directly from the browser
+  // 2. Try Polymarket events directly
   try {
     const polyQueries = ['Federal Reserve', 'inflation', 'oil', 'interest rate']
     const results = []
@@ -458,7 +456,7 @@ async function fetchPredictions() {
     if (results.length >= 3) return results
   } catch (_) {}
 
-  // 3. Fall back to backend signal-derived predictions
+  // 3. Fall back to backend
   const res = await fetch(`${API_URL}/api/market/predictions`)
   if (!res.ok) throw new Error('Backend predictions unavailable')
   const data = await res.json()
@@ -466,9 +464,7 @@ async function fetchPredictions() {
 }
 
 export default function Header() {
-  const { isConnected, monitorCount } = useSocket()
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [headerSearch, setHeaderSearch] = useState('')
+  const { isConnected } = useSocket()
   const [activeTimeFilter, setActiveTimeFilter] = useState(24)
 
   // Prediction ticker state
@@ -478,7 +474,6 @@ export default function Header() {
   const animRef = useRef(null)
   const posRef = useRef(0)
 
-  // Fetch predictions on mount and every 5 minutes
   useEffect(() => {
     let cancelled = false
     const load = async () => {
@@ -487,7 +482,7 @@ export default function Header() {
         if (!cancelled) {
           setPredictions(data)
           setPredLoading(false)
-          posRef.current = 0  // reset scroll on fresh data
+          posRef.current = 0
         }
       } catch (_) {
         if (!cancelled) setPredLoading(false)
@@ -498,18 +493,15 @@ export default function Header() {
     return () => { cancelled = true; clearInterval(interval) }
   }, [])
 
-  // Smooth scrolling ticker animation
   useEffect(() => {
     if (!tickerRef.current || predictions.length === 0) return
     const el = tickerRef.current
-    const speed = 0.4  // px per frame
+    const speed = 0.4
 
     const animate = () => {
       posRef.current -= speed
       const halfWidth = el.scrollWidth / 2
-      if (Math.abs(posRef.current) >= halfWidth) {
-        posRef.current = 0
-      }
+      if (Math.abs(posRef.current) >= halfWidth) posRef.current = 0
       el.style.transform = `translateX(${posRef.current}px)`
       animRef.current = requestAnimationFrame(animate)
     }
@@ -517,7 +509,6 @@ export default function Header() {
     return () => cancelAnimationFrame(animRef.current)
   }, [predictions])
 
-  // Determine the source label for the strip header
   const isRealData = predictions.some(p => p.is_real)
   const sourceLabel = predictions.length > 0
     ? (isRealData
@@ -527,12 +518,16 @@ export default function Header() {
 
   return (
     <header style={{
-      background:'#FFFFFF', borderBottom:'1px solid #E0E0E0',
-      display:'flex', flexDirection:'column', flexShrink:0, zIndex:20
+      background: '#FFFFFF', borderBottom: '1px solid #E0E0E0',
+      display: 'flex', flexDirection: 'column', flexShrink: 0, zIndex: 20
     }}>
       {/* Main header row */}
-      <div style={{height:'50px', display:'flex', alignItems:'center', paddingLeft:'16px', paddingRight:'16px', gap:'12px'}}>
-        {/* Logo */}
+      <div style={{
+        height: '50px', display: 'flex', alignItems: 'center',
+        paddingLeft: '16px', paddingRight: '16px', gap: '12px'
+      }}>
+
+        {/* Logo — pinned left */}
         <div
           className="hdrLogo flex items-center cursor-pointer shrink-0 whitespace-nowrap"
           onClick={() => {
@@ -546,52 +541,56 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* Center group: status + time filters */}
-<div style={{flex:1, display:'flex', justifyContent:'center', alignItems:'center', gap:'12px'}}>
-  
-  {/* Status indicator */}
-  <div className="flex items-center gap-1.5">
-    <div style={{
-      width:6, height:6, borderRadius:'50%',
-      background: isConnected ? '#27AE60' : '#666',
-      boxShadow: isConnected ? '0 0 6px #27AE60' : 'none'
-    }} />
-    <span style={{fontSize:'11px', color: isConnected ? '#27AE60' : '#666', fontWeight:600}}>
-      {isConnected ? 'LIVE' : 'OFFLINE'}
-    </span>
-  </div>
+        {/* Center group: status indicator + time filter buttons */}
+        <div style={{
+          flex: 1, display: 'flex', justifyContent: 'center',
+          alignItems: 'center', gap: '12px'
+        }}>
 
-  {/* Time filter buttons */}
-  <div style={{display:'flex', gap:'6px'}}>
-    {[6, 24, 72].map(h => (
-      <button key={h} disabled style={{
-        padding:'4px 8px', fontSize:'10px', fontWeight:700,
-        border: activeTimeFilter === h ? '1px solid #B87333' : '1px solid #0F3460',
-        background: activeTimeFilter === h ? 'rgba(184,115,51,0.2)' : 'transparent',
-        color: activeTimeFilter === h ? '#B87333' : '#B3B3B3',
-        borderRadius:'4px', cursor:'not-allowed', pointerEvents:'none'
-      }}>{h}H</button>
-    ))}
-  </div>
+          {/* Status indicator */}
+          <div className="flex items-center gap-1.5">
+            <div style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: isConnected ? '#27AE60' : '#666',
+              boxShadow: isConnected ? '0 0 6px #27AE60' : 'none'
+            }} />
+            <span style={{ fontSize: '11px', color: isConnected ? '#27AE60' : '#666', fontWeight: 600 }}>
+              {isConnected ? 'LIVE' : 'OFFLINE'}
+            </span>
+          </div>
 
-</div>
+          {/* Time filter buttons — disabled, original colors */}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[6, 24, 72].map(h => (
+              <button key={h} disabled style={{
+                padding: '4px 8px', fontSize: '10px', fontWeight: 700,
+                border: activeTimeFilter === h ? '1px solid #B87333' : '1px solid #0F3460',
+                background: activeTimeFilter === h ? 'rgba(184,115,51,0.2)' : 'transparent',
+                color: activeTimeFilter === h ? '#B87333' : '#B3B3B3',
+                borderRadius: '4px', cursor: 'not-allowed', pointerEvents: 'none'
+              }}>{h}H</button>
+            ))}
+          </div>
+
+        </div>
+      </div>
 
       {/* Prediction Ticker Strip */}
       <div style={{
-        height:'26px', borderTop:'1px solid #0F3460',
-        background:'#0D1B30', display:'flex', alignItems:'center', overflow:'hidden',
-        position:'relative'
+        height: '26px', borderTop: '1px solid #0F3460',
+        background: '#0D1B30', display: 'flex', alignItems: 'center',
+        overflow: 'hidden', position: 'relative'
       }}>
         {/* Left label */}
         <div style={{
-          flexShrink:0, paddingLeft:'10px', paddingRight:'8px',
-          fontSize:'9px', fontWeight:800, color:'#B87333', letterSpacing:'0.8px',
-          borderRight:'1px solid #0F3460', height:'100%',
-          display:'flex', alignItems:'center', gap:'4px',
-          background:'#0D1B30', zIndex:2, whiteSpace:'nowrap'
+          flexShrink: 0, paddingLeft: '10px', paddingRight: '8px',
+          fontSize: '9px', fontWeight: 800, color: '#B87333', letterSpacing: '0.8px',
+          borderRight: '1px solid #0F3460', height: '100%',
+          display: 'flex', alignItems: 'center', gap: '4px',
+          background: '#0D1B30', zIndex: 2, whiteSpace: 'nowrap'
         }}>
           <span style={{
-            display:'inline-block', width:5, height:5, borderRadius:'50%',
+            display: 'inline-block', width: 5, height: 5, borderRadius: '50%',
             background: isRealData ? '#27AE60' : '#B87333',
             animation: isRealData ? 'livePulse 2s infinite' : 'none'
           }} />
@@ -599,20 +598,20 @@ export default function Header() {
         </div>
 
         {/* Scrolling ticker area */}
-        <div style={{flex:1, overflow:'hidden', position:'relative', height:'100%'}}>
+        <div style={{ flex: 1, overflow: 'hidden', position: 'relative', height: '100%' }}>
           {predLoading ? (
             <div style={{
-              position:'absolute', top:0, left:0, right:0, bottom:0,
-              display:'flex', alignItems:'center', paddingLeft:'12px',
-              fontSize:'10px', color:'#555'
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              display: 'flex', alignItems: 'center', paddingLeft: '12px',
+              fontSize: '10px', color: '#555'
             }}>
               Loading predictions...
             </div>
           ) : predictions.length === 0 ? (
             <div style={{
-              position:'absolute', top:0, left:0, right:0, bottom:0,
-              display:'flex', alignItems:'center', paddingLeft:'12px',
-              fontSize:'10px', color:'#555'
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              display: 'flex', alignItems: 'center', paddingLeft: '12px',
+              fontSize: '10px', color: '#555'
             }}>
               No predictions available
             </div>
@@ -620,11 +619,10 @@ export default function Header() {
             <div
               ref={tickerRef}
               style={{
-                display:'inline-flex', alignItems:'center', height:'100%',
-                whiteSpace:'nowrap', willChange:'transform'
+                display: 'inline-flex', alignItems: 'center', height: '100%',
+                whiteSpace: 'nowrap', willChange: 'transform'
               }}
             >
-              {/* Doubled for seamless loop */}
               {[...predictions, ...predictions].map((p, i) => (
                 <PredictionItem key={`${p.id}-${i}`} prediction={p} />
               ))}
@@ -633,12 +631,12 @@ export default function Header() {
 
           {/* Fade edges */}
           <div style={{
-            position:'absolute', top:0, left:0, width:'24px', height:'100%',
-            background:'linear-gradient(to right, #0D1B30, transparent)', pointerEvents:'none'
+            position: 'absolute', top: 0, left: 0, width: '24px', height: '100%',
+            background: 'linear-gradient(to right, #0D1B30, transparent)', pointerEvents: 'none'
           }} />
           <div style={{
-            position:'absolute', top:0, right:0, width:'24px', height:'100%',
-            background:'linear-gradient(to left, #0D1B30, transparent)', pointerEvents:'none'
+            position: 'absolute', top: 0, right: 0, width: '24px', height: '100%',
+            background: 'linear-gradient(to left, #0D1B30, transparent)', pointerEvents: 'none'
           }} />
         </div>
       </div>
@@ -647,10 +645,6 @@ export default function Header() {
       <SignalRow />
 
       <style>{`
-        @keyframes monitorPulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(39,174,96,0.7); }
-          50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(39,174,96,0); }
-        }
         @keyframes livePulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(1.3); }
@@ -671,46 +665,43 @@ function PredictionItem({ prediction }) {
       target="_blank"
       rel="noopener noreferrer"
       style={{
-        display:'inline-flex', alignItems:'center', gap:'7px',
-        padding:'0 16px', height:'100%', textDecoration:'none',
-        borderRight:'1px solid #0F3460', cursor: url ? 'pointer' : 'default',
-        transition:'background 0.15s',
+        display: 'inline-flex', alignItems: 'center', gap: '7px',
+        padding: '0 16px', height: '100%', textDecoration: 'none',
+        borderRight: '1px solid #0F3460', cursor: url ? 'pointer' : 'default',
+        transition: 'background 0.15s',
       }}
       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
-      {/* Percentage badge */}
       <span style={{
-        fontSize:'11px', fontWeight:800, color, minWidth:'36px',
-        textAlign:'right', fontVariantNumeric:'tabular-nums'
+        fontSize: '11px', fontWeight: 800, color, minWidth: '36px',
+        textAlign: 'right', fontVariantNumeric: 'tabular-nums'
       }}>
         {pct}%
       </span>
 
-      {/* YES label */}
       <span style={{
-        fontSize:'8px', fontWeight:700, color, opacity:0.7,
-        padding:'1px 3px', border:`1px solid ${color}44`, borderRadius:'2px'
+        fontSize: '8px', fontWeight: 700, color, opacity: 0.7,
+        padding: '1px 3px', border: `1px solid ${color}44`, borderRadius: '2px'
       }}>YES</span>
 
-      {/* Question */}
-      <span style={{fontSize:'10px', color:'#B3B3B3', letterSpacing:'0.1px'}}>
+      <span style={{ fontSize: '10px', color: '#B3B3B3', letterSpacing: '0.1px' }}>
         {short}
       </span>
 
-      {/* Source badge */}
       {is_real && (
         <span style={{
-          fontSize:'8px', color:'#555', fontWeight:600,
-          padding:'1px 4px', background:'rgba(255,255,255,0.04)',
-          borderRadius:'2px', flexShrink:0
+          fontSize: '8px', color: '#555', fontWeight: 600,
+          padding: '1px 4px', background: 'rgba(255,255,255,0.04)',
+          borderRadius: '2px', flexShrink: 0
         }}>
           {source}
         </span>
       )}
 
-      {/* Separator dot */}
-      <span style={{color:'#1A2040', fontSize:'10px', marginLeft:'4px'}}>◆</span>
+      <span style={{ color: '#1A2040', fontSize: '10px', marginLeft: '4px' }}>◆</span>
     </a>
   )
 }
+
+
