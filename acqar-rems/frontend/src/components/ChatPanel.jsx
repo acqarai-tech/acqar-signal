@@ -233,11 +233,11 @@
 // }
 
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 const nameColor = (name = '') => {
-  const colors = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C', '#E67E22', '#D4AC0D']
+  const colors = ['#E8A838', '#E74C3C', '#3498DB', '#2ECC71', '#9B59B6', '#1ABC9C', '#E67E22', '#D4AC0D', '#F39C12', '#16A085']
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
@@ -248,7 +248,6 @@ function formatTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-// Temporary guest name until auth is integrated
 const GUEST_NAME = 'Guest_' + Math.random().toString(36).slice(2, 6).toUpperCase()
 
 export default function ChatPanel() {
@@ -257,10 +256,18 @@ export default function ChatPanel() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [onlineCount, setOnlineCount] = useState(0)
+
+  // Drag state
+  const [pos, setPos] = useState({ x: window.innerWidth - 400, y: 60 })
+  const [dragging, setDragging] = useState(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
+  const panelRef = useRef(null)
+
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
-  // ── Fetch messages on mount ───────────────────────────────────────────────
+  // ── Fetch messages ────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchMessages = async () => {
       setLoading(true)
@@ -270,17 +277,10 @@ export default function ChatPanel() {
         .select('id, user_name, content, created_at')
         .order('created_at', { ascending: true })
         .limit(100)
-
-      if (error) {
-        console.error('Fetch error:', error)
-        setError('Could not load messages: ' + error.message)
-        setLoading(false)
-        return
-      }
+      if (error) { setError('Could not load messages: ' + error.message); setLoading(false); return }
       setMessages(data || [])
       setLoading(false)
     }
-
     fetchMessages()
   }, [])
 
@@ -288,119 +288,209 @@ export default function ChatPanel() {
   useEffect(() => {
     const channel = supabase
       .channel('chat-room-' + Math.random())
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          setMessages(prev => {
-            if (prev.find(m => m.id === payload.new.id)) return prev
-            return [...prev, payload.new]
-          })
-        }
-      )
-      .subscribe((status) => {
-        console.log('Realtime status:', status)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        setMessages(prev => {
+          if (prev.find(m => m.id === payload.new.id)) return prev
+          return [...prev, payload.new]
+        })
       })
-
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setOnlineCount(c => c + 1)
+      })
     return () => supabase.removeChannel(channel)
   }, [])
 
-  // ── Auto scroll to bottom ─────────────────────────────────────────────────
+  // ── Auto scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ── Send message ──────────────────────────────────────────────────────────
+  // ── Send ──────────────────────────────────────────────────────────────────
   const sendMessage = async (e) => {
     e.preventDefault()
     const text = input.trim()
     if (!text) return
     setInput('')
-
     const { error } = await supabase.from('messages').insert({
-      user_id: myName,
-      user_name: myName,
-      content: text,
+      user_id: myName, user_name: myName, content: text,
     })
-
-    if (error) {
-      console.error('Send error:', error)
-      setError('Failed to send: ' + error.message)
-    }
+    if (error) setError('Failed to send: ' + error.message)
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage(e)
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
   }
 
+  // ── Drag handlers ─────────────────────────────────────────────────────────
+  const onMouseDown = useCallback((e) => {
+    e.preventDefault()
+    setDragging(true)
+    dragOffset.current = {
+      x: e.clientX - pos.x,
+      y: e.clientY - pos.y,
+    }
+  }, [pos])
+
+  useEffect(() => {
+    if (!dragging) return
+    const onMove = (e) => {
+      const newX = Math.max(0, Math.min(window.innerWidth - 360, e.clientX - dragOffset.current.x))
+      const newY = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragOffset.current.y))
+      setPos({ x: newX, y: newY })
+    }
+    const onUp = () => setDragging(false)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+  }, [dragging])
+
+  // Touch drag
+  const onTouchStart = useCallback((e) => {
+    const touch = e.touches[0]
+    setDragging(true)
+    dragOffset.current = { x: touch.clientX - pos.x, y: touch.clientY - pos.y }
+  }, [pos])
+
+  useEffect(() => {
+    if (!dragging) return
+    const onMove = (e) => {
+      const touch = e.touches[0]
+      const newX = Math.max(0, Math.min(window.innerWidth - 360, touch.clientX - dragOffset.current.x))
+      const newY = Math.max(0, Math.min(window.innerHeight - 100, touch.clientY - dragOffset.current.y))
+      setPos({ x: newX, y: newY })
+    }
+    const onEnd = () => setDragging(false)
+    window.addEventListener('touchmove', onMove)
+    window.addEventListener('touchend', onEnd)
+    return () => { window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd) }
+  }, [dragging])
+
   return (
-    <div style={{
-      height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#16213E', fontFamily: "'Inter', sans-serif"
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: '10px 12px', borderBottom: '1px solid #0F3460',
-        display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0
-      }}>
-        <div style={{ flex: 1 }}>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA' }}>Acqar Community Signal</span>
-          <span style={{ fontSize: '9px', color: '#555', display: 'block', marginTop: '1px' }}>
-            chatting as <span style={{ color: '#B87333', fontWeight: 600 }}>{myName}</span>
-          </span>
-        </div>
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#27AE60', boxShadow: '0 0 6px #27AE60' }} />
-        <span style={{ fontSize: '10px', color: '#27AE60', fontWeight: 600 }}>LIVE</span>
+    <div
+      ref={panelRef}
+      style={{
+        position: 'fixed',
+        left: pos.x,
+        top: pos.y,
+        width: 360,
+        height: 520,
+        zIndex: 999,
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: '10px',
+        overflow: 'hidden',
+        background: '#1a1a2e',
+        border: '1px solid #2a2a4a',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.7)',
+        fontFamily: "'Inter', sans-serif",
+        userSelect: dragging ? 'none' : 'auto',
+      }}
+    >
+      {/* ── Header ── */}
+      <div
+        onMouseDown={onMouseDown}
+        onTouchStart={onTouchStart}
+        style={{
+          padding: '8px 12px',
+          background: '#0f0f1e',
+          borderBottom: '1px solid #2a2a4a',
+          display: 'flex', alignItems: 'center', gap: '8px',
+          cursor: dragging ? 'grabbing' : 'grab',
+          flexShrink: 0,
+          userSelect: 'none',
+        }}
+      >
+        {/* Title */}
+        <span style={{ fontSize: '12px', fontWeight: 800, color: '#FAFAFA', letterSpacing: '1px' }}>CHAT</span>
+        <span style={{ fontSize: '10px', color: '#555' }}>as</span>
+        <span style={{ fontSize: '10px', color: nameColor(myName), fontWeight: 600 }}>{myName}</span>
+
+        <div style={{ flex: 1 }} />
+
+        {/* Online count */}
+        <span style={{ fontSize: '10px', color: '#B87333', fontWeight: 700 }}>
+          🟠 {(815 + onlineCount).toLocaleString()}
+        </span>
+
+        {/* Drag hint */}
+        <span style={{ fontSize: '10px', color: '#333', cursor: 'grab' }} title="Drag to move">⠿</span>
+
+        {/* Close placeholder */}
+        <div style={{
+          width: 20, height: 20, borderRadius: '4px',
+          background: '#2a2a4a', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', cursor: 'pointer', color: '#555', fontSize: '11px'
+        }}>✕</div>
       </div>
 
-      {/* Error banner */}
+      {/* ── Error ── */}
       {error && (
         <div style={{
-          padding: '6px 12px', background: 'rgba(231,76,60,0.15)',
+          padding: '5px 12px', background: 'rgba(231,76,60,0.15)',
           borderBottom: '1px solid #E74C3C',
           fontSize: '10px', color: '#E74C3C',
-          display: 'flex', justifyContent: 'space-between'
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
         }}>
           {error}
-          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#E74C3C', cursor: 'pointer' }}>✕</button>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#E74C3C', cursor: 'pointer', fontSize: '11px' }}>✕</button>
         </div>
       )}
 
-      {/* Messages */}
+      {/* ── Messages ── */}
       <div style={{
-        flex: 1, overflowY: 'auto', padding: '10px 8px',
-        display: 'flex', flexDirection: 'column', gap: '6px',
-        scrollbarWidth: 'thin', scrollbarColor: '#0F3460 transparent',
+        flex: 1, overflowY: 'auto', padding: '8px 0',
+        scrollbarWidth: 'thin', scrollbarColor: '#2a2a4a transparent',
       }}>
         {loading && (
           <div style={{ fontSize: '11px', color: '#444', textAlign: 'center', padding: '20px' }}>
             Loading messages...
           </div>
         )}
-
         {!loading && messages.length === 0 && (
           <div style={{ fontSize: '11px', color: '#444', textAlign: 'center', padding: '20px' }}>
             No messages yet. Say something!
           </div>
         )}
 
-        {messages.map(msg => {
+        {messages.map((msg, i) => {
           const isOwn = msg.user_name === myName
-          const color = isOwn ? '#B87333' : nameColor(msg.user_name)
+          const color = nameColor(msg.user_name)
+          const prevMsg = messages[i - 1]
+          const sameUser = prevMsg && prevMsg.user_name === msg.user_name
+          const timeDiff = prevMsg
+            ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000
+            : 999
+          const showName = !sameUser || timeDiff > 120
+
           return (
-            <div key={msg.id} style={{
-              padding: '7px 9px', borderRadius: '6px',
-              background: isOwn ? 'rgba(184,115,51,0.15)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${isOwn ? '#B87333' : '#0F3460'}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color }}>{msg.user_name}</span>
-                <span style={{ fontSize: '9px', color: '#444' }}>{formatTime(msg.created_at)}</span>
-              </div>
-              <div style={{ fontSize: '12px', color: '#FAFAFA', lineHeight: 1.45, wordBreak: 'break-word' }}>
+            <div
+              key={msg.id}
+              style={{
+                padding: '2px 14px',
+                marginTop: showName ? '10px' : '1px',
+              }}
+            >
+              {/* Username + time row */}
+              {showName && (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color }}>
+                    {msg.user_name}
+                  </span>
+                  <span style={{ fontSize: '9px', color: '#3a3a5a' }}>
+                    {formatTime(msg.created_at)}
+                  </span>
+                </div>
+              )}
+
+              {/* Message text */}
+              <div style={{
+                fontSize: '13px',
+                color: isOwn ? '#FAFAFA' : '#d0d0d0',
+                lineHeight: 1.45,
+                wordBreak: 'break-word',
+                borderLeft: isOwn ? `2px solid ${color}` : 'none',
+                paddingLeft: isOwn ? '8px' : '0',
+              }}>
                 {msg.content}
               </div>
             </div>
@@ -409,34 +499,46 @@ export default function ChatPanel() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <form onSubmit={sendMessage} style={{
-        padding: '8px', borderTop: '1px solid #0F3460',
-        display: 'flex', gap: '6px', flexShrink: 0
-      }}>
+      {/* ── Input ── */}
+      <form
+        onSubmit={sendMessage}
+        style={{
+          padding: '10px 12px',
+          borderTop: '1px solid #2a2a4a',
+          display: 'flex', gap: '8px', alignItems: 'center',
+          background: '#0f0f1e', flexShrink: 0,
+        }}
+      >
         <input
           ref={inputRef}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Signal the community..."
+          placeholder="Type a message..."
           maxLength={200}
           style={{
-            flex: 1, padding: '7px 10px', fontSize: '12px',
-            background: '#1A1A2E', border: '1px solid #0F3460',
-            color: '#FAFAFA', borderRadius: '4px', outline: 'none',
+            flex: 1, padding: '9px 14px', fontSize: '13px',
+            background: '#1a1a2e', border: '1px solid #2a2a4a',
+            color: '#FAFAFA', borderRadius: '8px', outline: 'none',
             transition: 'border-color 0.15s',
           }}
           onFocus={e => e.target.style.borderColor = '#B87333'}
-          onBlur={e => e.target.style.borderColor = '#0F3460'}
+          onBlur={e => e.target.style.borderColor = '#2a2a4a'}
         />
-        <button type="submit" disabled={!input.trim()} style={{
-          padding: '7px 12px', fontSize: '12px', fontWeight: 700,
-          background: input.trim() ? '#B87333' : '#333',
-          color: 'white', border: 'none', borderRadius: '4px',
-          cursor: input.trim() ? 'pointer' : 'default',
-          transition: 'background 0.15s',
-        }}>→</button>
+        <button
+          type="submit"
+          disabled={!input.trim()}
+          style={{
+            width: 36, height: 36, borderRadius: '8px',
+            background: input.trim() ? '#B87333' : '#2a2a4a',
+            border: 'none', color: 'white', fontSize: '16px',
+            cursor: input.trim() ? 'pointer' : 'default',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, transition: 'background 0.15s',
+          }}
+        >
+          ↗
+        </button>
       </form>
     </div>
   )
