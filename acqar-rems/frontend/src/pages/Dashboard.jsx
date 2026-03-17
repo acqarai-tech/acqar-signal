@@ -306,7 +306,8 @@ function useIsMobile() {
 export default function Dashboard() {
   const isMobile = useIsMobile()
   const [leftCollapsed, setLeftCollapsed] = useState(false)
-  const [chatOpen, setChatOpen] = useState(true)
+  // const [chatOpen, setChatOpen] = useState(true)
+  const [chatOpen, setChatOpen] = useState(() => !window.matchMedia('(max-width: 767px)').matches)
   const [mobileDrawer, setMobileDrawer] = useState(null)
 
   // Close drawer when switching from mobile to desktop
