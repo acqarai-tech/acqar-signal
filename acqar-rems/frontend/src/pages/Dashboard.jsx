@@ -354,7 +354,7 @@ export default function Dashboard() {
             zIndex: 50,
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
-            <ChatPanel onClose={() => setMobileDrawer(null)} />
+            <ChatPanel key="mobile" onClose={() => setMobileDrawer(null)} />
           </div>
 
           {/* Floating buttons */}
@@ -436,7 +436,7 @@ export default function Dashboard() {
           {/* Right chat column */}
           {chatOpen ? (
             <div style={{ flexShrink: 0, width: 340, borderLeft: '1px solid #0F3460', display: 'flex', flexDirection: 'column' }}>
-              <ChatPanel onClose={() => setChatOpen(false)} />
+              <ChatPanel key="desktop" onClose={() => setChatOpen(false)} />
             </div>
           ) : (
             <button
