@@ -365,7 +365,7 @@ export default function Dashboard() {
             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
           }}>
             {/* Pass onClose so ChatPanel's ✕ button closes the drawer */}
-            <ChatPanel onClose={() => setMobileDrawer(null)} />
+            <ChatPanel isMobile={true} onClose={() => setMobileDrawer(null)} />
           </div>
 
           {/* Floating buttons — hide when a drawer is open */}
@@ -448,7 +448,7 @@ export default function Dashboard() {
             style={{ width: 340 }}
           >
             <div style={{ width: 340, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <ChatPanel onClose={() => setChatOpen(false)} />
+              <ChatPanel isMobile={false} onClose={() => setChatOpen(false)} />
             </div>
           </div>
         ) : (
