@@ -233,11 +233,230 @@
 // }
 
 
+// import { useEffect, useRef, useState } from 'react'
+// import { supabase } from '../lib/supabase'
+
+// const nameColor = (name = '') => {
+//   const colors = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C', '#E67E22', '#D4AC0D']
+//   let hash = 0
+//   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+//   return colors[Math.abs(hash) % colors.length]
+// }
+
+// function formatTime(ts) {
+//   const d = new Date(ts)
+//   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+// }
+
+// // Temporary guest name until auth is integrated
+// const GUEST_NAME = 'Guest_' + Math.random().toString(36).slice(2, 6).toUpperCase()
+
+// export default function ChatPanel() {
+//   const myName = GUEST_NAME
+//   const [messages, setMessages] = useState([])
+//   const [input, setInput] = useState('')
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState(null)
+//   const bottomRef = useRef(null)
+//   const inputRef = useRef(null)
+
+//   // ── Fetch messages on mount ───────────────────────────────────────────────
+//   useEffect(() => {
+//     const fetchMessages = async () => {
+//       setLoading(true)
+//       setError(null)
+//       const { data, error } = await supabase
+//         .from('messages')
+//         .select('id, user_name, content, created_at')
+//         .order('created_at', { ascending: true })
+//         .limit(100)
+
+//       if (error) {
+//         console.error('Fetch error:', error)
+//         setError('Could not load messages: ' + error.message)
+//         setLoading(false)
+//         return
+//       }
+//       setMessages(data || [])
+//       setLoading(false)
+//     }
+
+//     fetchMessages()
+//   }, [])
+
+//   // ── Supabase Realtime ─────────────────────────────────────────────────────
+//   useEffect(() => {
+//     const channel = supabase
+//       .channel('chat-room-' + Math.random())
+//       .on(
+//         'postgres_changes',
+//         { event: 'INSERT', schema: 'public', table: 'messages' },
+//         (payload) => {
+//           setMessages(prev => {
+//             if (prev.find(m => m.id === payload.new.id)) return prev
+//             return [...prev, payload.new]
+//           })
+//         }
+//       )
+//       .subscribe((status) => {
+//         console.log('Realtime status:', status)
+//       })
+
+//     return () => supabase.removeChannel(channel)
+//   }, [])
+
+//   // ── Auto scroll to bottom ─────────────────────────────────────────────────
+//   useEffect(() => {
+//     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+//   }, [messages])
+
+//   // ── Send message ──────────────────────────────────────────────────────────
+//   const sendMessage = async (e) => {
+//     e.preventDefault()
+//     const text = input.trim()
+//     if (!text) return
+//     setInput('')
+
+//     const { error } = await supabase.from('messages').insert({
+//       user_id: myName,
+//       user_name: myName,
+//       content: text,
+//     })
+
+//     if (error) {
+//       console.error('Send error:', error)
+//       setError('Failed to send: ' + error.message)
+//     }
+//   }
+
+//   const handleKeyDown = (e) => {
+//     if (e.key === 'Enter' && !e.shiftKey) {
+//       e.preventDefault()
+//       sendMessage(e)
+//     }
+//   }
+
+//   return (
+//     <div style={{
+//       height: '100%', display: 'flex', flexDirection: 'column',
+//       background: '#16213E', fontFamily: "'Inter', sans-serif"
+//     }}>
+//       {/* Header */}
+//       <div style={{
+//         padding: '10px 12px', borderBottom: '1px solid #0F3460',
+//         display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0
+//       }}>
+//         <div style={{ flex: 1 }}>
+//           <span style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA' }}>ACQAR Community Signal</span>
+//           <span style={{ fontSize: '9px', color: '#555', display: 'block', marginTop: '1px' }}>
+//             chatting as <span style={{ color: '#B87333', fontWeight: 600 }}>{myName}</span>
+//           </span>
+//         </div>
+//         <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#27AE60', boxShadow: '0 0 6px #27AE60' }} />
+//         <span style={{ fontSize: '10px', color: '#27AE60', fontWeight: 600 }}>LIVE</span>
+//       </div>
+
+//       {/* Error banner */}
+//       {error && (
+//         <div style={{
+//           padding: '6px 12px', background: 'rgba(231,76,60,0.15)',
+//           borderBottom: '1px solid #E74C3C',
+//           fontSize: '10px', color: '#E74C3C',
+//           display: 'flex', justifyContent: 'space-between'
+//         }}>
+//           {error}
+//           <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#E74C3C', cursor: 'pointer' }}>✕</button>
+//         </div>
+//       )}
+
+//       {/* Messages */}
+//       <div style={{
+//         flex: 1, overflowY: 'auto', padding: '10px 8px',
+//         display: 'flex', flexDirection: 'column', gap: '6px',
+//         scrollbarWidth: 'thin', scrollbarColor: '#0F3460 transparent',
+//       }}>
+//         {loading && (
+//           <div style={{ fontSize: '11px', color: '#444', textAlign: 'center', padding: '20px' }}>
+//             Loading messages...
+//           </div>
+//         )}
+
+//         {!loading && messages.length === 0 && (
+//           <div style={{ fontSize: '11px', color: '#444', textAlign: 'center', padding: '20px' }}>
+//             No messages yet. Say something!
+//           </div>
+//         )}
+
+//         {messages.map(msg => {
+//           const isOwn = msg.user_name === myName
+//           const color = isOwn ? '#B87333' : nameColor(msg.user_name)
+//           return (
+//             <div key={msg.id} style={{
+//               padding: '7px 9px', borderRadius: '6px',
+//               background: isOwn ? 'rgba(184,115,51,0.15)' : 'rgba(255,255,255,0.03)',
+//               border: `1px solid ${isOwn ? '#B87333' : '#0F3460'}`,
+//             }}>
+//               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+//                 <span style={{ fontSize: '11px', fontWeight: 700, color }}>{msg.user_name}</span>
+//                 <span style={{ fontSize: '9px', color: '#444' }}>{formatTime(msg.created_at)}</span>
+//               </div>
+//               <div style={{ fontSize: '12px', color: '#FAFAFA', lineHeight: 1.45, wordBreak: 'break-word' }}>
+//                 {msg.content}
+//               </div>
+//             </div>
+//           )
+//         })}
+//         <div ref={bottomRef} />
+//       </div>
+
+//       {/* Input */}
+//       <form onSubmit={sendMessage} style={{
+//         padding: '8px', borderTop: '1px solid #0F3460',
+//         display: 'flex', gap: '6px', flexShrink: 0
+//       }}>
+//         <input
+//           ref={inputRef}
+//           value={input}
+//           onChange={e => setInput(e.target.value)}
+//           onKeyDown={handleKeyDown}
+//           placeholder="Signal the community..."
+//           maxLength={200}
+//           style={{
+//             flex: 1, padding: '7px 10px', fontSize: '12px',
+//             background: '#1A1A2E', border: '1px solid #0F3460',
+//             color: '#FAFAFA', borderRadius: '4px', outline: 'none',
+//             transition: 'border-color 0.15s',
+//           }}
+//           onFocus={e => e.target.style.borderColor = '#B87333'}
+//           onBlur={e => e.target.style.borderColor = '#0F3460'}
+//         />
+//         <button type="submit" disabled={!input.trim()} style={{
+//           padding: '7px 12px', fontSize: '12px', fontWeight: 700,
+//           background: input.trim() ? '#B87333' : '#333',
+//           color: 'white', border: 'none', borderRadius: '4px',
+//           cursor: input.trim() ? 'pointer' : 'default',
+//           transition: 'background 0.15s',
+//         }}>→</button>
+//       </form>
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const nameColor = (name = '') => {
-  const colors = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C', '#E67E22', '#D4AC0D']
+  const colors = [
+    '#E8A838', '#E74C3C', '#3498DB', '#2ECC71',
+    '#9B59B6', '#1ABC9C', '#E67E22', '#D4AC0D',
+    '#F39C12', '#16A085', '#27AE60', '#8E44AD',
+  ]
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
@@ -248,19 +467,19 @@ function formatTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-// Temporary guest name until auth is integrated
 const GUEST_NAME = 'Guest_' + Math.random().toString(36).slice(2, 6).toUpperCase()
 
-export default function ChatPanel() {
+export default function ChatPanel({ onClose, showClose = false }) {
   const myName = GUEST_NAME
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [onlineCount] = useState(() => 800 + Math.floor(Math.random() * 80))
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
-  // ── Fetch messages on mount ───────────────────────────────────────────────
+  // ── Fetch messages ────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchMessages = async () => {
       setLoading(true)
@@ -270,9 +489,7 @@ export default function ChatPanel() {
         .select('id, user_name, content, created_at')
         .order('created_at', { ascending: true })
         .limit(100)
-
       if (error) {
-        console.error('Fetch error:', error)
         setError('Could not load messages: ' + error.message)
         setLoading(false)
         return
@@ -280,7 +497,6 @@ export default function ChatPanel() {
       setMessages(data || [])
       setLoading(false)
     }
-
     fetchMessages()
   }, [])
 
@@ -288,119 +504,184 @@ export default function ChatPanel() {
   useEffect(() => {
     const channel = supabase
       .channel('chat-room-' + Math.random())
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          setMessages(prev => {
-            if (prev.find(m => m.id === payload.new.id)) return prev
-            return [...prev, payload.new]
-          })
-        }
-      )
-      .subscribe((status) => {
-        console.log('Realtime status:', status)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        setMessages(prev => {
+          if (prev.find(m => m.id === payload.new.id)) return prev
+          return [...prev, payload.new]
+        })
       })
-
+      .subscribe()
     return () => supabase.removeChannel(channel)
   }, [])
 
-  // ── Auto scroll to bottom ─────────────────────────────────────────────────
+  // ── Auto scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ── Send message ──────────────────────────────────────────────────────────
+  // ── Send ──────────────────────────────────────────────────────────────────
   const sendMessage = async (e) => {
     e.preventDefault()
     const text = input.trim()
     if (!text) return
     setInput('')
-
     const { error } = await supabase.from('messages').insert({
-      user_id: myName,
-      user_name: myName,
-      content: text,
+      user_id: myName, user_name: myName, content: text,
     })
-
-    if (error) {
-      console.error('Send error:', error)
-      setError('Failed to send: ' + error.message)
-    }
+    if (error) setError('Failed to send: ' + error.message)
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage(e)
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
   }
 
   return (
     <div style={{
-      height: '100%', display: 'flex', flexDirection: 'column',
-      background: '#16213E', fontFamily: "'Inter', sans-serif"
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      background: '#111827',
+      fontFamily: "'Inter', sans-serif",
+      overflow: 'hidden',
     }}>
-      {/* Header */}
+
+      {/* ── Header ── */}
       <div style={{
-        padding: '10px 12px', borderBottom: '1px solid #0F3460',
-        display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '8px 12px',
+        background: '#0d1117',
+        borderBottom: '1px solid #1f2937',
+        flexShrink: 0,
+        minHeight: 42,
       }}>
-        <div style={{ flex: 1 }}>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA' }}>ACQAR Community Signal</span>
-          <span style={{ fontSize: '9px', color: '#555', display: 'block', marginTop: '1px' }}>
-            chatting as <span style={{ color: '#B87333', fontWeight: 600 }}>{myName}</span>
-          </span>
+        {/* Chat icon */}
+        <div style={{
+          width: 22, height: 22, borderRadius: '50%',
+          background: '#1f2937',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '11px', flexShrink: 0,
+        }}>💬</div>
+
+        {/* Title */}
+        <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '0.5px' }}>
+          CHAT
+        </span>
+
+        {/* Username */}
+        <span style={{ fontSize: '10px', color: '#6b7280' }}>as</span>
+        <span style={{ fontSize: '10px', color: nameColor(myName), fontWeight: 600 }}>{myName}</span>
+
+        <div style={{ flex: 1 }} />
+
+        {/* Online count */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <span style={{ fontSize: '13px' }}>🟠</span>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#f9fafb' }}>{onlineCount.toLocaleString()}</span>
         </div>
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#27AE60', boxShadow: '0 0 6px #27AE60' }} />
-        <span style={{ fontSize: '10px', color: '#27AE60', fontWeight: 600 }}>LIVE</span>
+
+        {/* Refresh icon */}
+        <button style={{
+          background: 'none', border: 'none', color: '#4b5563',
+          cursor: 'pointer', fontSize: '13px', padding: '2px 4px',
+          borderRadius: '4px', lineHeight: 1,
+        }}
+          onClick={() => window.location.reload()}
+          title="Refresh"
+        >↺</button>
+
+        {/* Close button */}
+        {showClose && onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              width: 24, height: 24,
+              background: '#1f2937',
+              border: '1px solid #374151',
+              borderRadius: '6px',
+              color: '#9ca3af',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '12px', flexShrink: 0,
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#374151'; e.currentTarget.style.color = '#f9fafb' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#1f2937'; e.currentTarget.style.color = '#9ca3af' }}
+          >✕</button>
+        )}
       </div>
 
-      {/* Error banner */}
+      {/* ── Error ── */}
       {error && (
         <div style={{
-          padding: '6px 12px', background: 'rgba(231,76,60,0.15)',
-          borderBottom: '1px solid #E74C3C',
-          fontSize: '10px', color: '#E74C3C',
-          display: 'flex', justifyContent: 'space-between'
+          padding: '5px 12px', background: 'rgba(239,68,68,0.15)',
+          borderBottom: '1px solid rgba(239,68,68,0.4)',
+          fontSize: '10px', color: '#f87171',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          flexShrink: 0,
         }}>
           {error}
-          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#E74C3C', cursor: 'pointer' }}>✕</button>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '12px' }}>✕</button>
         </div>
       )}
 
-      {/* Messages */}
+      {/* ── Messages ── */}
       <div style={{
-        flex: 1, overflowY: 'auto', padding: '10px 8px',
-        display: 'flex', flexDirection: 'column', gap: '6px',
-        scrollbarWidth: 'thin', scrollbarColor: '#0F3460 transparent',
+        flex: 1,
+        overflowY: 'auto',
+        padding: '6px 0',
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#1f2937 transparent',
       }}>
         {loading && (
-          <div style={{ fontSize: '11px', color: '#444', textAlign: 'center', padding: '20px' }}>
+          <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
             Loading messages...
           </div>
         )}
 
         {!loading && messages.length === 0 && (
-          <div style={{ fontSize: '11px', color: '#444', textAlign: 'center', padding: '20px' }}>
+          <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
             No messages yet. Say something!
           </div>
         )}
 
-        {messages.map(msg => {
+        {messages.map((msg, i) => {
           const isOwn = msg.user_name === myName
           const color = isOwn ? '#B87333' : nameColor(msg.user_name)
+          const prevMsg = messages[i - 1]
+          const sameUser = prevMsg && prevMsg.user_name === msg.user_name
+          const timeDiff = prevMsg
+            ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000 : 999
+          const showHeader = !sameUser || timeDiff > 120
+
           return (
-            <div key={msg.id} style={{
-              padding: '7px 9px', borderRadius: '6px',
-              background: isOwn ? 'rgba(184,115,51,0.15)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${isOwn ? '#B87333' : '#0F3460'}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color }}>{msg.user_name}</span>
-                <span style={{ fontSize: '9px', color: '#444' }}>{formatTime(msg.created_at)}</span>
-              </div>
-              <div style={{ fontSize: '12px', color: '#FAFAFA', lineHeight: 1.45, wordBreak: 'break-word' }}>
+            <div
+              key={msg.id}
+              style={{
+                padding: showHeader ? '8px 14px 3px' : '1px 14px',
+                background: isOwn ? 'rgba(184,115,51,0.06)' : 'transparent',
+                borderLeft: isOwn ? '2px solid #B87333' : '2px solid transparent',
+              }}
+            >
+              {/* Name + time */}
+              {showHeader && (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '3px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color, lineHeight: 1 }}>
+                    {msg.user_name}
+                  </span>
+                  <span style={{ fontSize: '9px', color: '#374151', letterSpacing: '0.2px' }}>
+                    {formatTime(msg.created_at)}
+                  </span>
+                </div>
+              )}
+
+              {/* Message text */}
+              <div style={{
+                fontSize: '13px',
+                color: '#e5e7eb',
+                lineHeight: 1.5,
+                wordBreak: 'break-word',
+                paddingLeft: showHeader ? 0 : '0px',
+              }}>
                 {msg.content}
               </div>
             </div>
@@ -409,35 +690,52 @@ export default function ChatPanel() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <form onSubmit={sendMessage} style={{
-        padding: '8px', borderTop: '1px solid #0F3460',
-        display: 'flex', gap: '6px', flexShrink: 0
+      {/* ── Input ── */}
+      <div style={{
+        padding: '10px 12px',
+        borderTop: '1px solid #1f2937',
+        background: '#0d1117',
+        flexShrink: 0,
       }}>
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Signal the community..."
-          maxLength={200}
-          style={{
-            flex: 1, padding: '7px 10px', fontSize: '12px',
-            background: '#1A1A2E', border: '1px solid #0F3460',
-            color: '#FAFAFA', borderRadius: '4px', outline: 'none',
-            transition: 'border-color 0.15s',
-          }}
-          onFocus={e => e.target.style.borderColor = '#B87333'}
-          onBlur={e => e.target.style.borderColor = '#0F3460'}
-        />
-        <button type="submit" disabled={!input.trim()} style={{
-          padding: '7px 12px', fontSize: '12px', fontWeight: 700,
-          background: input.trim() ? '#B87333' : '#333',
-          color: 'white', border: 'none', borderRadius: '4px',
-          cursor: input.trim() ? 'pointer' : 'default',
-          transition: 'background 0.15s',
-        }}>→</button>
-      </form>
+        <form onSubmit={sendMessage} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            maxLength={200}
+            style={{
+              flex: 1,
+              padding: '9px 14px',
+              fontSize: '13px',
+              background: '#1f2937',
+              border: '1px solid #374151',
+              color: '#f9fafb',
+              borderRadius: '8px',
+              outline: 'none',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={e => e.target.style.borderColor = '#6366f1'}
+            onBlur={e => e.target.style.borderColor = '#374151'}
+          />
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            style={{
+              width: 36, height: 36,
+              borderRadius: '8px',
+              background: input.trim() ? '#6366f1' : '#1f2937',
+              border: 'none',
+              color: 'white',
+              cursor: input.trim() ? 'pointer' : 'default',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '15px', flexShrink: 0,
+              transition: 'background 0.15s',
+            }}
+          >↗</button>
+        </form>
+      </div>
     </div>
   )
 }
