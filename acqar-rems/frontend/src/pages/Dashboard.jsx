@@ -360,21 +360,42 @@ export default function Dashboard() {
           </div>
 
           {/* Chat Drawer */}
-          <div style={{
-            position: 'absolute',
-            bottom: mobileDrawer === 'chat' ? 0 : '-110%',
-            left: 0, right: 0, height: '72%',
-            background: '#0D1B2A',
-            borderTop: '2px solid #B87333',
-            borderRadius: '16px 16px 0 0',
-            display: 'flex', flexDirection: 'column',
-            overflow: 'hidden',
-            transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
-            zIndex: 50,
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
-          }}>
-            <ChatPanel onClose={() => setMobileDrawer(null)} />
-          </div>
+         {/* Chat Drawer */}
+<div style={{
+  position: 'absolute',
+  bottom: mobileDrawer === 'chat' ? 0 : '-110%',
+  left: 0, right: 0, height: '72%',
+  background: '#0D1B2A',
+  borderTop: '2px solid #B87333',
+  borderRadius: '16px 16px 0 0',
+  display: 'flex', flexDirection: 'column',
+  overflow: 'hidden',
+  transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
+  zIndex: 50,
+  boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
+}}>
+  {/* Same pattern as Feed drawer */}
+  <div style={{
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '12px 16px 8px', borderBottom: '1px solid #0F3460', flexShrink: 0,
+  }}>
+    <span style={{ fontSize: '11px', fontWeight: 800, color: '#B87333', letterSpacing: '1px' }}>💬 CHAT</span>
+    <button
+      onClick={() => setMobileDrawer(null)}
+      style={{
+        width: 36, height: 36, background: '#1f2937',
+        border: '1px solid #374151', borderRadius: '6px',
+        color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >✕</button>
+  </div>
+  
+  {/* No onClose needed — header is handled above */}
+  <ChatPanel />
+</div>
 
           {/* Floating buttons */}
           <div style={{
