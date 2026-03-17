@@ -1097,7 +1097,7 @@ useEffect(() => {
       <section className="final-cta-section" id="final-cta">
         <div className="final-cta-content">
           <div className="final-cta-eyebrow"><div className="ticker-dot"></div> ACQAR Signal — Early Access Open</div>
-          <h1>Stop Watching.<br /><span className="text-copper">Start Knowing.</span></h1>
+          <h2>Stop Watching.<br /><span className="text-copper">Start Knowing.</span></h2>
           <p>Join the investors, brokers, and analysts who have given themselves the same real-time intelligence edge that institutional money has always had. Dubai's market moves at speed. Now, so do you.</p>
           <div className="final-cta-buttons">
             <a href="https://acqar-signal.vercel.app" target="_blank" rel="noreferrer" className="btn-hero" style={{ fontSize: 16, padding: "18px 36px" }}>Access the Terminal Now →</a>
