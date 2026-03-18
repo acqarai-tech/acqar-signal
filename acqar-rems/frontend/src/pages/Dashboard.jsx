@@ -539,9 +539,9 @@ export default function Dashboard() {
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
 
           {/* Unmount MapView when chat is open so MapLibre can't intercept touches */}
-          {/* {mobileDrawer !== 'chat' ? <MapView /> : (
+          {mobileDrawer !== 'chat' ? <MapView /> : (
             <div style={{ position: 'absolute', inset: 0, background: '#0D1B2A' }} />
-          )} */}
+          )}
 
           {/* Blocks MapLibre touch events when feed is open */}
           {mobileDrawer === 'feed' && (
