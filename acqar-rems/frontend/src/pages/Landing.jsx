@@ -1371,7 +1371,6 @@
 //   );
 // }
 
-
 import { useState, useEffect } from "react";
 import SignInModal from "../components/SignInModal";
 
@@ -1845,6 +1844,7 @@ const styles = `
   @media(max-width:1100px){
     nav{padding:0 24px}
     .nav-links{display:none}
+    .nav-logo .brand { font-size:18px; }
     section{padding:64px 24px}
     .section-title{font-size:38px}
     .hero{grid-template-columns:1fr;padding:130px 24px 60px;gap:32px;align-items:start}
