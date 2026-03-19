@@ -868,7 +868,7 @@ export default function Header() {
       }}>
 
         {/* Logo */}
-        <div
+        {/* <div
           className="hdrLogo flex items-center cursor-pointer shrink-0 whitespace-nowrap"
           onClick={() => window.location.href = '/'}
         >
@@ -883,7 +883,36 @@ export default function Header() {
             <span style={{ color: '#B87333' }}>ACQ</span>
             <span style={{ color: '#111111' }}>AR</span>
           </h1>
-        </div>
+        </div> */}
+
+        <h1 style={{
+  fontSize: isMobile ? '18px' : '22px',
+  fontWeight: 900,
+  letterSpacing: '-0.5px',
+  textTransform: 'uppercase',
+  margin: 0,
+  lineHeight: 1,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+}}>
+  <span>
+    <span style={{ color: '#B87333' }}>ACQ</span>
+    <span style={{ color: '#111111' }}>AR</span>
+  </span>
+  <span style={{
+    fontSize: isMobile ? '8px' : '9px',
+    fontWeight: 700,
+    letterSpacing: '1.5px',
+    color: '#B87333',
+    border: '1px solid rgba(184,115,51,0.35)',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    background: 'rgba(184,115,51,0.10)',
+    textTransform: 'uppercase',
+    lineHeight: 1,
+  }}>Signal</span>
+</h1>
 
         {/* Center group */}
         <div style={{
