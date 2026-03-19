@@ -2652,7 +2652,8 @@ export default function AcqarSignal() {
                 <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Company</h6>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {['About ACQAR', 'How It Works', 'Pricing', 'Contact Us', 'Partners'].map(l => (
+                /* {['About ACQAR', 'How It Works', 'Pricing', 'Contact Us', 'Partners'].map(l => ( */
+        {['About ACQAR', 'How It Works','Contact Us', 'Partners'].map(l => (
                   <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
                 ))}
               </ul>
