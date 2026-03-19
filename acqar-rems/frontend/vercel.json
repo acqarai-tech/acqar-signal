@@ -1,4 +1,7 @@
 {
+  "github": {
+    "autoAlias": true
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
