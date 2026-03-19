@@ -2861,7 +2861,7 @@ const styles = `
   .ticker-label { flex-shrink:0;display:flex;align-items:center;gap:6px;padding:0 16px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--copper);text-transform:uppercase;border-right:1px solid var(--border);height:100%;background:var(--dark-2); }
   .ticker-dot { width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse-dot 1.5s ease-in-out infinite; }
   @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:0.3} }
-  .ticker-track { display:flex;gap:0;animation:ticker-scroll 60s linear infinite;white-space:nowrap; }
+  .ticker-track { display:flex;gap:0;animation:ticker-scroll 30s linear infinite;white-space:nowrap; }
   .ticker-track:hover { animation-play-state:paused; }
   @keyframes ticker-scroll { 0%{transform:translateX(0)}100%{transform:translateX(-50%)} }
   .ticker-item { display:inline-flex;align-items:center;gap:8px;padding:0 24px;font-size:11px;color:var(--text-secondary); }
@@ -3247,7 +3247,7 @@ const styles = `
     .overlay-cta .blur-notice { font-size: 11px; padding: 0 20px; }
     .btn-hero { font-size: 14px !important; padding: 14px 24px !important; }
     .testimonial-card{flex:0 0 280px;height:450px;}
-    .ticker-track { animation-duration: 60s; }
+    .ticker-track { animation-duration: 10s; }
   }
     
 `;
@@ -4011,22 +4011,3 @@ export default function AcqarSignal() {
     </>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
