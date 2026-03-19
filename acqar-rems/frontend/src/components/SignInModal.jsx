@@ -441,7 +441,7 @@ export default function SignInModal({ onClose }) {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="signal@acqar.com"
+              placeholder="Enter your Email Address"
               required
               autoComplete="email"
               autoCorrect="off"
