@@ -520,6 +520,9 @@
 //     .hs-label { display: block; }
 //     .dashboard-cta-overlay { background: linear-gradient(180deg, transparent 0%, transparent 55%, rgba(13,13,13,0.97) 80%); }
 //     .overlay-cta .blur-notice { font-size: 12px; padding: 0 16px; text-align: center; }
+//     .marquee-wrap {
+//     mask-image: none !important;
+//     -webkit-mask-image: none !important;
 //   }
 //   @media(max-width:480px){
 //     section{padding:52px 16px}
@@ -651,15 +654,33 @@
 
 //   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+//   // useEffect(() => {
+//   //   let timeout;
+//   //   const handleResize = () => {
+//   //     clearTimeout(timeout);
+//   //     timeout = setTimeout(() => { setMarqueeKey(k => k + 1); }, 150);
+//   //   };
+//   //   window.addEventListener('resize', handleResize);
+//   //   return () => { window.removeEventListener('resize', handleResize); clearTimeout(timeout); };
+//   // }, []);
+
 //   useEffect(() => {
-//     let timeout;
-//     const handleResize = () => {
-//       clearTimeout(timeout);
-//       timeout = setTimeout(() => { setMarqueeKey(k => k + 1); }, 150);
-//     };
-//     window.addEventListener('resize', handleResize);
-//     return () => { window.removeEventListener('resize', handleResize); clearTimeout(timeout); };
-//   }, []);
+//   let timeout;
+//   const handleResize = () => {
+//     clearTimeout(timeout);
+//     timeout = setTimeout(() => { setMarqueeKey(k => k + 1); }, 150);
+//   };
+
+//   // Force a key bump after layout settles on mount
+//   requestAnimationFrame(() => {
+//     requestAnimationFrame(() => {
+//       setMarqueeKey(k => k + 1);
+//     });
+//   });
+
+//   window.addEventListener('resize', handleResize);
+//   return () => { window.removeEventListener('resize', handleResize); clearTimeout(timeout); };
+// }, []);
 
 //   const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light");
 
@@ -717,7 +738,8 @@
 //         <div className="hero-grid-bg"></div>
 //         <div className="hero-content">
 //           <div className="hero-eyebrow"><div className="dot"></div> AI-Powered · Real-Time · Dubai Only</div>
-//           <h1>The Bloomberg<br />Terminal of<br /><em>Dubai Real Estate.</em></h1>
+//           {/* <h1>The Bloomberg<br /> of<br /><em>Dubai Real Estate.</em></h1> */}
+//             <h1>The Bloomberg<br />of <em>Dubai Real<br /> Estate.</em></h1>
 //           <p className="hero-sub">
 //             ACQAR Signal is the <strong>world's only AI agent</strong> that monitors every transaction, off-plan launch, regulation, and market movement across Dubai's property market — <strong>in real-time, before anyone else.</strong>
 //           </p>
@@ -1253,25 +1275,31 @@
 //             </div>
 
 //             {/* Product column */}
-//             <div>
-//               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-//                 <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
-//                 <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Product</h6>
-//               </div>
-//               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-//                 {[
-//                   { label: 'TruValu™', active: true },
-//                   { label: 'ACQAR Signal™' },
-//                   { label: 'ACQAR Passport™' },
-//                   { label: 'Pricing Tiers', active: true },
-//                 ].map(({ label, active, soon }) => (
-//                   <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
-//                     {label}
-//                     {soon && <span style={{ padding: '1px 6px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', background: 'rgba(184,115,51,0.1)', color: '#B87333', border: '1px solid rgba(184,115,51,0.2)', borderRadius: 4 }}>Soon</span>}
-//                   </li>
-//                 ))}
-//               </ul>
-//             </div>
+//            <div>
+//   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+//     <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
+//     <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Product</h6>
+//   </div>
+//   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+//     {[
+//       { label: 'TruValu™', active: true, href: 'http://www.acqar.com/' },
+//       { label: 'ACQAR Signal™', active: true, href: 'https://signal.acqar.com/' },
+//       { label: 'ACQAR Passport™' },
+//       // { label: 'Pricing Tiers', active: true },
+//     ].map(({ label, active, soon, href }) => (
+//       <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
+//         {href ? (
+//           <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+//             {label}
+//           </a>
+//         ) : (
+//           label
+//         )}
+//         {soon && <span style={{ padding: '1px 6px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', background: 'rgba(184,115,51,0.1)', color: '#B87333', border: '1px solid rgba(184,115,51,0.2)', borderRadius: 4 }}>Soon</span>}
+//       </li>
+//     ))}
+//   </ul>
+// </div>
 
 //             {/* Company column */}
 //             <div>
@@ -1280,7 +1308,8 @@
 //                 <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Company</h6>
 //               </div>
 //               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-//                 {['About ACQAR', 'How It Works', 'Pricing', 'Contact Us', 'Partners'].map(l => (
+//                 {/* {['About ACQAR', 'How It Works', 'Pricing', 'Contact Us', 'Partners'].map(l => ( */}
+//                  {['About ACQAR', 'How It Works','Contact Us', 'Partners'].map(l => (
 //                   <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
 //                 ))}
 //               </ul>
@@ -1296,7 +1325,7 @@
 //                 {[
 //                   { label: 'Intelligence Blog', href: 'https://www.acqar.com/blogs' },
 //                   { label: 'Terms of Use', href: 'https://www.acqar.com/terms' },
-//                   { label: 'Privacy Policy', href: '#' },
+//                   { label: 'Privacy Policy', href: 'https://www.acqar.com/terms' },
 //                 ].map(({ label, href }) => (
 //                   <li key={label}>
 //                     <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', textDecoration: 'none', cursor: 'pointer' }}>{label}</a>
@@ -1515,17 +1544,19 @@ const styles = `
   nav { position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(13,13,13,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border); }
   // .nav-logo { display:flex;align-items:center;gap:10px; }
   .nav-logo { display:flex;align-items:center;gap:6px;min-width:0;flex-shrink:1; }
-  .nav-logo .brand { font-size:18px;font-weight:900;letter-spacing:-0.3px; }
+  // .nav-logo .brand { font-size:18px;font-weight:900;letter-spacing:-0.3px; }
+  .nav-logo .brand { font-size:24px;font-weight:900;letter-spacing:-0.3px; }
   .nav-logo .brand span:first-child { color:var(--copper); }
   .nav-logo .brand span:last-child  { color:var(--text-primary); }
-  .nav-logo .signal-badge { font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--copper);border:1px solid var(--border-copper);padding:2px 8px;border-radius:4px;background:var(--copper-tint);text-transform:uppercase; }
+  // .nav-logo .signal-badge { font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--copper);border:1px solid var(--border-copper);padding:2px 8px;border-radius:4px;background:var(--copper-tint);text-transform:uppercase; }
+  .nav-logo .signal-badge { font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--copper);border:1px solid var(--border-copper);padding:3px 10px;border-radius:4px;background:var(--copper-tint);text-transform:uppercase; }
   .nav-links { display:flex;align-items:center;gap:32px;list-style:none;font-size:14px;color:var(--text-secondary); }
   .nav-links a:hover { color:var(--text-primary); }
   // .nav-actions { display:flex;gap:12px;align-items:center; }
   .nav-actions { display:flex;gap:8px;align-items:center;flex-shrink:0; }
   .btn-ghost { font-size:14px;font-weight:600;color:var(--text-secondary);padding:9px 20px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;transition:color 0.2s,border-color 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
   .btn-ghost:hover { color:var(--text-primary);border-color:rgba(255,255,255,0.2); }
-  .btn-primary { font-size:14px;font-weight:700;color:#fff;padding:9px 22px;border:none;border-radius:var(--radius-sm);background:var(--copper);cursor:pointer;transition:background 0.2s,transform 0.1s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
+  .btn-primary { font-size:15px;font-weight:700;color:#fff;padding:11px 28px;border:none;border-radius:var(--radius-sm);background:var(--copper);cursor:pointer;transition:background 0.2s,transform 0.1s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
   .btn-primary:hover { background:var(--copper-light);transform:translateY(-1px); }
 
   /* TICKER */
