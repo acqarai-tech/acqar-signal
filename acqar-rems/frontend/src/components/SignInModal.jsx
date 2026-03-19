@@ -348,33 +348,29 @@
 
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 export default function SignInModal({ onClose }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSignIn = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setError("");
 
-    // ✅ FIX 1: trim() removes spaces mobile keyboard adds
-    // ✅ FIX 2: toLowerCase() handles capital letters from autocorrect
+    // ✅ trim() removes trailing spaces mobile keyboards add
+    // ✅ toLowerCase() handles autocorrect capitalizing the email
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
 
     if (cleanEmail === "signal@acqar.com" && cleanPassword === "acqar@123") {
       setLoading(true);
+      // ✅ FIXED: set localStorage flag so ProtectedRoute lets user through
+      localStorage.setItem("acqar-auth", "true");
       onClose();
-      // ✅ FIX 3: window.location.href as fallback if navigate() fails on mobile
-      try {
-        navigate("/dashboard");
-      } catch {
-        window.location.href = "/dashboard";
-      }
+      // ✅ FIXED: hard redirect works on ALL mobile browsers — no router issues
+      window.location.href = "/dashboard";
     } else {
       if (cleanEmail !== "signal@acqar.com") {
         setError("Incorrect email address.");
@@ -407,14 +403,17 @@ export default function SignInModal({ onClose }) {
       }}>
 
         {/* Close button */}
-        <button onClick={onClose} style={{
-          position: "absolute", top: 16, right: 16,
-          background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "6px", color: "#6B6560", cursor: "pointer",
-          width: 30, height: 30, fontSize: 16, display: "flex",
-          alignItems: "center", justifyContent: "center",
-          touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
-        }}>×</button>
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute", top: 16, right: 16,
+            background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "6px", color: "#6B6560", cursor: "pointer",
+            width: 30, height: 30, fontSize: 16, display: "flex",
+            alignItems: "center", justifyContent: "center",
+            touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
+          }}
+        >×</button>
 
         {/* Logo */}
         <div style={{ marginBottom: 28, textAlign: "center" }}>
@@ -489,7 +488,7 @@ export default function SignInModal({ onClose }) {
             />
           </div>
 
-          {/* Error message */}
+          {/* Error */}
           {error && (
             <div style={{
               background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
@@ -524,8 +523,14 @@ export default function SignInModal({ onClose }) {
           marginTop: 20, lineHeight: 1.6,
         }}>
           Access is by invitation only. Contact{" "}
-          <a href="https://www.acqar.com" target="_blank" rel="noreferrer"
-            style={{ color: "#B87333", touchAction: "manipulation" }}>ACQAR</a>{" "}
+          <a
+            href="https://www.acqar.com"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: "#B87333", touchAction: "manipulation" }}
+          >
+            ACQAR
+          </a>{" "}
           to request an account.
         </p>
       </div>
