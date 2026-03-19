@@ -2629,7 +2629,7 @@ export default function AcqarSignal() {
       { label: 'TruValu™', active: true, href: 'http://www.acqar.com/' },
       { label: 'ACQAR Signal™', active: true, href: 'https://signal.acqar.com/' },
       { label: 'ACQAR Passport™' },
-      { label: 'Pricing Tiers', active: true },
+      // { label: 'Pricing Tiers', active: true },
     ].map(({ label, active, soon, href }) => (
       <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
         {href ? (
