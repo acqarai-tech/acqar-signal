@@ -2084,7 +2084,7 @@ export default function AcqarSignal() {
         <div className="hero-content">
           <div className="hero-eyebrow"><div className="dot"></div> AI-Powered · Real-Time · Dubai Only</div>
           {/* <h1>The Bloomberg<br /> of<br /><em>Dubai Real Estate.</em></h1> */}
-            <h1>The Bloomberg<br />of <em>Dubai Real Estate.</em></h1>
+            <h1>The Bloomberg<br />of <em>Dubai<br />Real Estate.</em></h1>
           <p className="hero-sub">
             ACQAR Signal is the <strong>world's only AI agent</strong> that monitors every transaction, off-plan launch, regulation, and market movement across Dubai's property market — <strong>in real-time, before anyone else.</strong>
           </p>
