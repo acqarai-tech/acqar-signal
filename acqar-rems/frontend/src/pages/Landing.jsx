@@ -1509,14 +1509,16 @@ const styles = `
 
   /* NAV */
   nav { position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(13,13,13,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border); }
-  .nav-logo { display:flex;align-items:center;gap:10px; }
+  // .nav-logo { display:flex;align-items:center;gap:10px; }
+  .nav-logo { display:flex;align-items:center;gap:6px;min-width:0;flex-shrink:1; }
   .nav-logo .brand { font-size:18px;font-weight:900;letter-spacing:-0.3px; }
   .nav-logo .brand span:first-child { color:var(--copper); }
   .nav-logo .brand span:last-child  { color:var(--text-primary); }
   .nav-logo .signal-badge { font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--copper);border:1px solid var(--border-copper);padding:2px 8px;border-radius:4px;background:var(--copper-tint);text-transform:uppercase; }
   .nav-links { display:flex;align-items:center;gap:32px;list-style:none;font-size:14px;color:var(--text-secondary); }
   .nav-links a:hover { color:var(--text-primary); }
-  .nav-actions { display:flex;gap:12px;align-items:center; }
+  // .nav-actions { display:flex;gap:12px;align-items:center; }
+  .nav-actions { display:flex;gap:8px;align-items:center;flex-shrink:0; }
   .btn-ghost { font-size:14px;font-weight:600;color:var(--text-secondary);padding:9px 20px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;transition:color 0.2s,border-color 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
   .btn-ghost:hover { color:var(--text-primary);border-color:rgba(255,255,255,0.2); }
   .btn-primary { font-size:14px;font-weight:700;color:#fff;padding:9px 22px;border:none;border-radius:var(--radius-sm);background:var(--copper);cursor:pointer;transition:background 0.2s,transform 0.1s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
@@ -1864,8 +1866,11 @@ const styles = `
     section{padding:52px 16px}
     .section-title{font-size:28px}
     .section-sub{font-size:15px}
-    nav{padding:0 16px;height:56px}
-    .live-ticker{top:56px}
+   nav{padding:0 12px;height:48px}
+   .btn-primary{font-size:11px;padding:6px 10px;white-space:nowrap;}
+.nav-logo .signal-badge{font-size:8px;padding:2px 4px;letter-spacing:1px;}
+.theme-toggle{width:28px;height:28px;font-size:12px;}
+    .live-ticker{top:48px}
     .btn-ghost{display:none}
     .signal-badge{display:flex}
     .hero{padding:110px 16px 48px;gap:24px;display:flex;flex-direction:column}
