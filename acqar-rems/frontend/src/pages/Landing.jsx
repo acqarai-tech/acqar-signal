@@ -1843,7 +1843,7 @@ const styles = `
   /* RESPONSIVE */
   @media(max-width:1100px){
     nav{padding:0 24px}
-    .nav-links{display:none}
+    .nav-links{display:flex}
     .nav-logo .brand { font-size:18px; }
     section{padding:64px 24px}
     .section-title{font-size:38px}
@@ -1905,6 +1905,7 @@ const styles = `
     .section-title{font-size:28px}
     .section-sub{font-size:15px}
    nav{padding:0 12px;height:48px}
+   .nav-links{display:flex;font-size:11px;gap:10px;}
    .btn-primary{font-size:11px;padding:6px 10px;white-space:nowrap;}
 .nav-logo .signal-badge{font-size:8px;padding:2px 4px;letter-spacing:1px;}
 .theme-toggle{width:28px;height:28px;font-size:12px;}
