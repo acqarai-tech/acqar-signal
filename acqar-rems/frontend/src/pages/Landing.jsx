@@ -2071,8 +2071,12 @@ export default function AcqarSignal() {
       <nav>
         <div className="nav-logo">
           <div className="brand"><span>ACQ</span><span>AR</span></div>
-          <div className="signal-badge">Signal</div>
+          {/* <div className="signal-badge">Signal</div> */}
         </div>
+        <ul className="nav-links">
+  <li><a href="https://www.acqar.com/" target="_blank" rel="noopener noreferrer">TRUVALU™</a></li>
+  <li><a href="https://www.acqar.com/blogs" target="_blank" rel="noopener noreferrer">RESOURCES</a></li>
+</ul>
         <div className="nav-actions">
           <button
             className="theme-toggle"
