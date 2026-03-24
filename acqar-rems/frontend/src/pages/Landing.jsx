@@ -747,7 +747,7 @@ export default function AcqarSignal() {
             onClick={openSignIn}
             style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
           >
-            Request Access →
+            Sign In
           </button>
         </div>
       </nav>
