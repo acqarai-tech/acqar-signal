@@ -2663,7 +2663,7 @@ export default function AcqarSignal() {
       { label: 'ACQAR Passport™' },
       // { label: 'Pricing Tiers', active: true },
     ].map(({ label, active, soon, href }) => (
-      <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
+      <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
         {href ? (
           <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
             {label}
@@ -2686,7 +2686,7 @@ export default function AcqarSignal() {
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* {['About ACQAR', 'How It Works', 'Pricing', 'Contact Us', 'Partners'].map(l => ( */}
                  {['About ACQAR', 'How It Works','Contact Us', 'Partners'].map(l => (
-                  <li key={l} style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
+                  <li key={l} style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
                 ))}
               </ul>
             </div>
@@ -2695,7 +2695,7 @@ export default function AcqarSignal() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
                 <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
-                <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Legal & Info</h6>
+                <h6 style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Legal & Info</h6>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
@@ -2704,7 +2704,7 @@ export default function AcqarSignal() {
                   { label: 'Privacy Policy', href: 'https://www.acqar.com/terms' },
                 ].map(({ label, href }) => (
                   <li key={label}>
-                    <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', textDecoration: 'none', cursor: 'pointer' }}>{label}</a>
+                    <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', textDecoration: 'none', cursor: 'pointer' }}>{label}</a>
                   </li>
                 ))}
               </ul>
@@ -2718,7 +2718,7 @@ export default function AcqarSignal() {
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {['vs Bayut TruEstimate', 'vs Property Finder', 'vs Traditional Valuers', 'Why ACQAR?'].map(l => (
-                  <li key={l} style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
+                  <li key={l} style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
                 ))}
               </ul>
             </div>
@@ -2732,12 +2732,12 @@ export default function AcqarSignal() {
                 <span style={{ color: 'var(--text-primary)' }}>AR</span>
               </span>
               <span style={{ width: 1, height: 12, background: 'var(--border)' }}></span>
-              <span style={{ fontWeight: 600, fontSize: 10, letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Dubai, United Arab Emirates</span>
+              <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Dubai, United Arab Emirates</span>
             </div>
-            <p className="footer-copyright" style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.2em', textAlign: 'center', margin: 0, color: 'var(--text-muted)' }}>
+            <p className="footer-copyright" style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.2em', textAlign: 'center', margin: 0, color: 'var(--text-muted)' }}>
               © 2026 ACQARLABS L.L.C-FZ. All rights reserved.
             </p>
-            <p style={{ fontWeight: 500, fontSize: 10, margin: 0, color: 'var(--text-muted)' }}>Not financial advice.</p>
+            <p style={{ fontWeight: 500, fontSize: 11, margin: 0, color: 'var(--text-muted)' }}>Not financial advice.</p>
           </div>
         </div>
       </footer>
