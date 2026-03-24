@@ -1811,7 +1811,7 @@ const styles = `
   footer{background:var(--dark-card);border-top:1px solid var(--border);padding:48px}
   .footer-main-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
   .footer-bottom-bar{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(10,10,10,0.06);padding-top:32px;flex-wrap:wrap;gap:16px;}
- .footer-inner-wrap { max-width: 1400px; margin: 0 auto; padding: 48px 0px 32px 0px; }
+  .footer-inner-wrap { max-width: 1280px; margin: 0 auto; padding: 48px 5px 32px 5px; }
   .footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px}
   .footer-brand .logo-text{font-size:20px;font-weight:900;margin-bottom:12px}
   .footer-brand .logo-text span:first-child{color:var(--copper)}
@@ -1819,7 +1819,7 @@ const styles = `
   .footer-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);border:1px solid var(--border);padding:5px 12px;border-radius:4px}
   .footer-col h5{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px}
   .footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
-  .footer-col ul li a{font-size:15px;color:var(--text-secondary);transition:color 0.2s}
+  .footer-col ul li a{font-size:13px;color:var(--text-secondary);transition:color 0.2s}
   .footer-col ul li a:hover{color:var(--text-primary)}
   .footer-bottom{max-width:1200px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted)}
   .footer-bottom a{color:var(--text-muted)}
@@ -2627,7 +2627,7 @@ export default function AcqarSignal() {
                   <span style={{ color: '#B87333' }}>ACQ</span><span style={{ color: 'var(--text-primary)' }}>AR</span>
                 </span>
               </div>
-              <p style={{ fontSize: 14, lineHeight: 1.75, color: 'rgba(10,10,10,0.5)', fontWeight: 500, marginBottom: 28, maxWidth: 280 }}>
+              <p style={{ fontSize: 12, lineHeight: 1.75, color: 'rgba(10,10,10,0.5)', fontWeight: 500, marginBottom: 28, maxWidth: 280 }}>
                 The world's first AI-powered property intelligence platform for Dubai real estate. Independent, instant, investment-grade.
               </p>
               <div className="footer-rics-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'white', border: '1px solid rgba(184,115,51,0.2)', borderRadius: 999, marginBottom: 32 }}>
@@ -2635,7 +2635,7 @@ export default function AcqarSignal() {
                   <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M9 12l2 2 4-4" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <span className="footer-rics-text" style={{ fontSize: 11, fontWeight: 900, color: 'rgba(10,10,10,0.7)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>RICS-Aligned Intelligence</span>
+                <span className="footer-rics-text" style={{ fontSize: 9, fontWeight: 900, color: 'rgba(10,10,10,0.7)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>RICS-Aligned Intelligence</span>
               </div>
               {/* ✅ FIXED: social links use CSS class instead of JS hover handlers */}
               <div style={{ display: 'flex', gap: 12 }}>
@@ -2654,7 +2654,7 @@ export default function AcqarSignal() {
            <div>
   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
     <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
-    <h6 style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Product</h6>
+    <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Product</h6>
   </div>
   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
     {[
@@ -2663,7 +2663,7 @@ export default function AcqarSignal() {
       { label: 'ACQAR Passport™' },
       // { label: 'Pricing Tiers', active: true },
     ].map(({ label, active, soon, href }) => (
-      <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
+      <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
         {href ? (
           <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
             {label}
@@ -2681,12 +2681,12 @@ export default function AcqarSignal() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
                 <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
-                <h6 style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Company</h6>
+                <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Company</h6>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* {['About ACQAR', 'How It Works', 'Pricing', 'Contact Us', 'Partners'].map(l => ( */}
                  {['About ACQAR', 'How It Works','Contact Us', 'Partners'].map(l => (
-                  <li key={l} style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
+                  <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
                 ))}
               </ul>
             </div>
@@ -2695,7 +2695,7 @@ export default function AcqarSignal() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
                 <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
-                <h6 style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Legal & Info</h6>
+                <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Legal & Info</h6>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
@@ -2704,7 +2704,7 @@ export default function AcqarSignal() {
                   { label: 'Privacy Policy', href: 'https://www.acqar.com/terms' },
                 ].map(({ label, href }) => (
                   <li key={label}>
-                    <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', textDecoration: 'none', cursor: 'pointer' }}>{label}</a>
+                    <a href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', textDecoration: 'none', cursor: 'pointer' }}>{label}</a>
                   </li>
                 ))}
               </ul>
@@ -2714,11 +2714,11 @@ export default function AcqarSignal() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
                 <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#B87333', opacity: 0.7 }}></span>
-                <h6 style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Comparisons</h6>
+                <h6 style={{ fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.28em', color: '#0A0A0A', margin: 0 }}>Comparisons</h6>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {['vs Bayut TruEstimate', 'vs Property Finder', 'vs Traditional Valuers', 'Why ACQAR?'].map(l => (
-                  <li key={l} style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
+                  <li key={l} style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: 'pointer' }}>{l}</li>
                 ))}
               </ul>
             </div>
@@ -2732,12 +2732,12 @@ export default function AcqarSignal() {
                 <span style={{ color: 'var(--text-primary)' }}>AR</span>
               </span>
               <span style={{ width: 1, height: 12, background: 'var(--border)' }}></span>
-              <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Dubai, United Arab Emirates</span>
+              <span style={{ fontWeight: 600, fontSize: 10, letterSpacing: '0.05em', color: 'var(--text-muted)' }}>Dubai, United Arab Emirates</span>
             </div>
-            <p className="footer-copyright" style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.2em', textAlign: 'center', margin: 0, color: 'var(--text-muted)' }}>
+            <p className="footer-copyright" style={{ fontWeight: 700, textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.2em', textAlign: 'center', margin: 0, color: 'var(--text-muted)' }}>
               © 2026 ACQARLABS L.L.C-FZ. All rights reserved.
             </p>
-            <p style={{ fontWeight: 500, fontSize: 11, margin: 0, color: 'var(--text-muted)' }}>Not financial advice.</p>
+            <p style={{ fontWeight: 500, fontSize: 10, margin: 0, color: 'var(--text-muted)' }}>Not financial advice.</p>
           </div>
         </div>
       </footer>
