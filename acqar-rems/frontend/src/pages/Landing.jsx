@@ -210,7 +210,7 @@ const styles = `
   .nav-actions { display:flex;gap:8px;align-items:center;flex-shrink:0; }
   .btn-ghost { font-size:14px;font-weight:600;color:var(--text-secondary);padding:9px 20px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;transition:color 0.2s,border-color 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
   .btn-ghost:hover { color:var(--text-primary);border-color:rgba(255,255,255,0.2); }
-  .btn-primary { font-size:15px;font-weight:700;color:#fff;padding:11px 28px;border:none;border-radius:var(--radius-sm);background:var(--copper);cursor:pointer;transition:background 0.2s,transform 0.1s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
+  .btn-primary { font-size:15px;font-weight:700;color:#fff;padding:9px 24px;border:none;border-radius:var(--radius-sm);background:var(--copper);cursor:pointer;transition:background 0.2s,transform 0.1s;touch-action:manipulation;-webkit-tap-highlight-color:transparent; }
   .btn-primary:hover { background:var(--copper-light);transform:translateY(-1px); }
 
   /* TICKER */
@@ -567,7 +567,7 @@ const styles = `
     .btn-primary{font-size:10px;padding:7px 10px;white-space:nowrap;}
     .nav-logo .brand{font-size:17px;}
     .theme-toggle{width:28px;height:28px;font-size:12px;}
-    .nav-links-mobile a { font-size: 8px; padding: 4px 6px; letter-spacing: 0.08em; }
+    .nav-links-mobile a { font-size: 14px; padding: 4px 6px; letter-spacing: 0.08em;  }
     .hero{padding:110px 16px 48px;gap:24px;display:flex;flex-direction:column}
     .hero-content{order:1;width:100%}
     .hero-visual{order:2;width:100%;overflow-x:hidden}
@@ -618,7 +618,7 @@ const styles = `
     nav { padding: 0 8px; }
     .nav-logo .brand { font-size: 15px; }
     .nav-links-mobile { gap: 0; }
-    .nav-links-mobile a { font-size: 7px; padding: 3px 5px; letter-spacing: 0.05em; }
+    .nav-links-mobile a { font-size: 7px; padding: 3px 5px; letter-spacing: 0.05em; color: black}
     .btn-primary { font-size: 9px; padding: 6px 8px; }
     .theme-toggle { width: 24px; height: 24px; font-size: 11px; }
   }
