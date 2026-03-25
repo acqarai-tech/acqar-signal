@@ -2170,3 +2170,4 @@ function PredictionItem({ prediction, isMobile }) {
       <span style={{ color: '#1A2040', fontSize: '10px', marginLeft: '4px' }}>◆</span>
     </a>
   )
+}
