@@ -1,20 +1,31 @@
-// import { Routes, Route } from 'react-router-dom'
+
+
+// import { Routes, Route, Navigate } from 'react-router-dom'
 // import Dashboard from './pages/Dashboard'
 // import { EventsProvider } from './context/EventsContext'
 // import { SocketProvider } from './context/SocketContext'
 // import Landing from './pages/Landing'
+
+// // ✅ FIXED: uses localStorage instead of Supabase session
+// // Supabase had no session because we use hardcoded credentials, so it was
+// // always redirecting back to "/" — now we store a simple auth flag instead
+// function ProtectedRoute({ children }) {
+//   const isLoggedIn = localStorage.getItem("acqar-auth") === "true"
+//   if (!isLoggedIn) return <Navigate to="/" replace />
+//   return children
+// }
 
 // export default function App() {
 //   return (
 //     <SocketProvider>
 //       <EventsProvider>
 //         <Routes>
-//             <Route path="/" element={<Landing />} />
-//         <Route path="/dashboard" element={
-//   <ProtectedRoute>
-//     <Dashboard />
-//   </ProtectedRoute>
-// } />
+//           <Route path="/" element={<Landing />} />
+//           <Route path="/dashboard" element={
+//             <ProtectedRoute>
+//               <Dashboard />
+//             </ProtectedRoute>
+//           } />
 //         </Routes>
 //       </EventsProvider>
 //     </SocketProvider>
@@ -22,18 +33,41 @@
 // }
 
 
+
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { supabase } from './lib/supabase'
 import Dashboard from './pages/Dashboard'
 import { EventsProvider } from './context/EventsContext'
 import { SocketProvider } from './context/SocketContext'
 import Landing from './pages/Landing'
+import Login from './pages/Login'
+import RegisterPage from './pages/RegisterPage'
 
-// ✅ FIXED: uses localStorage instead of Supabase session
-// Supabase had no session because we use hardcoded credentials, so it was
-// always redirecting back to "/" — now we store a simple auth flag instead
 function ProtectedRoute({ children }) {
-  const isLoggedIn = localStorage.getItem("acqar-auth") === "true"
-  if (!isLoggedIn) return <Navigate to="/" replace />
+  const [checking, setChecking] = useState(true)
+  const [allowed, setAllowed] = useState(false)
+
+  useEffect(() => {
+    // Check admin login first
+    const isAdmin = localStorage.getItem("admin_auth") === "true"
+    if (isAdmin) {
+      setAllowed(true)
+      setChecking(false)
+      return
+    }
+
+    // Check real Supabase session
+    supabase.auth.getSession().then(({ data }) => {
+      setAllowed(!!data.session)
+      setChecking(false)
+    })
+  }, [])
+
+  // Show nothing while checking — prevents flash redirect
+  if (checking) return null
+
+  if (!allowed) return <Navigate to="/login" replace />
   return children
 }
 
@@ -43,11 +77,17 @@ export default function App() {
       <EventsProvider>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<RegisterPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </EventsProvider>
     </SocketProvider>
