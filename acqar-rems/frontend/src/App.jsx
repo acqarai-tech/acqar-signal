@@ -72,7 +72,7 @@ import { SocketProvider } from './context/SocketContext'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import RegisterPage from './pages/RegisterPage'
-import AuthCallback from './pages/AuthCallback'
+// import AuthCallback from './pages/AuthCallback'
 
 function ProtectedRoute({ children }) {
   const [checking, setChecking] = useState(true)
@@ -104,8 +104,8 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<RegisterPage />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/auth/callback-signup" element={<AuthCallback />} />
+          {/* <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/callback-signup" element={<AuthCallback />} /> */}
 
           {/* ✅ NEW — unprotected terminal route for iframe embed */}
           <Route path="/terminal" element={<Dashboard />} />
