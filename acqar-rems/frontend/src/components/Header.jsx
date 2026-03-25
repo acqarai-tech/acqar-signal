@@ -1,5 +1,7 @@
 // import { useEffect, useRef, useState } from 'react'
 // import { useSocket } from '../context/SocketContext'
+// import { useNavigate } from 'react-router-dom'
+// import { supabase } from '../lib/supabase'
 // import SignalRow from './SignalRow'
 
 // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -80,9 +82,6 @@
 //   const data = await res.json()
 //   return data.predictions || []
 // }
-
-// // ── Replace with your real auth context/hook ──
-// const USER_NAME = 'Signal User'
 
 // function getInitials(name) {
 //   const parts = (name || '').trim().split(/\s+/).filter(Boolean)
@@ -271,6 +270,16 @@
 //     line-height: 1.1;
 //   }
 
+//   .hdr-menuEmail {
+//     font-size: 10px;
+//     font-weight: 500;
+//     color: #6b7280;
+//     margin-bottom: 4px;
+//     line-height: 1.1;
+//     text-transform: none;
+//     letter-spacing: 0;
+//   }
+
 //   .hdr-menuTier {
 //     font-size: 9px;
 //     font-weight: 900;
@@ -344,6 +353,71 @@
 
 // export default function Header() {
 //   const { isConnected } = useSocket()
+//   const navigate = useNavigate()
+
+//   // ── Real logged-in user from Supabase ──
+//   const [currentUser, setCurrentUser] = useState(null)
+
+//   useEffect(() => {
+//     // Get current session on mount
+//     supabase.auth.getSession().then(({ data }) => {
+//       const user = data?.session?.user ?? null
+//       if (user) {
+//         setCurrentUser(user)
+//       } else {
+//         // Check admin login
+//         const isAdmin = localStorage.getItem('admin_auth') === 'true'
+//         if (isAdmin) {
+//           setCurrentUser({ email: 'admin@acqar.com', user_metadata: { name: 'Admin' } })
+//         }
+//       }
+//     })
+
+//     // Listen for auth changes
+//     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+//       const user = session?.user ?? null
+//       if (user) {
+//         setCurrentUser(user)
+//       } else {
+//         const isAdmin = localStorage.getItem('admin_auth') === 'true'
+//         if (isAdmin) {
+//           setCurrentUser({ email: 'admin@acqar.com', user_metadata: { name: 'Admin' } })
+//         } else {
+//           setCurrentUser(null)
+//         }
+//       }
+//     })
+
+//     return () => listener?.subscription?.unsubscribe()
+//   }, [])
+
+//   // ── Derive display name from user ──
+//   const getUserName = (user) => {
+//     if (!user) return 'User'
+//     // Try name from metadata (set during signup)
+//     if (user.user_metadata?.name) return user.user_metadata.name
+//     if (user.user_metadata?.full_name) return user.user_metadata.full_name
+//     // Fall back to email prefix
+//     if (user.email) return user.email.split('@')[0]
+//     return 'User'
+//   }
+
+//   const USER_NAME = getUserName(currentUser)
+//   const USER_EMAIL = currentUser?.email || ''
+
+//   // ── Sign out handler ──
+//   const handleSignOut = async () => {
+//     setMenuOpen(false)
+//     // Clear admin flag
+//     localStorage.removeItem('admin_auth')
+//     // Sign out from Supabase
+//     try {
+//       await supabase.auth.signOut()
+//     } catch (e) {
+//       // ignore errors
+//     }
+//     navigate('/')
+//   }
 
 //   const [predictions, setPredictions] = useState([])
 //   const [predLoading, setPredLoading] = useState(true)
@@ -433,7 +507,7 @@
 
 //           <div className="hdr-navLeft">
 //             {/* Brand */}
-//             <div className="hdr-navBrand" onClick={() => window.location.href = '/'}>
+//             <div className="hdr-navBrand" onClick={() => navigate('/')}>
 //               <span style={{ color: '#B87333' }}>ACQ</span>
 //               <span style={{ color: '#111111' }}>AR</span>
 //             </div>
@@ -488,13 +562,16 @@
 //               {menuOpen && (
 //                 <div className="hdr-menu" role="menu">
 //                   <div className="hdr-menuTop">
-//                     <div className="hdr-menuTopLabel">Authenticated Account</div>
+//                     <div className="hdr-menuTopLabel">Signed In As</div>
 //                     <div className="hdr-menuName">{USER_NAME}</div>
-//                     <div className="hdr-menuTier">VALUCHECK™ Premium Member</div>
+//                     {USER_EMAIL && (
+//                       <div className="hdr-menuEmail">{USER_EMAIL}</div>
+//                     )}
+//                     <div className="hdr-menuTier">ACQAR Signal Member</div>
 //                   </div>
 
 //                   <div className="hdr-menuList">
-//                     <div className="hdr-menuItem" role="menuitem" onClick={() => { setMenuOpen(false); window.location.href = '/dashboard' }}>
+//                     <div className="hdr-menuItem" role="menuitem" onClick={() => { setMenuOpen(false); navigate('/dashboard') }}>
 //                       <svg className="hdr-menuIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 //                         <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
 //                       </svg>
@@ -519,7 +596,8 @@
 
 //                     <div className="hdr-menuDivider" />
 
-//                     <div className="hdr-menuSignout" role="menuitem" onClick={() => setMenuOpen(false)}>
+//                     {/* ── Real Sign Out ── */}
+//                     <div className="hdr-menuSignout" role="menuitem" onClick={handleSignOut}>
 //                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 //                         <path d="M10 17l5-5-5-5"/>
 //                         <path d="M15 12H3"/>
@@ -989,6 +1067,9 @@ export default function Header() {
   const { isConnected } = useSocket()
   const navigate = useNavigate()
 
+  // ── Hide header when embedded inside an iframe (e.g. ACQAR dashboard Terminal tab) ──
+  const isEmbedded = window.self !== window.top
+
   // ── Real logged-in user from Supabase ──
   const [currentUser, setCurrentUser] = useState(null)
 
@@ -1028,10 +1109,8 @@ export default function Header() {
   // ── Derive display name from user ──
   const getUserName = (user) => {
     if (!user) return 'User'
-    // Try name from metadata (set during signup)
     if (user.user_metadata?.name) return user.user_metadata.name
     if (user.user_metadata?.full_name) return user.user_metadata.full_name
-    // Fall back to email prefix
     if (user.email) return user.email.split('@')[0]
     return 'User'
   }
@@ -1042,9 +1121,7 @@ export default function Header() {
   // ── Sign out handler ──
   const handleSignOut = async () => {
     setMenuOpen(false)
-    // Clear admin flag
     localStorage.removeItem('admin_auth')
-    // Sign out from Supabase
     try {
       await supabase.auth.signOut()
     } catch (e) {
@@ -1122,6 +1199,9 @@ export default function Header() {
   const isSettings = path === '/settings'
 
   const initials = getInitials(USER_NAME)
+
+  // ── If inside iframe, render nothing ──
+  if (isEmbedded) return null
 
   return (
     <>
