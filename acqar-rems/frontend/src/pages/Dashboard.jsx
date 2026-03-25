@@ -1015,18 +1015,32 @@ import EventDetail from '../components/EventDetail'
 import OverlayPanel from '../components/OverlayPanel'
 
 
+// function useIsMobile() {
+//   const [isMobile, setIsMobile] = useState(
+//     () => window.matchMedia('(max-width: 767px)').matches
+//   )
+//   useEffect(() => {
+//     const mq = window.matchMedia('(max-width: 767px)')
+//     const handler = (e) => setIsMobile(e.matches)
+//     mq.addEventListener('change', handler)
+//     return () => mq.removeEventListener('change', handler)
+//   }, [])
+//   return isMobile
+// }
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(
-    () => window.matchMedia('(max-width: 767px)').matches
+    () => window.innerWidth <= 767
   )
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+    const handler = () => setIsMobile(window.innerWidth <= 767)
+    window.addEventListener('resize', handler)
+    handler()
+    return () => window.removeEventListener('resize', handler)
   }, [])
   return isMobile
 }
+
 
 export default function Dashboard() {
   const isMobile = useIsMobile()
@@ -1056,7 +1070,8 @@ export default function Dashboard() {
   }, [selectedEvent])
 
   // ── MOBILE ────────────────────────────────────────────────────────────────
-  if (isMobile) {
+  // if (isMobile) {
+  if (isMobile || window.innerWidth <= 767) {
     return (
       <div style={{
         width: '100%',
