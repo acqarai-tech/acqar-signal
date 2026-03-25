@@ -1439,6 +1439,7 @@ import { useSocket } from '../context/SocketContext'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import SignalRow from './SignalRow'
+import { createPortal } from 'react-dom'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -1668,16 +1669,16 @@ const NAV_CSS = `
   }
 
   .hdr-menu {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
+   position: fixed;
+  top: 68px;
+  right: 16px;
     width: 220px;
     background: #fff;
     border: 1px solid #EAEAEA;
     border-radius: 12px;
     box-shadow: 0 18px 40px rgba(0,0,0,0.10);
     overflow: hidden;
-    z-index: 200;
+    z-index: 999999;
   }
 
   .hdr-menuTop {
@@ -1887,6 +1888,7 @@ const handleSignOut = async () => {
   const posRef = useRef(0)
   const menuWrapRef = useRef(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuPos, setMenuPos] = useState({ top: 68, right: 16 })
 
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
   useEffect(() => {
@@ -1898,8 +1900,14 @@ const handleSignOut = async () => {
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') setMenuOpen(false) }
     function onClickOutside(e) {
-      if (menuWrapRef.current && !menuWrapRef.current.contains(e.target)) setMenuOpen(false)
-    }
+  const menuEl = document.querySelector('.hdr-menu')
+  if (
+    menuWrapRef.current && !menuWrapRef.current.contains(e.target) &&
+    menuEl && !menuEl.contains(e.target)
+  ) {
+    setMenuOpen(false)
+  }
+}
     window.addEventListener('keydown', onKey)
     window.addEventListener('mousedown', onClickOutside)
     return () => {
@@ -1963,7 +1971,8 @@ const handleSignOut = async () => {
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        zIndex: 20,
+          zIndex: 1000,
+          overflow: 'visible', 
       }}>
 
         {/* ── Main nav row ── */}
@@ -2010,7 +2019,13 @@ const handleSignOut = async () => {
               <button
                 type="button"
                 className="hdr-profileBtn"
-                onClick={() => setMenuOpen(v => !v)}
+                onClick={() => {
+  if (!menuOpen) {
+    const rect = menuWrapRef.current?.getBoundingClientRect()
+    if (rect) setMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
+  }
+  setMenuOpen(v => !v)
+}}
                 aria-haspopup="menu"
                 aria-expanded={menuOpen ? 'true' : 'false'}
               >
@@ -2023,7 +2038,7 @@ const handleSignOut = async () => {
                 </svg>
               </button>
 
-              {menuOpen && (
+              {menuOpen && createPortal(
                 <div className="hdr-menu" role="menu">
                   <div className="hdr-menuTop">
                     <div className="hdr-menuTopLabel">Signed In As</div>
@@ -2071,7 +2086,7 @@ const handleSignOut = async () => {
                     </div>
                   </div>
                 </div>
-              )}
+                , document.body)}
             </div>
           </div>
         </div>
