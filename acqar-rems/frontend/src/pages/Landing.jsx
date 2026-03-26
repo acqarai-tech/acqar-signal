@@ -2048,8 +2048,8 @@ const styles = `
     nav { padding: 0 8px; }
     .nav-logo .brand { font-size: 15px; }
     .nav-links-mobile { gap: 0; }
-    .nav-links-mobile a { font-size: 11px; padding: 3px 5px; letter-spacing: 0.05em; color: var(--text-primary);}
-    .btn-primary { font-size: 9px; padding: 6px 8px; }
+    .nav-links-mobile a { font-size: 9px; padding: 3px 5px; letter-spacing: 0.05em; color: var(--text-primary);}
+    .btn-primary { font-size: 11px; padding: 6px 8px; }
     .theme-toggle { width: 24px; height: 24px; font-size: 11px; }
   }
 `;
