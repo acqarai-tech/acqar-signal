@@ -3621,7 +3621,7 @@ useEffect(() => {
 
         {/* Mobile nav links — compact inline, visible below 768px */}
         <ul className="nav-links-mobile">
-          <li><a href="https://www.acqar.com/" target="_blank" rel="noopener noreferrer">TRUVALU™</a></li>
+          <li><a href="https://www.acqar.com/truvalu" target="_blank" rel="noopener noreferrer">TRUVALU™</a></li>
           <li><a href="https://www.acqar.com/blogs" target="_blank" rel="noopener noreferrer">RESOURCES</a></li>
         </ul>
 
@@ -4203,8 +4203,8 @@ useEffect(() => {
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
-                  { label: 'ACQAR TRUVALU™', active: true, href: 'http://www.acqar.com/' },
-                  { label: 'ACQAR SIGNAL™', active: true, href: 'https://signal.acqar.com/' },
+                  { label: 'ACQAR TRUVALU™', active: true, href: 'https://www.acqar.com/truvalu' },
+                  { label: 'ACQAR SIGNAL™', active: true, href: 'https://www.acqar.com/' },
                   { label: 'ACQAR PASSPORT™' },
                 ].map(({ label, active, soon, href }) => (
                   <li key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 600, color: 'rgba(10,10,10,0.55)', cursor: active ? 'pointer' : 'default' }}>
