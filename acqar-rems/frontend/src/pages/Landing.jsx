@@ -1983,7 +1983,7 @@ const styles = `
     .btn-primary{font-size:10px;padding:7px 10px;white-space:nowrap;}
     .nav-logo .brand{font-size:17px;}
     .theme-toggle{width:28px;height:28px;font-size:12px;}
-    .nav-links-mobile a { font-size: 9px; padding: 4px 10px; letter-spacing: 0.08em; }
+    .nav-links-mobile a { font-size: 11px; padding: 4px 10px; letter-spacing: 0.08em; }
     .hero{padding:110px 16px 48px;gap:24px;display:flex;flex-direction:column}
     .hero-content{order:1;width:100%}
     .hero-visual{order:2;width:100%;overflow-x:hidden}
