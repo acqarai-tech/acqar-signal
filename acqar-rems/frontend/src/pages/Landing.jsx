@@ -4181,7 +4181,7 @@ useEffect(() => {
                   <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M9 12l2 2 4-4" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                {/* <span className="footer-rics-text" style={{ fontSize: 9, fontWeight: 900, color: 'rgba(10,10,10,0.7)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>RICS-Aligned Intelligence</span> */}
+                <span className="footer-rics-text" style={{ fontSize: 9, fontWeight: 900, color: 'rgba(10,10,10,0.7)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>RICS-Aligned Intelligence</span>
               </div> */}
               <div style={{ display: 'flex', gap: 12 }}>
                 {[
