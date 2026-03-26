@@ -1983,7 +1983,21 @@ const styles = `
     .btn-primary{font-size:10px;padding:7px 10px;white-space:nowrap;}
     .nav-logo .brand{font-size:17px;}
     .theme-toggle{width:28px;height:28px;font-size:12px;}
-    .nav-links-mobile a { font-size: 11px; padding: 4px 10px; letter-spacing: 0.08em; }
+    .nav-links-mobile a {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  padding: 6px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  text-decoration: none;
+  display: block;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s;
+}
     .hero{padding:110px 16px 48px;gap:24px;display:flex;flex-direction:column}
     .hero-content{order:1;width:100%}
     .hero-visual{order:2;width:100%;overflow-x:hidden}
