@@ -1594,8 +1594,8 @@ const styles = `
   .nav-logo .signal-badge { font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--copper);border:1px solid var(--border-copper);padding:3px 10px;border-radius:4px;background:var(--copper-tint);text-transform:uppercase; }
 
   /* DESKTOP nav links */
-  .nav-links { display:flex;align-items:center;gap:32px;list-style:none;font-size:14px;color:var(--text-secondary); }
-  .nav-links a:hover { color:var(--text-primary); }
+  .nav-links { display:flex;align-items:center;gap:32px;list-style:none;font-size:14px; font-weight:500;color:var(--text-primary); }
+.nav-links a:hover { color:var(--copper); }
 
   /* MOBILE nav links — inline compact, always visible on small screens */
   .nav-links-mobile {
@@ -1611,7 +1611,7 @@ const styles = `
     font-weight: 900;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.55);
+    color: var(--text-primary);
     padding: 6px 8px;
     border-radius: 20px;
     white-space: nowrap;
@@ -1988,7 +1988,7 @@ const styles = `
   font-weight: 900;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.55);
+ color: var(--text-primary);
   padding: 6px 10px;
   border-radius: 20px;
   white-space: nowrap;
@@ -2048,7 +2048,7 @@ const styles = `
     nav { padding: 0 8px; }
     .nav-logo .brand { font-size: 15px; }
     .nav-links-mobile { gap: 0; }
-    .nav-links-mobile a { font-size: 7px; padding: 3px 5px; letter-spacing: 0.05em; color: black}
+    .nav-links-mobile a { font-size: 11px; padding: 3px 5px; letter-spacing: 0.05em; color: var(--text-primary);}
     .btn-primary { font-size: 9px; padding: 6px 8px; }
     .theme-toggle { width: 24px; height: 24px; font-size: 11px; }
   }
