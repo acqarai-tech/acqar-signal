@@ -377,7 +377,7 @@ export default function EventDetail({ hidden = false, onClose }) {
               border: '1px solid #B87333', borderRadius: '6px', textDecoration: 'none',
             }}>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#B87333' }}>🏷️ ValuCheck™ — Free</div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#B87333' }}>🏷️ TRUVALU™ — Free</div>
             </div>
             <span style={{ color: '#B87333', fontSize: '14px' }}>→</span>
           </a>
