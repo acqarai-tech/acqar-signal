@@ -3614,7 +3614,7 @@ useEffect(() => {
         {/* Desktop nav links (hidden below 768px) */}
         <ul className="nav-links">
            
-          <li><a href="https://www.acqar.com/" target="_blank" rel="noopener noreferrer">TRUVALU™</a></li>
+          <li><a href="https://www.acqar.com/truvalu" target="_blank" rel="noopener noreferrer">TRUVALU™</a></li>
           <li><a href="https://www.acqar.com/blogs" target="_blank" rel="noopener noreferrer">RESOURCES</a></li>
          
         </ul>
