@@ -4176,13 +4176,13 @@ useEffect(() => {
               <p style={{ fontSize: 12, lineHeight: 1.75, color: 'rgba(10,10,10,0.5)', fontWeight: 500, marginBottom: 28, maxWidth: 280 }}>
                 An AI-powered property intelligence platform built exclusively for Dubai real estate. Independent, institutional-quality, and always on.
               </p>
-              <div className="footer-rics-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'white', border: '1px solid rgba(184,115,51,0.2)', borderRadius: 999, marginBottom: 32 }}>
+              {/* <div className="footer-rics-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'white', border: '1px solid rgba(184,115,51,0.2)', borderRadius: 999, marginBottom: 32 }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                   <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M9 12l2 2 4-4" stroke="#B87333" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 {/* <span className="footer-rics-text" style={{ fontSize: 9, fontWeight: 900, color: 'rgba(10,10,10,0.7)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>RICS-Aligned Intelligence</span> */}
-              </div>
+              </div> */}
               <div style={{ display: 'flex', gap: 12 }}>
                 {[
                   { href: 'https://www.linkedin.com/company/acqar', label: 'LinkedIn', icon: <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> },
