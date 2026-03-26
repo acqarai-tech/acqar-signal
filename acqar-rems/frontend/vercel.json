@@ -16,4 +16,13 @@
       "destination": "/index.html"
     }
   ]
+
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.signal.acqar.com" }],
+      "destination": "https://acqar.com",
+      "permanent": false
+    }
+  ]
 }
