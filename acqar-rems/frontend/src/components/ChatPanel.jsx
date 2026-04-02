@@ -386,7 +386,7 @@ export default function ChatPanel({ onClose }) {
 
   useEffect(() => {
     // Get current session
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       const user = data?.session?.user ?? null
       if (user) {
   setAuthUser(user)
@@ -409,7 +409,7 @@ export default function ChatPanel({ onClose }) {
     })
 
     // Listen for auth changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const user = session?.user ?? null
       if (user) {
   setAuthUser(user)
