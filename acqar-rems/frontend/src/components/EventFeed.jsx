@@ -3,15 +3,20 @@
 // import EventCard from './EventCard'
 
 // const SEVERITY_COLORS = {
-//   1: '#27AE60',
-//   2: '#A8D44A',
-//   3: '#F39C12',
-//   4: '#E67E22',
-//   5: '#E74C3C'
+//   1: '#27AE60', 2: '#A8D44A', 3: '#F39C12', 4: '#E67E22', 5: '#E74C3C'
+// }
+
+// // How many ms counts as "live" depending on the active filter
+// function liveThresholdMs(activeHours) {
+//   if (activeHours === 1)   return 60 * 60 * 1000          // last 1h  → whole window
+//   if (activeHours === 24)  return 30 * 60 * 1000          // last 1d  → last 30 min
+//   if (activeHours === 168) return 3 * 60 * 60 * 1000      // last 1w  → last 3h
+//   if (activeHours === 720) return 24 * 60 * 60 * 1000     // last 1m  → last 24h
+//   return 30 * 60 * 1000
 // }
 
 // export default function EventFeed() {
-//   const { filteredEvents, isLoading, setSelectedEvent } = useEvents()
+//   const { filteredEvents, isLoading, setSelectedEvent, filters } = useEvents()
 //   const feedRef = useRef(null)
 //   const prevCountRef = useRef(0)
 //   const [activeTab, setActiveTab] = useState('feed')
@@ -26,19 +31,19 @@
 
 //   // Filter events based on active tab
 //   const getTabEvents = () => {
-//     const now = Date.now() / 1000 // current time in seconds
-//     const thirtyMinutesAgo = now - 1800 // 30 min = 1800 sec
+//     const threshold = liveThresholdMs(filters?.hours ?? 24)
+//     const cutoff = Date.now() - threshold
 
 //     switch (activeTab) {
 //       case 'live':
 //         return filteredEvents.filter(e => {
-//           const eventTs = e.created_at_ts || new Date(e.created_at).getTime() / 1000
-//           return eventTs >= thirtyMinutesAgo
+//           const ts = e.created_at_ts
+//             ? e.created_at_ts * 1000
+//             : new Date(e.created_at).getTime()
+//           return ts >= cutoff
 //         })
 //       case 'reports':
-//         return filteredEvents
-//           .filter(e => e.severity >= 4)
-//           .slice(0, 10)
+//         return filteredEvents.filter(e => e.severity >= 4).slice(0, 10)
 //       case 'feed':
 //       default:
 //         return filteredEvents
@@ -47,14 +52,26 @@
 
 //   const tabEvents = getTabEvents()
 
-//   // Calculate live events (events in last 30 minutes)
-//   const now = Date.now() / 1000
+//   // Live count using same threshold
+//   const liveThreshold = liveThresholdMs(filters?.hours ?? 24)
+//   const liveCutoff = Date.now() - liveThreshold
 //   const liveCount = filteredEvents.filter(e => {
-//     const ts = e.created_at_ts || new Date(e.created_at).getTime() / 1000
-//     return ts >= now - 1800
+//     const ts = e.created_at_ts
+//       ? e.created_at_ts * 1000
+//       : new Date(e.created_at).getTime()
+//     return ts >= liveCutoff
 //   }).length
 
-//   // Calculate reports count (severity >= 4)
+//   // Live tab label changes based on filter
+//   const liveTabLabel = (() => {
+//     const h = filters?.hours ?? 24
+//     if (h === 1)   return 'LIVE · 1H'
+//     if (h === 24)  return 'LIVE · 30M'
+//     if (h === 168) return 'LIVE · 3H'
+//     if (h === 720) return 'LIVE · 24H'
+//     return 'LIVE'
+//   })()
+
 //   const reportsCount = filteredEvents.filter(e => e.severity >= 4).length
 
 //   if (isLoading) return (
@@ -68,9 +85,9 @@
 //       {/* Tab Bar */}
 //       <div style={{display:'flex', borderBottom:'1px solid #0F3460', flexShrink:0, background:'#16213E', alignItems:'center'}}>
 //         {[
-//           {key:'feed', label:'FEED'},
-//           {key:'live', label:'LIVE'},
-//           {key:'reports', label:'REPORTS'},
+//           { key:'feed', label:'FEED' },
+//           { key:'live', label: liveTabLabel },
+//           { key:'reports', label:'REPORTS' },
 //         ].map(tab => (
 //           <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
 //             flex:1, padding:'8px 4px', fontSize:'10px', fontWeight:700, letterSpacing:'0.5px',
@@ -86,19 +103,16 @@
 //             )}
 //             {tab.label}
 //             {tab.key === 'reports' && reportsCount > 0 && (
-//               <span style={{fontSize:'8px',fontWeight:800,padding:'0 3px',background:'#E74C3C22',color:'#E74C3C',borderRadius:'3px',marginLeft:'2px'}}>{reportsCount}</span>
+//               <span style={{fontSize:'8px', fontWeight:800, padding:'0 3px', background:'#E74C3C22', color:'#E74C3C', borderRadius:'3px', marginLeft:'2px'}}>{reportsCount}</span>
 //             )}
 //           </button>
 //         ))}
-//         <div style={{
-//           fontSize:'10px', color:'#B3B3B3', padding:'0 8px',
-//           display:'flex', alignItems:'center', flexShrink:0
-//         }}>
+//         <div style={{fontSize:'10px', color:'#B3B3B3', padding:'0 8px', display:'flex', alignItems:'center', flexShrink:0}}>
 //           {tabEvents.length} events
 //         </div>
 //       </div>
 
-//       {/* Content Area */}
+//       {/* Empty states */}
 //       {!tabEvents.length && !filteredEvents.length && (
 //         <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center', color:'#B3B3B3', fontSize:'13px', textAlign:'center', padding:'20px'}}>
 //           <div>
@@ -114,14 +128,15 @@
 //           <div>
 //             <div style={{fontSize:'32px', marginBottom:'8px'}}>📭</div>
 //             <div>
-//               {activeTab === 'live' && 'No events in the last 30 minutes'}
-//               {activeTab === 'reports' && 'No high-severity reports in this time window. Try switching to 72H.'}
+//               {activeTab === 'live' && `No events in the live window for this filter`}
+//               {activeTab === 'reports' && 'No high-severity reports in this time window.'}
 //               {activeTab === 'feed' && 'No events to display'}
 //             </div>
 //           </div>
 //         </div>
 //       )}
 
+//       {/* Reports tab */}
 //       {tabEvents.length > 0 && activeTab === 'reports' && (
 //         <div ref={feedRef} style={{flex:1, overflowY:'auto'}}>
 //           {tabEvents.map(event => (
@@ -154,6 +169,7 @@
 //         </div>
 //       )}
 
+//       {/* Feed + Live tabs */}
 //       {tabEvents.length > 0 && (activeTab === 'feed' || activeTab === 'live') && (
 //         <div ref={feedRef} style={{flex:1, overflowY:'auto', overflowX:'hidden'}}>
 //           {tabEvents.map((event, i) => (
@@ -174,6 +190,24 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useEffect, useRef, useState } from 'react'
 import { useEvents } from '../context/EventsContext'
 import EventCard from './EventCard'
@@ -182,22 +216,129 @@ const SEVERITY_COLORS = {
   1: '#27AE60', 2: '#A8D44A', 3: '#F39C12', 4: '#E67E22', 5: '#E74C3C'
 }
 
-// How many ms counts as "live" depending on the active filter
 function liveThresholdMs(activeHours) {
-  if (activeHours === 1)   return 60 * 60 * 1000          // last 1h  → whole window
-  if (activeHours === 24)  return 30 * 60 * 1000          // last 1d  → last 30 min
-  if (activeHours === 168) return 3 * 60 * 60 * 1000      // last 1w  → last 3h
-  if (activeHours === 720) return 24 * 60 * 60 * 1000     // last 1m  → last 24h
+  if (activeHours === 1)   return 60 * 60 * 1000
+  if (activeHours === 24)  return 30 * 60 * 1000
+  if (activeHours === 168) return 3 * 60 * 60 * 1000
+  if (activeHours === 720) return 24 * 60 * 60 * 1000
   return 30 * 60 * 1000
 }
 
-export default function EventFeed() {
+// ── Paywall Popup ────────────────────────────────────────────────────────────
+function ProUpgradePopup({ onClose }) {
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
+          zIndex: 1000, backdropFilter: 'blur(2px)',
+        }}
+      />
+      <div style={{
+        position: 'fixed',
+        top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 1001,
+        width: 'min(320px, 90vw)',
+        background: '#FAFAF8',
+        borderRadius: '10px',
+        padding: '20px 20px 16px',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.45)',
+        fontFamily: 'system-ui, sans-serif',
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute', top: 10, right: 12,
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 16, color: '#999', lineHeight: 1, padding: 0,
+          }}
+          aria-label="Close"
+        >×</button>
+
+        <p style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: '1.2px',
+          color: '#B87333', margin: '0 0 6px', textTransform: 'uppercase',
+        }}>Founding Member Offer</p>
+
+        <h2 style={{
+          fontSize: 22, fontWeight: 900, color: '#111',
+          margin: '0 0 6px', lineHeight: 1.1, letterSpacing: '-0.5px',
+          fontStyle: 'italic',
+        }}>ACQAR PRO</h2>
+
+        <p style={{
+          fontSize: 11, color: '#555', margin: '0 0 12px', lineHeight: 1.5,
+        }}>
+          For property owners and buyers who need Dubai real estate intelligence.
+        </p>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginBottom: 2 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#B87333' }}>Đ</span>
+          <span style={{ fontSize: 30, fontWeight: 900, color: '#B87333', lineHeight: 1 }}>29</span>
+        </div>
+        <p style={{
+          fontSize: 8, fontWeight: 700, letterSpacing: '0.8px',
+          color: '#B87333', margin: '0 0 12px', textTransform: 'uppercase',
+        }}>First 3 months — 149/mo after</p>
+
+        <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {[
+            '10 TRUVALU™ AI Reports/Month',
+            'Full SIGNAL™ Terminal Access',
+            'PDF Reports & Shareable Links',
+            'Real-Time Market Signals',
+            'Cancel Anytime',
+          ].map(f => (
+            <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: '#222', fontWeight: 600 }}>
+              <span style={{ color: '#B87333', fontSize: 12, lineHeight: 1 }}>✓</span>
+              {f}
+            </li>
+          ))}
+        </ul>
+
+        <a
+          href="/pricing"
+          style={{
+            display: 'block', width: '100%', boxSizing: 'border-box',
+            padding: '11px 0', background: '#B87333',
+            color: '#fff', textAlign: 'center',
+            fontSize: 10, fontWeight: 800, letterSpacing: '1px',
+            textDecoration: 'none', borderRadius: 6,
+            textTransform: 'uppercase',
+          }}
+        >
+          Avail Founding Member Offer →
+        </a>
+
+        <button
+          onClick={onClose}
+          style={{
+            display: 'block', width: '100%', marginTop: 8,
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 9, fontWeight: 700, letterSpacing: '1px',
+            color: '#AAA', textTransform: 'uppercase', textAlign: 'center',
+            padding: '4px 0',
+          }}
+        >
+          Maybe Later
+        </button>
+      </div>
+    </>
+  )
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
+export default function EventFeed({ isPro = false }) {
   const { filteredEvents, isLoading, setSelectedEvent, filters } = useEvents()
   const feedRef = useRef(null)
   const prevCountRef = useRef(0)
   const [activeTab, setActiveTab] = useState('feed')
+  const [showUpgradePopup, setShowUpgradePopup] = useState(false)
 
-  // Auto-scroll to top when new events arrive
+  const FREE_VISIBLE = 4
+
   useEffect(() => {
     if (filteredEvents.length > prevCountRef.current && feedRef.current) {
       feedRef.current.scrollTop = 0
@@ -205,17 +346,13 @@ export default function EventFeed() {
     prevCountRef.current = filteredEvents.length
   }, [filteredEvents.length])
 
-  // Filter events based on active tab
   const getTabEvents = () => {
     const threshold = liveThresholdMs(filters?.hours ?? 24)
     const cutoff = Date.now() - threshold
-
     switch (activeTab) {
       case 'live':
         return filteredEvents.filter(e => {
-          const ts = e.created_at_ts
-            ? e.created_at_ts * 1000
-            : new Date(e.created_at).getTime()
+          const ts = e.created_at_ts ? e.created_at_ts * 1000 : new Date(e.created_at).getTime()
           return ts >= cutoff
         })
       case 'reports':
@@ -228,17 +365,13 @@ export default function EventFeed() {
 
   const tabEvents = getTabEvents()
 
-  // Live count using same threshold
   const liveThreshold = liveThresholdMs(filters?.hours ?? 24)
   const liveCutoff = Date.now() - liveThreshold
   const liveCount = filteredEvents.filter(e => {
-    const ts = e.created_at_ts
-      ? e.created_at_ts * 1000
-      : new Date(e.created_at).getTime()
+    const ts = e.created_at_ts ? e.created_at_ts * 1000 : new Date(e.created_at).getTime()
     return ts >= liveCutoff
   }).length
 
-  // Live tab label changes based on filter
   const liveTabLabel = (() => {
     const h = filters?.hours ?? 24
     if (h === 1)   return 'LIVE · 1H'
@@ -258,6 +391,7 @@ export default function EventFeed() {
 
   return (
     <div style={{flex:1, display:'flex', flexDirection:'column', overflowY:'hidden'}}>
+
       {/* Tab Bar */}
       <div style={{display:'flex', borderBottom:'1px solid #0F3460', flexShrink:0, background:'#16213E', alignItems:'center'}}>
         {[
@@ -314,34 +448,46 @@ export default function EventFeed() {
 
       {/* Reports tab */}
       {tabEvents.length > 0 && activeTab === 'reports' && (
-        <div ref={feedRef} style={{flex:1, overflowY:'auto'}}>
-          {tabEvents.map(event => (
-            <div key={event.id} style={{padding:'12px', borderBottom:'1px solid #0F3460', cursor:'pointer',
-              background:'rgba(231,76,60,0.03)'}} onClick={() => setSelectedEvent(event)}>
-              <div style={{display:'flex', gap:'6px', marginBottom:'5px', alignItems:'center'}}>
-                <span style={{fontSize:'9px', fontWeight:700, padding:'2px 6px', borderRadius:'3px',
-                  background: SEVERITY_COLORS[event.severity] + '22', color: SEVERITY_COLORS[event.severity]}}>
-                  ⚠ S{event.severity}
-                </span>
-                <span style={{fontSize:'9px', fontWeight:600, padding:'2px 5px', borderRadius:'3px',
-                  background:'rgba(184,115,51,0.15)', color:'#B87333', textTransform:'uppercase',
-                  letterSpacing:'0.3px'}}>{event.category?.replace('_',' ')}</span>
-                <span style={{fontSize:'10px', color:'#555', marginLeft:'auto'}}>{event.location_name}</span>
+        <div ref={feedRef} style={{flex:1, overflowY:'auto', position:'relative'}}>
+          {tabEvents.map((event, idx) => {
+            const isBlurred = !isPro && idx >= FREE_VISIBLE
+            return (
+              <div
+                key={event.id}
+                onClick={() => isBlurred ? setShowUpgradePopup(true) : setSelectedEvent(event)}
+                style={{
+                  padding:'12px', borderBottom:'1px solid #0F3460', cursor:'pointer',
+                  background:'rgba(231,76,60,0.03)',
+                  filter: isBlurred ? 'blur(4px)' : 'none',
+                  userSelect: isBlurred ? 'none' : 'auto',
+                  position: 'relative',
+                }}
+              >
+                <div style={{display:'flex', gap:'6px', marginBottom:'5px', alignItems:'center'}}>
+                  <span style={{fontSize:'9px', fontWeight:700, padding:'2px 6px', borderRadius:'3px',
+                    background: SEVERITY_COLORS[event.severity] + '22', color: SEVERITY_COLORS[event.severity]}}>
+                    ⚠ S{event.severity}
+                  </span>
+                  <span style={{fontSize:'9px', fontWeight:600, padding:'2px 5px', borderRadius:'3px',
+                    background:'rgba(184,115,51,0.15)', color:'#B87333', textTransform:'uppercase',
+                    letterSpacing:'0.3px'}}>{event.category?.replace('_',' ')}</span>
+                  <span style={{fontSize:'10px', color:'#555', marginLeft:'auto'}}>{event.location_name}</span>
+                </div>
+                <div style={{fontSize:'12px', fontWeight:700, color:'#FAFAFA', lineHeight:1.4, marginBottom:'4px'}}>{event.title}</div>
+                <div style={{fontSize:'11px', color:'#888', lineHeight:1.5}}>{event.summary?.slice(0, 120)}...</div>
+                <div style={{display:'flex', gap:'8px', marginTop:'6px', alignItems:'center'}}>
+                  <span style={{fontSize:'9px', color:'#B87333', fontWeight:600}}>via {event.source}</span>
+                  {event.url && !isBlurred && (
+                    <a href={event.url} target="_blank" rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      style={{fontSize:'9px', color:'#2980B9', textDecoration:'none', borderBottom:'1px dotted #2980B9', marginLeft:'auto'}}>
+                      ↗ Source
+                    </a>
+                  )}
+                </div>
               </div>
-              <div style={{fontSize:'12px', fontWeight:700, color:'#FAFAFA', lineHeight:1.4, marginBottom:'4px'}}>{event.title}</div>
-              <div style={{fontSize:'11px', color:'#888', lineHeight:1.5}}>{event.summary?.slice(0, 120)}...</div>
-              <div style={{display:'flex', gap:'8px', marginTop:'6px', alignItems:'center'}}>
-                <span style={{fontSize:'9px', color:'#B87333', fontWeight:600}}>via {event.source}</span>
-                {event.url && (
-                  <a href={event.url} target="_blank" rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    style={{fontSize:'9px', color:'#2980B9', textDecoration:'none', borderBottom:'1px dotted #2980B9', marginLeft:'auto'}}>
-                    ↗ Source
-                  </a>
-                )}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -352,6 +498,11 @@ export default function EventFeed() {
             <EventCard key={event.id} event={event} isNew={i === 0} />
           ))}
         </div>
+      )}
+
+      {/* Upgrade Popup */}
+      {showUpgradePopup && (
+        <ProUpgradePopup onClose={() => setShowUpgradePopup(false)} />
       )}
 
       <style>{`
