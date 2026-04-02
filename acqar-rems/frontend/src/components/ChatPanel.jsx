@@ -396,12 +396,12 @@ export default function ChatPanel({ onClose }) {
       .select('name')
       .eq('id', user.id)
       .maybeSingle()
-    const name = userRow?.name ||
-      user.user_metadata?.name ||
-      user.user_metadata?.full_name ||
-      user.email?.split('@')[0] ||
-      'User'
-    setMyName(name)
+   const name =
+  user.user_metadata?.name ||
+  user.user_metadata?.full_name ||
+  user.email?.split('@')[0] ||
+  'User'
+setMyName(name)
   } else {
     const isAdmin = localStorage.getItem('admin_auth') === 'true'
     if (isAdmin) {
@@ -423,12 +423,12 @@ loadUser()
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data: userRow }) => {
-        const name = userRow?.name ||
-          user.user_metadata?.name ||
-          user.user_metadata?.full_name ||
-          user.email?.split('@')[0] ||
-          'User'
-        setMyName(name)
+        const name =
+  user.user_metadata?.name ||
+  user.user_metadata?.full_name ||
+  user.email?.split('@')[0] ||
+  'User'
+setMyName(name)
       })
   } else {
     const isAdmin = localStorage.getItem('admin_auth') === 'true'
@@ -504,9 +504,9 @@ setLoading(false)
   }, [messages])
 
   // ── Send ──
-  const sendMessage = async (e) => {
-    e?.preventDefault()
-    if (!myName) return
+ const sendMessage = async (e) => {
+  e?.preventDefault()
+  if (!myName || !authUser) return
     const text = input.trim()
     if (!text) return
     setInput('')
@@ -684,7 +684,7 @@ setLoading(false)
         <button
           type="button"
           onClick={sendMessage}
-          disabled={!input.trim() || !authUser}
+         disabled={!input.trim()}
           style={{
             width: 40, height: 40, borderRadius: '8px',
             background: input.trim() ? '#6366f1' : '#1f2937',
