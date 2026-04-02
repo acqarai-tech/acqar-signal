@@ -389,45 +389,46 @@ export default function ChatPanel({ onClose }) {
     supabase.auth.getSession().then(({ data }) => {
       const user = data?.session?.user ?? null
       if (user) {
-        setAuthUser(user)
-        // Get name from metadata or email
-        const name =
-          user.user_metadata?.name ||
-          user.user_metadata?.full_name ||
-          user.email?.split('@')[0] ||
-          'User'
-        setMyName(name)
-      } else {
-        // Check admin login
-        const isAdmin = localStorage.getItem('admin_auth') === 'true'
-        if (isAdmin) {
-          setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
-          setMyName('Admin')
-        }
-      }
+  setAuthUser(user)
+  const metaName =
+    user.user_metadata?.name ||
+    user.user_metadata?.full_name ||
+    user.user_metadata?.display_name ||
+    null
+  if (metaName) {
+    setMyName(metaName)
+  } else {
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', user.id)
+      .maybeSingle()
+    setMyName(userRow?.name || user.email?.split('@')[0] || 'User')
+  }
+}
     })
 
     // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null
       if (user) {
-        setAuthUser(user)
-        const name =
-          user.user_metadata?.name ||
-          user.user_metadata?.full_name ||
-          user.email?.split('@')[0] ||
-          'User'
-        setMyName(name)
-      } else {
-        const isAdmin = localStorage.getItem('admin_auth') === 'true'
-        if (isAdmin) {
-          setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
-          setMyName('Admin')
-        } else {
-          setAuthUser(null)
-          setMyName('User')
-        }
-      }
+  setAuthUser(user)
+  const metaName =
+    user.user_metadata?.name ||
+    user.user_metadata?.full_name ||
+    user.user_metadata?.display_name ||
+    null
+  if (metaName) {
+    setMyName(metaName)
+  } else {
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', user.id)
+      .maybeSingle()
+    setMyName(userRow?.name || user.email?.split('@')[0] || 'User')
+  }
+}
     })
 
     return () => listener?.subscription?.unsubscribe()
@@ -495,7 +496,7 @@ setLoading(false)
   // ── Send ──
   const sendMessage = async (e) => {
     e?.preventDefault()
-    if (!myName || !authUser) return
+    if (!myName) return
     const text = input.trim()
     if (!text) return
     setInput('')
@@ -655,7 +656,7 @@ setLoading(false)
           onKeyDown={handleKeyDown}
           placeholder={authUser ? `Message as ${myName}...` : 'Sign in to chat...'}
           maxLength={200}
-          disabled={!authUser}
+          disabled={false}
           style={{
             flex: 1, padding: '10px 14px', fontSize: '16px',
             background: '#1f2937',
@@ -676,9 +677,9 @@ setLoading(false)
           disabled={!input.trim() || !authUser}
           style={{
             width: 40, height: 40, borderRadius: '8px',
-            background: input.trim() && authUser ? '#6366f1' : '#1f2937',
+            background: input.trim() ? '#6366f1' : '#1f2937',
             border: 'none', color: 'white',
-            cursor: input.trim() && authUser ? 'pointer' : 'default',
+            cursor: input.trim() ? 'pointer' : 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '16px', flexShrink: 0,
             transition: 'background 0.15s',
