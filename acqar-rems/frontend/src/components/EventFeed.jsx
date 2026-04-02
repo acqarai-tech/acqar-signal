@@ -655,7 +655,8 @@ function ProUpgradePopup({ onClose }) {
       <div
         onClick={onClose}
         style={{
-          position: 'absolute', inset: 0,
+          position: 'fixed', inset: 0,
+
           background: 'rgba(10,14,26,0.72)',
           backdropFilter: 'blur(2px)',
           zIndex: 30,
@@ -664,13 +665,14 @@ function ProUpgradePopup({ onClose }) {
 
       {/* Card */}
       <div style={{
-  position: 'absolute',
-  top: '50%', left: '50%',
-  transform: 'translate(-50%, -50%)',
-  zIndex: 31,
-  width: 'min(248px, calc(100vw - 32px))',
-  maxHeight: '90vh',
-  overflowY: 'auto',
+  position: 'fixed',
+top: '50%', left: '50%',
+transform: 'translate(-50%, -50%)',
+zIndex: 31,
+width: 'min(248px, calc(100vw - 32px))',
+maxHeight: '85dvh',
+overflowY: 'auto',
+WebkitOverflowScrolling: 'touch',
   background: 'linear-gradient(160deg, #16213E 0%, #0D1B30 100%)',
   border: '1px solid #B87333',
   borderRadius: '12px',
