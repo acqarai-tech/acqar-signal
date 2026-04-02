@@ -360,6 +360,24 @@ function formatTime(ts) {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+
+const SEEDED_MESSAGES = [
+  { id: 's1', user_name: 'Khalid Al Mansouri', content: 'Anyone tracking the Palm Jumeirah land deal today? Dh1 billion+ at Royal Amwaj. Q1 2026 sales already up 23% YoY. Insane numbers.', created_at: new Date(Date.now() - 28 * 60000).toISOString() },
+  { id: 's2', user_name: 'Priya Nair', content: 'Saw that. As an investor I\'m more focused on Creek Harbour and Festival City — Metro Blue Line connectivity is going to reprice those areas significantly in 2026.', created_at: new Date(Date.now() - 26 * 60000).toISOString() },
+  { id: 's3', user_name: 'James Crawford', content: 'Agree on Creek Harbour. My buyers from Europe are asking specifically about metro-linked communities now. Walkability and commute time are becoming part of the pricing conversation.', created_at: new Date(Date.now() - 24 * 60000).toISOString() },
+  { id: 's4', user_name: 'Sara Al Hashimi', content: 'I own 2 units in JVC. Rental yield holding at 8.9%. But renewals this year — tenants are negotiating harder. New supply coming in 2026/27 is giving them leverage.', created_at: new Date(Date.now() - 22 * 60000).toISOString() },
+  { id: 's5', user_name: 'Khalid Al Mansouri', content: 'The fam Properties report said it perfectly — 2026 is logic-based buying. No more momentum decisions. Buyers are scrutinising developers, delivery timelines, resale logic.', created_at: new Date(Date.now() - 20 * 60000).toISOString() },
+  { id: 's6', user_name: 'Priya Nair', content: 'Which is why I\'m staying away from off-plan in oversupplied areas. 42,000–45,000 new units expected to hit market this year. Ready stock in scarce locations is the play.', created_at: new Date(Date.now() - 18 * 60000).toISOString() },
+  { id: 's7', user_name: 'Marco Ferretti', content: 'Looking to buy my first unit in Dubai. Budget AED 1.8M. Between Business Bay and Dubai Hills — which makes more sense for end-use plus some appreciation?', created_at: new Date(Date.now() - 16 * 60000).toISOString() },
+  { id: 's8', user_name: 'James Crawford', content: 'Marco — Dubai Hills for lifestyle and long-term hold. Business Bay if rental income matters more to you. Both are solid but Hills has better resale velocity right now.', created_at: new Date(Date.now() - 15 * 60000).toISOString() },
+  { id: 's9', user_name: 'Sara Al Hashimi', content: 'Marco also check Jumeirah Water Canal corridor — extending into Downtown and Business Bay. Driven Properties called it part of Dubai\'s emerging golden square. Limited future supply.', created_at: new Date(Date.now() - 13 * 60000).toISOString() },
+  { id: 's10', user_name: 'Khalid Al Mansouri', content: 'DLD blockchain title deed pilot is live btw. Tokenisation is going to change how we trade. Faster transactions, more transparency. Long overdue for this market.', created_at: new Date(Date.now() - 11 * 60000).toISOString() },
+  { id: 's11', user_name: 'Priya Nair', content: 'That tokenisation pilot is huge for fractional ownership. Opens Dubai RE to a completely different investor base globally. Dh1,676/sqft average still looks cheap vs London or Singapore.', created_at: new Date(Date.now() - 9 * 60000).toISOString() },
+  { id: 's12', user_name: 'Marco Ferretti', content: 'Good points all. Also considering the Golden Visa angle — does the 10-year visa still apply at AED 2M threshold for ready properties?', created_at: new Date(Date.now() - 7 * 60000).toISOString() },
+  { id: 's13', user_name: 'James Crawford', content: 'Yes still AED 2M for ready property Golden Visa. Off-plan needs to be fully paid at that value. Lots of my international clients use this as the entry trigger.', created_at: new Date(Date.now() - 5 * 60000).toISOString() },
+  { id: 's14', user_name: 'Sara Al Hashimi', content: 'Palm Jebel Ali Phase 2 and Dubai Islands future phases launching 2026 onwards per Khaleej Times. Government-backed land banks coming to market. Worth watching for long horizon plays.', created_at: new Date(Date.now() - 3 * 60000).toISOString() },
+  { id: 's15', user_name: 'Priya Nair', content: 'ACQAR Signal picked up the Palm Jumeirah land deal as S5 alert this morning before any portal updated. That\'s the edge right there — acting before the market reprices.', created_at: new Date(Date.now() - 1 * 60000).toISOString() },
+]
 export default function ChatPanel({ onClose }) {
 
   // ── Real logged-in user from Supabase ──
@@ -416,27 +434,10 @@ export default function ChatPanel({ onClose }) {
   }, [])
 
   // ── Chat state ──
-  const SEEDED_MESSAGES = [
-  { id: 's1', user_name: 'Khalid Al Mansouri', content: 'Anyone tracking the Palm Jumeirah land deal today? Dh1 billion+ at Royal Amwaj. Q1 2026 sales already up 23% YoY. Insane numbers.', created_at: new Date(Date.now() - 28 * 60000).toISOString() },
-  { id: 's2', user_name: 'Priya Nair', content: 'Saw that. As an investor I\'m more focused on Creek Harbour and Festival City — Metro Blue Line connectivity is going to reprice those areas significantly in 2026.', created_at: new Date(Date.now() - 26 * 60000).toISOString() },
-  { id: 's3', user_name: 'James Crawford', content: 'Agree on Creek Harbour. My buyers from Europe are asking specifically about metro-linked communities now. Walkability and commute time are becoming part of the pricing conversation.', created_at: new Date(Date.now() - 24 * 60000).toISOString() },
-  { id: 's4', user_name: 'Sara Al Hashimi', content: 'I own 2 units in JVC. Rental yield holding at 8.9%. But renewals this year — tenants are negotiating harder. New supply coming in 2026/27 is giving them leverage.', created_at: new Date(Date.now() - 22 * 60000).toISOString() },
-  { id: 's5', user_name: 'Khalid Al Mansouri', content: 'The fam Properties report said it perfectly — 2026 is logic-based buying. No more momentum decisions. Buyers are scrutinising developers, delivery timelines, resale logic.', created_at: new Date(Date.now() - 20 * 60000).toISOString() },
-  { id: 's6', user_name: 'Priya Nair', content: 'Which is why I\'m staying away from off-plan in oversupplied areas. 42,000–45,000 new units expected to hit market this year. Ready stock in scarce locations is the play.', created_at: new Date(Date.now() - 18 * 60000).toISOString() },
-  { id: 's7', user_name: 'Marco Ferretti', content: 'Looking to buy my first unit in Dubai. Budget AED 1.8M. Between Business Bay and Dubai Hills — which makes more sense for end-use plus some appreciation?', created_at: new Date(Date.now() - 16 * 60000).toISOString() },
-  { id: 's8', user_name: 'James Crawford', content: 'Marco — Dubai Hills for lifestyle and long-term hold. Business Bay if rental income matters more to you. Both are solid but Hills has better resale velocity right now.', created_at: new Date(Date.now() - 15 * 60000).toISOString() },
-  { id: 's9', user_name: 'Sara Al Hashimi', content: 'Marco also check Jumeirah Water Canal corridor — extending into Downtown and Business Bay. Driven Properties called it part of Dubai\'s emerging golden square. Limited future supply.', created_at: new Date(Date.now() - 13 * 60000).toISOString() },
-  { id: 's10', user_name: 'Khalid Al Mansouri', content: 'DLD blockchain title deed pilot is live btw. Tokenisation is going to change how we trade. Faster transactions, more transparency. Long overdue for this market.', created_at: new Date(Date.now() - 11 * 60000).toISOString() },
-  { id: 's11', user_name: 'Priya Nair', content: 'That tokenisation pilot is huge for fractional ownership. Opens Dubai RE to a completely different investor base globally. Dh1,676/sqft average still looks cheap vs London or Singapore.', created_at: new Date(Date.now() - 9 * 60000).toISOString() },
-  { id: 's12', user_name: 'Marco Ferretti', content: 'Good points all. Also considering the Golden Visa angle — does the 10-year visa still apply at AED 2M threshold for ready properties?', created_at: new Date(Date.now() - 7 * 60000).toISOString() },
-  { id: 's13', user_name: 'James Crawford', content: 'Yes still AED 2M for ready property Golden Visa. Off-plan needs to be fully paid at that value. Lots of my international clients use this as the entry trigger.', created_at: new Date(Date.now() - 5 * 60000).toISOString() },
-  { id: 's14', user_name: 'Sara Al Hashimi', content: 'Palm Jebel Ali Phase 2 and Dubai Islands future phases launching 2026 onwards per Khaleej Times. Government-backed land banks coming to market. Worth watching for long horizon plays.', created_at: new Date(Date.now() - 3 * 60000).toISOString() },
-  { id: 's15', user_name: 'Priya Nair', content: 'ACQAR Signal picked up the Palm Jumeirah land deal as S5 alert this morning before any portal updated. That\'s the edge right there — acting before the market reprices.', created_at: new Date(Date.now() - 1 * 60000).toISOString() },
-]
-
-const [messages, setMessages] = useState(SEEDED_MESSAGES)
+ 
+const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [msgCount, setMsgCount] = useState(null)
 
@@ -453,9 +454,10 @@ const [messages, setMessages] = useState(SEEDED_MESSAGES)
         .select('id, user_name, content, created_at')
         .order('created_at', { ascending: true })
         .limit(100)
-      if (error) { setError('Could not load: ' + error.message); setLoading(false); return }
-      setMessages(data || [])
-      setLoading(false)
+     if (error) { setLoading(false); return }
+const realMessages = data || []
+setMessages([...SEEDED_MESSAGES, ...realMessages])
+setLoading(false)
     }
     fetchMessages()
   }, [])
