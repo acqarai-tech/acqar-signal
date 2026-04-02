@@ -381,68 +381,71 @@ const SEEDED_MESSAGES = [
 export default function ChatPanel({ onClose }) {
 
   // ── Real logged-in user from Supabase ──
-  const [authUser, setAuthUser] = useState(null)
-  const [myName, setMyName] = useState('User')
+  const params = new URLSearchParams(window.location.search)
+const urlName = params.get('username') || 'User'
+const urlUserId = params.get('userid') || ''
+const [authUser, setAuthUser] = useState(urlUserId ? { id: urlUserId } : null)
+const [myName, setMyName] = useState(urlName)
 
-  useEffect(() => {
-    // Get current session
-   const loadUser = async () => {
-  const { data } = await supabase.auth.getSession()
-  const user = data?.session?.user ?? null
-  if (user) {
-    setAuthUser(user)
-    const { data: userRow } = await supabase
-      .from('users')
-      .select('name')
-      .eq('id', user.id)
-      .maybeSingle()
-   const name =
-  user.user_metadata?.name ||
-  user.user_metadata?.full_name ||
-  user.email?.split('@')[0] ||
-  'User'
-setMyName(name)
-  } else {
-    const isAdmin = localStorage.getItem('admin_auth') === 'true'
-    if (isAdmin) {
-      setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
-      setMyName('Admin')
-    }
-  }
-}
-loadUser()
+//   useEffect(() => {
+//     // Get current session
+//    const loadUser = async () => {
+//   const { data } = await supabase.auth.getSession()
+//   const user = data?.session?.user ?? null
+//   if (user) {
+//     setAuthUser(user)
+//     const { data: userRow } = await supabase
+//       .from('users')
+//       .select('name')
+//       .eq('id', user.id)
+//       .maybeSingle()
+//    const name =
+//   user.user_metadata?.name ||
+//   user.user_metadata?.full_name ||
+//   user.email?.split('@')[0] ||
+//   'User'
+// setMyName(name)
+//   } else {
+//     const isAdmin = localStorage.getItem('admin_auth') === 'true'
+//     if (isAdmin) {
+//       setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
+//       setMyName('Admin')
+//     }
+//   }
+// }
+// loadUser()
 
-    // Listen for auth changes
-   const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-  const user = session?.user ?? null
-  if (user) {
-    setAuthUser(user)
-    supabase
-      .from('users')
-      .select('name')
-      .eq('id', user.id)
-      .maybeSingle()
-      .then(({ data: userRow }) => {
-        const name =
-  user.user_metadata?.name ||
-  user.user_metadata?.full_name ||
-  user.email?.split('@')[0] ||
-  'User'
-setMyName(name)
-      })
-  } else {
-    const isAdmin = localStorage.getItem('admin_auth') === 'true'
-    if (isAdmin) {
-      setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
-      setMyName('Admin')
-    } else {
-      setAuthUser(null)
-      setMyName('User')
-    }
-  }
-})
-    return () => listener?.subscription?.unsubscribe()
-  }, [])
+//     // Listen for auth changes
+//    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+//   const user = session?.user ?? null
+//   if (user) {
+//     setAuthUser(user)
+//     supabase
+//       .from('users')
+//       .select('name')
+//       .eq('id', user.id)
+//       .maybeSingle()
+//       .then(({ data: userRow }) => {
+//         const name =
+//   user.user_metadata?.name ||
+//   user.user_metadata?.full_name ||
+//   user.email?.split('@')[0] ||
+//   'User'
+// setMyName(name)
+//       })
+//   } else {
+//     const isAdmin = localStorage.getItem('admin_auth') === 'true'
+//     if (isAdmin) {
+//       setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
+//       setMyName('Admin')
+//     } else {
+//       setAuthUser(null)
+//       setMyName('User')
+//     }
+//   }
+// })
+//     return () => listener?.subscription?.unsubscribe()
+//   }, [])
 
   // ── Chat state ──
  
