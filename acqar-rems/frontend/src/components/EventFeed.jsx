@@ -664,17 +664,19 @@ function ProUpgradePopup({ onClose }) {
 
       {/* Card */}
       <div style={{
-        position: 'absolute',
-        top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 31,
-        width: 'min(248px, calc(100vw - 32px))',
-        background: 'linear-gradient(160deg, #16213E 0%, #0D1B30 100%)',
-        border: '1px solid #B87333',
-        borderRadius: '12px',
-        padding: '18px 16px 14px',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(184,115,51,0.15)',
-      }}>
+  position: 'absolute',
+  top: '50%', left: '50%',
+  transform: 'translate(-50%, -50%)',
+  zIndex: 31,
+  width: 'min(248px, calc(100vw - 32px))',
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  background: 'linear-gradient(160deg, #16213E 0%, #0D1B30 100%)',
+  border: '1px solid #B87333',
+  borderRadius: '12px',
+  padding: '18px 16px 14px',
+  boxShadow: '0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(184,115,51,0.15)',
+}}>
 
         {/* Close */}
         <button
