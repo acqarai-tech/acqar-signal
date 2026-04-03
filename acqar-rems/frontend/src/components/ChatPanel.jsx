@@ -926,7 +926,7 @@ function buildMessagesFromEvents(events) {
   const threads = [
     // Event 0 — Investor opens, Broker replies, Buyer asks
     (e) => [
-      { name: 'Khalid Al Mansouri', msg: `${e.title}${e.location_name ? ' — ' + e.location_name + ' is moving.' : ''} Transaction velocity is picking up. I'm watching this closely.` },
+     { name: 'Khalid Al Mansouri', msg: `${e.title}${e.location_name ? " — " + e.location_name + " is moving." : ""} Transaction velocity is picking up. I'm watching this closely.` },
       { name: 'James Crawford',     msg: `Khalid — same on my end. Had 3 client calls this morning about exactly this. Buyers are staying active despite everything.` },
       { name: 'Marco Ferretti',     msg: `Does this affect the AED 1.5–2M range specifically? That's my budget and I don't want to miss the window.` },
       { name: 'James Crawford',     msg: `Marco — if anything this strengthens the case for Dubai Hills at your budget. Resale velocity there is very strong right now.` },
@@ -934,7 +934,7 @@ function buildMessagesFromEvents(events) {
     // Event 1 — Broker opens, Owner reacts, Investor adds data
     (e) => [
       { name: 'James Crawford',     msg: `Just flagged this to my team: ${e.title}. ${e.location_name ? e.location_name + ' specifically is one to watch.' : 'Whole market is reacting.'}` },
-      { name: 'Sara Al Hashimi',    msg: `This hits landlords directly. ${e.category === 'regulatory' ? 'Regulatory changes always compress yields first — I've seen this before.' : 'My JVC renewals are already reflecting this pressure.'}` },
+     { name: 'Sara Al Hashimi',    msg: `This hits landlords directly. ${e.category === 'regulatory' ? "Regulatory changes always compress yields first — I've seen this before." : 'My JVC renewals are already reflecting this pressure.'}` },
       { name: 'Khalid Al Mansouri', msg: `Sara — that's actually the signal. When owner sentiment shifts, smart buyers move. Off-plan pipeline is still very strong from what I track.` },
     ],
     // Event 2 — Owner raises concern, Broker reassures, Buyer follows
@@ -953,7 +953,7 @@ function buildMessagesFromEvents(events) {
     // Event 4 — Buyer asks, everyone answers
     (e) => [
       { name: 'Marco Ferretti',     msg: `Quick question for the group — seeing "${e.title}" in the news. Should I be accelerating my search or does this give me more time?` },
-      { name: 'James Crawford',     msg: `Accelerate. The buyers who wait for "the right moment" in Dubai consistently miss it. The data is clear — Q1 was the strongest quarter on record.` },
+      { name: 'James Crawford',     msg: `Accelerate. The buyers who wait for the right moment in Dubai consistently miss it. The data is clear — Q1 was the strongest quarter on record.` },
       { name: 'Khalid Al Mansouri', msg: `Marco — at AED 1.8M with end-use intent, ${e.location_name ? e.location_name : 'Dubai Hills'} gives you both lifestyle and Golden Visa path. That's a very clean structure.` },
       { name: 'Sara Al Hashimi',    msg: `And don't forget — ready property at AED 2M unlocks Golden Visa immediately. Worth stretching slightly if you can.` },
     ],
