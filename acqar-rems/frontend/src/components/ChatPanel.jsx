@@ -1408,7 +1408,7 @@ function formatTime(ts) {
 
 
 // ── Daily AI chat generator ──
-const TODAY_KEY = `acqar_chat_v3_${new Date().toISOString().slice(0, 10)}`
+const TODAY_KEY = `acqar_chat_v4_${new Date().toISOString().slice(0, 10)}`
 
 // Clean up yesterday's cache
 Object.keys(localStorage)
@@ -1515,34 +1515,48 @@ async function generateDailyChat() {
     console.log('✅ Live signals:', signals.length, signals[0]?.text)
 
     // Convert signals → events shape for buildMessagesFromEvents
-    const events = signals
+   const events = signals
   .filter(s => {
     const t = s.text || ''
     if (t.includes(' | ') && t.includes('Helping')) return false
     if (t.includes('Portfolio Manager')) return false
     if (t.includes('Specialist |')) return false
-    if (t.toLowerCase().includes('searching "')) return false
+    if (t.toLowerCase().includes('searching')) return false
+    if (t.toLowerCase().includes('while global markets')) return false
+    if (t.toLowerCase().includes('the structure that')) return false
     if (t.length < 30) return false
     return true
   })
-  .map(s => ({
-  title: s.text
-    // Remove all emojis
-    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}\u{200D}]\s*/gu, '')
-    // Remove "Searching..." artifacts completely
-    .replace(/Searching\s+"[^"]*"\.\.\./gi, '')
-    // Remove source suffixes
-    .replace(/\s*[-|]\s*(LinkedIn|Arabian Business|Gulf News|Zawya|The National|Bayut|Property Finder).*$/i, '')
-    // Remove trailing ellipsis and truncation artifacts
-    .replace(/\s+\w{1,15}\.\.\.$/, '')
-    // Trim and collapse whitespace
-    .replace(/\s+/g, ' ')
-    .trim(),
-    location_name: s.location || '',
-    category: s.category || 'transaction',
-  }))
+  .map(s => {
+    // Clean title aggressively
+    let title = s.text
+      .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}]\s*/gu, '')
+      .replace(/Searching\s+"[^"]*"\s*\.{3}/gi, '')
+      .replace(/\s*[-|]\s*(LinkedIn|Arabian Business|Gulf News|Zawya|The National|Bayut|Property Finder).*$/i, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+
+    // If title contains colon (article headline style), keep only the part before colon
+    // e.g. "UAE Property Investment 2026: The Structure That..." → "UAE Property Investment 2026"
+    if (title.includes(': ')) {
+      const beforeColon = title.split(': ')[0].trim()
+      if (beforeColon.length > 20) title = beforeColon
+    }
+
+    // Hard truncate at 80 chars cleanly
+    if (title.length > 80) {
+      title = title.slice(0, 80).replace(/\s+\S*$/, '').trim()
+    }
+
+    return {
+      title,
+      location_name: s.location || '',
+      category: s.category || 'transaction',
+    }
+  })
   .filter(e => e.title.length > 20)
   .slice(0, 5)
+
     const shaped = buildMessagesFromEvents(events)
     localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
     return shaped
