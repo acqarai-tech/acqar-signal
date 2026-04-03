@@ -393,23 +393,25 @@ export default function Dashboard() {
 
 
           {/* Chat Drawer */}
-          <div style={{
-            position: 'absolute',
-            bottom: mobileDrawer === 'chat' ? 0 : '-110%',
-            left: 0, right: 0,
-            height: 'min(75%, 620px)',
-            minHeight: 300,
-            background: '#111827',
-            borderTop: '2px solid #6366f1',
-            borderRadius: '16px 16px 0 0',
-            display: 'flex', flexDirection: 'column',
-            overflow: 'hidden',
-            transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
-            zIndex: 1000,
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
-          }}>
-            <ChatPanel onClose={() => setMobileDrawer(null)} />
-          </div>
+          {/* Chat Drawer */}
+          {mobileDrawer === 'chat' && (
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0, right: 0,
+              height: 'min(75%, 620px)',
+              minHeight: 300,
+              background: '#111827',
+              borderTop: '2px solid #6366f1',
+              borderRadius: '16px 16px 0 0',
+              display: 'flex', flexDirection: 'column',
+              overflow: 'hidden',
+              zIndex: 1000,
+              boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
+            }}>
+              <ChatPanel onClose={() => setMobileDrawer(null)} />
+            </div>
+          )}
 
 
           {/* Floating buttons */}
@@ -515,4 +517,3 @@ export default function Dashboard() {
     </div>
   )
 }
-
