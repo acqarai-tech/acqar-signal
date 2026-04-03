@@ -473,35 +473,62 @@ async function generateDailyChat() {
     try { return JSON.parse(cached) } catch { localStorage.removeItem(TODAY_KEY) }
   }
 
-  try {
-    // Use public RSS-to-JSON proxy — no API key, no backend needed
-    const query = encodeURIComponent('Dubai real estate property 2026')
-    const rssUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss/search?q=${query}%26hl=en-AE%26gl=AE%26ceid=AE:en&count=5`
-    
-    const res = await fetch(rssUrl, { signal: AbortSignal.timeout(5000) })
-    if (!res.ok) throw new Error('RSS fetch failed')
-    
-    const data = await res.json()
-    const items = data.items || []
-    if (!items.length) return FALLBACK_MESSAGES
+  // Try multiple UAE RE RSS feeds via allorigins proxy
+  const RSS_FEEDS = [
+    'https://gulfnews.com/rss/business/property',
+    'https://www.arabianbusiness.com/rss/topic/real-estate.rss',
+    'https://www.zawya.com/mena/en/rss/realestate/',
+  ]
 
-    // Convert RSS items to event shape
-    const events = items.slice(0, 5).map(item => ({
-      title: item.title?.replace(/\s*-\s*[^-]+$/, '').trim(), // remove source suffix
-      location_name: extractLocation(item.title),
-      category: extractCategory(item.title),
-    }))
+  for (const feed of RSS_FEEDS) {
+    try {
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feed)}`
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) })
+      if (!res.ok) continue
 
-    const shaped = buildMessagesFromEvents(events)
-    localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
-    return shaped
+      const data = await res.json()
+      const xml = data.contents || ''
 
-  } catch (err) {
-    console.warn('RSS failed, using fallback:', err.message)
-    return FALLBACK_MESSAGES
+      // Parse CDATA titles first, then plain titles
+      let titles = [...xml.matchAll(/<title><!\[CDATA\[([^\]]+)\]\]><\/title>/g)]
+        .map(m => m[1].trim())
+        .filter(t => t.length > 25)
+        .slice(0, 5)
+
+      if (!titles.length) {
+        titles = [...xml.matchAll(/<title>([^<]{25,})<\/title>/g)]
+          .map(m => m[1].trim())
+          .slice(1, 6)
+      }
+
+      if (!titles.length) continue
+
+      console.log('✅ Live news from:', feed)
+      console.log('Headlines:', titles)
+
+      const events = titles.map(title => ({
+        title: title
+          .replace(/&amp;/g, '&')
+          .replace(/&apos;/g, "'")
+          .replace(/&#39;/g, "'")
+          .replace(/&quot;/g, '"'),
+        location_name: extractLocation(title),
+        category: extractCategory(title),
+      }))
+
+      const shaped = buildMessagesFromEvents(events)
+      localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
+      return shaped
+
+    } catch (err) {
+      console.warn('Feed failed:', feed, err.message)
+      continue
+    }
   }
-}
 
+  console.warn('All feeds failed — using fallback')
+  return FALLBACK_MESSAGES
+}
 // ── Helper: extract Dubai location from headline ──
 function extractLocation(title = '') {
   const areas = ['Palm Jumeirah', 'Dubai Hills', 'Business Bay', 'Downtown Dubai',
