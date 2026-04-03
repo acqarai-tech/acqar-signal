@@ -473,61 +473,36 @@ async function generateDailyChat() {
     try { return JSON.parse(cached) } catch { localStorage.removeItem(TODAY_KEY) }
   }
 
-  // Try multiple UAE RE RSS feeds via allorigins proxy
-  const RSS_FEEDS = [
-    'https://gulfnews.com/rss/business/property',
-    'https://www.arabianbusiness.com/rss/topic/real-estate.rss',
-    'https://www.zawya.com/mena/en/rss/realestate/',
-  ]
+  try {
+    // ✅ Use your own backend — already has real UAE RE events
+    const res = await fetch('/api/events/community-signals?limit=5', {
+      signal: AbortSignal.timeout(6000)
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
-  for (const feed of RSS_FEEDS) {
-    try {
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feed)}`
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) })
-      if (!res.ok) continue
+    const data = await res.json()
+    const signals = data.signals || []
+    if (!signals.length) throw new Error('no signals')
 
-      const data = await res.json()
-      const xml = data.contents || ''
+    console.log('✅ Live signals:', signals.length, signals[0]?.text)
 
-      // Parse CDATA titles first, then plain titles
-      let titles = [...xml.matchAll(/<title><!\[CDATA\[([^\]]+)\]\]><\/title>/g)]
-        .map(m => m[1].trim())
-        .filter(t => t.length > 25)
-        .slice(0, 5)
+    // Convert signals → events shape for buildMessagesFromEvents
+    const events = signals.map(s => ({
+      title: s.text
+        .replace(/^[\u{1F300}-\u{1FFFF}]\s*/u, '') // strip emoji prefix
+        .trim(),
+      location_name: s.location || '',
+      category: s.category || 'transaction',
+    }))
 
-      if (!titles.length) {
-        titles = [...xml.matchAll(/<title>([^<]{25,})<\/title>/g)]
-          .map(m => m[1].trim())
-          .slice(1, 6)
-      }
+    const shaped = buildMessagesFromEvents(events)
+    localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
+    return shaped
 
-      if (!titles.length) continue
-
-      console.log('✅ Live news from:', feed)
-      console.log('Headlines:', titles)
-
-      const events = titles.map(title => ({
-        title: title
-          .replace(/&amp;/g, '&')
-          .replace(/&apos;/g, "'")
-          .replace(/&#39;/g, "'")
-          .replace(/&quot;/g, '"'),
-        location_name: extractLocation(title),
-        category: extractCategory(title),
-      }))
-
-      const shaped = buildMessagesFromEvents(events)
-      localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
-      return shaped
-
-    } catch (err) {
-      console.warn('Feed failed:', feed, err.message)
-      continue
-    }
+  } catch (err) {
+    console.warn('community-signals failed:', err.message, '— using fallback')
+    return FALLBACK_MESSAGES
   }
-
-  console.warn('All feeds failed — using fallback')
-  return FALLBACK_MESSAGES
 }
 // ── Helper: extract Dubai location from headline ──
 function extractLocation(title = '') {
