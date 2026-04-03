@@ -414,62 +414,78 @@ const PERSONA_NAMES = {
   broker:   'James Crawford',
 }
 
-async function generateDailyChat() {
-  // Return cached version if already generated today
-  const cached = localStorage.getItem(TODAY_KEY)
-  if (cached) return JSON.parse(cached)
+// ── Fallback messages (shows if backend is down) ──
+const FALLBACK_MESSAGES = [
+  { id: 'f1', user_name: 'Khalid Al Mansouri', content: 'Dubai transaction volumes continue to strengthen — off-plan demand holding firm across Business Bay and Creek Harbour.', created_at: new Date(Date.now() - 20 * 60000).toISOString() },
+  { id: 'f2', user_name: 'James Crawford', content: 'Strong buyer interest at AED 1.5–2M right now. Dubai Hills and JVC are the sweet spots for end-use buyers.', created_at: new Date(Date.now() - 18 * 60000).toISOString() },
+  { id: 'f3', user_name: 'Sara Al Hashimi', content: 'My JVC tenants just renewed above asking — 8.5% yield on a studio. Rental market is very tight right now.', created_at: new Date(Date.now() - 15 * 60000).toISOString() },
+  { id: 'f4', user_name: 'Marco Ferretti', content: 'Does the AED 2M Golden Visa threshold apply to off-plan or ready property only?', created_at: new Date(Date.now() - 12 * 60000).toISOString() },
+  { id: 'f5', user_name: 'James Crawford', content: 'Marco — ready property at AED 2M qualifies immediately. Off-plan only counts once fully paid.', created_at: new Date(Date.now() - 10 * 60000).toISOString() },
+]
 
-  // Fetch today's UAE RE news headlines via Claude web_search tool
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      system: `You are simulating a realistic Dubai real estate group chat for ${new Date().toDateString()}.
-You have 4 participants:
-- Sara Al Hashimi (property OWNER — mid-market JVC landlord, practical, watches rental yields and regulation)
-- Marco Ferretti (first-time BUYER — AED 1.8M budget, end-use, wants Golden Visa, cautious)
-- Khalid Al Mansouri (INVESTOR — HNW, off-plan, tracks transaction volumes and developer credibility)
-- James Crawford (BROKER — experienced, gives market guidance, references specific areas)
-
-Search for today's UAE real estate news headlines first, then generate exactly 15 chat messages.
-Rules:
-- Each message must reference actual news from today or this week
-- Messages flow as a natural conversation — they reply to each other
-- Each message is 1–3 sentences, conversational, no fluff
-- Return ONLY a JSON array, no markdown, no preamble:
-[{"user_name":"Sara Al Hashimi","content":"...","role":"owner"},...]`,
-      messages: [{
-        role: 'user',
-        content: `Search for today's UAE Dubai real estate news (${new Date().toDateString()}) and generate the 15-message group chat JSON.`
-      }]
-    })
-  })
-
-  const data = await res.json()
-  // Extract the text block (Claude returns text after tool use)
-  const textBlock = data.content?.find(b => b.type === 'text')
-  let messages = []
-  try {
-    const clean = textBlock?.text?.replace(/```json|```/g, '').trim()
-    messages = JSON.parse(clean)
-  } catch {
-    messages = []
+// ── Build chat messages from backend events ──
+function buildMessagesFromEvents(events) {
+  const top = events.slice(0, 5)
+  const now = Date.now()
+  const personas = [
+    { name: 'Khalid Al Mansouri', role: 'investor' },
+    { name: 'James Crawford',     role: 'broker'   },
+    { name: 'Sara Al Hashimi',    role: 'owner'    },
+    { name: 'Marco Ferretti',     role: 'buyer'    },
+  ]
+  const openers = {
+    investor: (e) => `${e.title} — this is exactly the signal I track. ${e.location_name ? e.location_name + ' is moving fast.' : 'Transaction velocity is picking up across the board.'}`,
+    broker:   (e) => `Just had this land in my inbox: "${e.title}". ${e.location_name ? 'Clients in ' + e.location_name + ' should be paying attention.' : 'Worth watching closely this week.'}`,
+    owner:    (e) => `This hits landlords directly — ${e.title}. ${e.category === 'regulatory' ? 'Regulatory shifts like this always compress yields first.' : 'Watching how this plays out for my renewal cycle.'}`,
+    buyer:    (e) => `Should this change my search strategy? Seeing "${e.title}" in the news — hard to read as a first-timer.`,
+  }
+  const replies = {
+    investor: (e) => `Tracking ${e.location_name || 'this area'} closely. Developer execution credibility is the real differentiator right now.`,
+    broker:   (e) => `Consistent with what I'm seeing on the ground. Enquiries are up materially this week.`,
+    owner:    (e) => `${e.category === 'price_signal' ? 'Higher prices mean a better exit for me, but yields compress for new buyers.' : 'This directly affects my renewal strategy for Q3.'}`,
+    buyer:    (e) => `This is actually reassuring. James — does this shift the Business Bay vs Dubai Hills calculus for my AED 1.8M budget?`,
   }
 
-  // Shape into ChatPanel format with staggered timestamps
-  const now = Date.now()
-  const shaped = messages.map((m, i) => ({
-    id: `daily_${i}`,
-    user_name: m.user_name,
-    content: m.content,
-    created_at: new Date(now - (messages.length - i) * 2 * 60000).toISOString()
-  }))
+  const chat = []
+  top.forEach((event, i) => {
+    const persona = personas[i % personas.length]
+    const replyPersona = personas[(i + 1) % personas.length]
+    chat.push({
+      id: `ev_${i}_a`,
+      user_name: persona.name,
+      content: openers[persona.role](event),
+      created_at: new Date(now - (top.length * 2 - i * 2) * 60000).toISOString()
+    })
+    chat.push({
+      id: `ev_${i}_b`,
+      user_name: replyPersona.name,
+      content: replies[replyPersona.role](event),
+      created_at: new Date(now - (top.length * 2 - i * 2 - 1) * 60000).toISOString()
+    })
+  })
+  return chat
+}
 
-  localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
-  return shaped
+// ── Daily chat generator — uses your own backend, no external API ──
+async function generateDailyChat() {
+  const cached = localStorage.getItem(TODAY_KEY)
+  if (cached) {
+    try { return JSON.parse(cached) } catch { localStorage.removeItem(TODAY_KEY) }
+  }
+  try {
+    const API_BASE = import.meta.env.VITE_API_URL || ''
+    const res = await fetch(`${API_BASE}/api/events?limit=5&sort=recent`)
+    if (!res.ok) throw new Error('backend unavailable')
+    const data = await res.json()
+    const events = data.events || data || []
+    if (!events.length) return FALLBACK_MESSAGES
+    const shaped = buildMessagesFromEvents(events)
+    localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
+    return shaped
+  } catch (err) {
+    console.warn('Chat fallback:', err.message)
+    return FALLBACK_MESSAGES
+  }
 }
 export default function ChatPanel({ onClose }) {
 
@@ -553,26 +569,25 @@ const [messages, setMessages] = useState([])
 
   // ── Fetch messages ──
   
-   useEffect(() => {
+  useEffect(() => {
   const fetchMessages = async () => {
     setLoading(true)
     setError(null)
-
-    // Load AI-generated daily chat (cached per day)
-    const dailyChat = await generateDailyChat()
-
-    const { data, error } = await supabase
-      .from('messages')
-      .select('id, user_name, content, created_at')
-      .order('created_at', { ascending: true })
-      .limit(100)
-
-    if (error) { setLoading(false); return }
-    const realMessages = data || []
-
-    // Daily AI chat comes first, then real user messages on top
-    setMessages([...dailyChat, ...realMessages])
-    setLoading(false)
+    try {
+      const dailyChat = await generateDailyChat()
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id, user_name, content, created_at')
+        .order('created_at', { ascending: true })
+        .limit(100)
+      const realMessages = (!error && data) ? data : []
+      setMessages([...dailyChat, ...realMessages])
+    } catch (err) {
+      console.error('fetchMessages error:', err)
+      setMessages(FALLBACK_MESSAGES)
+    } finally {
+      setLoading(false)  // ← ALWAYS runs — no more infinite loading spinner
+    }
   }
   fetchMessages()
 }, [])
