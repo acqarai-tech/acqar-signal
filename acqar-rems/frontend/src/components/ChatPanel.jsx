@@ -998,14 +998,27 @@ async function generateDailyChat() {
     console.log('✅ Live signals:', signals.length, signals[0]?.text)
 
     // Convert signals → events shape for buildMessagesFromEvents
-    const events = signals.map(s => ({
-      title: s.text
-        .replace(/^[\u{1F300}-\u{1FFFF}]\s*/u, '') // strip emoji prefix
-        .trim(),
-      location_name: s.location || '',
-      category: s.category || 'transaction',
-    }))
-
+    const events = signals
+  .filter(s => {
+    const t = s.text || ''
+    if (t.includes(' | ') && t.includes('Helping')) return false
+    if (t.includes('Portfolio Manager')) return false
+    if (t.includes('Specialist |')) return false
+    if (t.toLowerCase().includes('searching "')) return false
+    if (t.length < 30) return false
+    return true
+  })
+  .map(s => ({
+    title: s.text
+      .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}]\s*/gu, '')
+      .replace(/Searching "[^"]*"\.\.\./g, '')
+      .replace(/\s*-\s*(LinkedIn|Arabian Business|Gulf News|Zawya|The National).*$/i, '')
+      .trim(),
+    location_name: s.location || '',
+    category: s.category || 'transaction',
+  }))
+  .filter(e => e.title.length > 20)
+  .slice(0, 5)
     const shaped = buildMessagesFromEvents(events)
     localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
     return shaped
