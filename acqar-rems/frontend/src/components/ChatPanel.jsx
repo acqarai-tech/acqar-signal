@@ -892,7 +892,7 @@ function formatTime(ts) {
 
 
 // ── Daily AI chat generator ──
-const TODAY_KEY = `acqar_chat_${new Date().toISOString().slice(0, 10)}`
+const TODAY_KEY = `acqar_chat_v2_${new Date().toISOString().slice(0, 10)}`
 
 // Clean up yesterday's cache
 Object.keys(localStorage)
