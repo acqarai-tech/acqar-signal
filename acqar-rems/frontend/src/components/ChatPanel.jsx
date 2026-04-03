@@ -472,20 +472,51 @@ async function generateDailyChat() {
   if (cached) {
     try { return JSON.parse(cached) } catch { localStorage.removeItem(TODAY_KEY) }
   }
+
   try {
-    const API_BASE = import.meta.env.VITE_API_URL || ''
-    const res = await fetch(`${API_BASE}/api/events?limit=5&sort=recent`)
-    if (!res.ok) throw new Error('backend unavailable')
+    // Use public RSS-to-JSON proxy — no API key, no backend needed
+    const query = encodeURIComponent('Dubai real estate property 2026')
+    const rssUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss/search?q=${query}%26hl=en-AE%26gl=AE%26ceid=AE:en&count=5`
+    
+    const res = await fetch(rssUrl, { signal: AbortSignal.timeout(5000) })
+    if (!res.ok) throw new Error('RSS fetch failed')
+    
     const data = await res.json()
-    const events = data.events || data || []
-    if (!events.length) return FALLBACK_MESSAGES
+    const items = data.items || []
+    if (!items.length) return FALLBACK_MESSAGES
+
+    // Convert RSS items to event shape
+    const events = items.slice(0, 5).map(item => ({
+      title: item.title?.replace(/\s*-\s*[^-]+$/, '').trim(), // remove source suffix
+      location_name: extractLocation(item.title),
+      category: extractCategory(item.title),
+    }))
+
     const shaped = buildMessagesFromEvents(events)
     localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
     return shaped
+
   } catch (err) {
-    console.warn('Chat fallback:', err.message)
+    console.warn('RSS failed, using fallback:', err.message)
     return FALLBACK_MESSAGES
   }
+}
+
+// ── Helper: extract Dubai location from headline ──
+function extractLocation(title = '') {
+  const areas = ['Palm Jumeirah', 'Dubai Hills', 'Business Bay', 'Downtown Dubai',
+    'Dubai Marina', 'JVC', 'Creek Harbour', 'Jumeirah', 'DIFC', 'Dubai South',
+    'Abu Dhabi', 'Sharjah', 'RAK', 'Meydan', 'JBR']
+  return areas.find(a => title.includes(a)) || ''
+}
+
+// ── Helper: detect category from headline ──
+function extractCategory(title = '') {
+  const t = title.toLowerCase()
+  if (t.includes('regulation') || t.includes('law') || t.includes('rera') || t.includes('dld')) return 'regulatory'
+  if (t.includes('price') || t.includes('aed') || t.includes('sqft') || t.includes('yield')) return 'price_signal'
+  if (t.includes('launch') || t.includes('off-plan') || t.includes('offplan')) return 'offplan'
+  return 'transaction'
 }
 export default function ChatPanel({ onClose }) {
 
