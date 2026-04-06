@@ -1,4 +1,3 @@
-// frontend/src/components/AISummaryPanel.jsx
 import { useState, useEffect } from 'react'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -18,19 +17,21 @@ function renderMarkdown(text) {
 }
 
 function SummaryContent({ text }) {
-  const paragraphs = text.split('\n').filter(line => line.trim())
+  const paragraphs = text.split('\n').filter(function(line) { return line.trim() })
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {paragraphs.map((para, i) => (
-        <p key={i} style={{
-          fontSize: '11px',
-          lineHeight: '1.7',
-          color: '#B3B3B3',
-          margin: 0,
-        }}>
-          {renderMarkdown(para)}
-        </p>
-      ))}
+      {paragraphs.map(function(para, i) {
+        return (
+          <p key={i} style={{
+            fontSize: '11px',
+            lineHeight: '1.7',
+            color: '#B3B3B3',
+            margin: 0,
+          }}>
+            {renderMarkdown(para)}
+          </p>
+        )
+      })}
     </div>
   )
 }
@@ -46,13 +47,17 @@ function UpgradeGate() {
       textAlign: 'center',
     }}>
       <div style={{
-        width: '32px', height: '32px', borderRadius: '50%',
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
         background: 'rgba(184,115,51,0.1)',
         border: '1px solid rgba(184,115,51,0.3)',
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'center', fontSize: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '14px',
       }}>
-        🔒
+        {'🔒'}
       </div>
       <div>
         <div style={{ fontSize: '11px', fontWeight: 700, color: '#B87333', marginBottom: '4px' }}>
@@ -85,71 +90,79 @@ function UpgradeGate() {
   )
 }
 
-export default function AISummaryPanel({ userPlan = 'free' }) {
-  const [summary, setSummary]   = useState(null)
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState(null)
-  const [meta, setMeta]         = useState(null)
-  const [expanded, setExpanded] = useState(true)
+export default function AISummaryPanel({ userPlan }) {
+  var plan = userPlan || 'free'
+  var isPro = plan === 'pro'
 
-  const isPro = userPlan === 'pro'
+  var [summary, setSummary] = useState(null)
+  var [loading, setLoading] = useState(false)
+  var [error, setError] = useState(null)
+  var [meta, setMeta] = useState(null)
+  var [expanded, setExpanded] = useState(true)
 
-  const fetchSummary = async () => {
+  function fetchSummary() {
     if (!isPro) return
     setLoading(true)
     setError(null)
-    try {
-      const res = await fetch(`${API}/api/summary`, {
-        headers: { 'x-user-plan': 'pro' },
+    fetch(API + '/api/summary', {
+      headers: { 'x-user-plan': 'pro' },
+    })
+      .then(function(res) {
+        if (!res.ok) {
+          return res.json().then(function(err) {
+            throw new Error((err && err.detail && err.detail.message) || 'Failed to load briefing')
+          })
+        }
+        return res.json()
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err?.detail?.message || 'Failed to load briefing')
-      }
-      const data = await res.json()
-      setSummary(data.summary)
-      setMeta({
-        generated_at: data.generated_at,
-        event_count:  data.event_count,
-        cached:       data.cached,
-        expires_in:   data.cache_expires_in,
+      .then(function(data) {
+        setSummary(data.summary)
+        setMeta({
+          generated_at: data.generated_at,
+          event_count: data.event_count,
+          cached: data.cached,
+          expires_in: data.cache_expires_in,
+        })
       })
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
-    }
+      .catch(function(e) {
+        setError(e.message)
+      })
+      .finally(function() {
+        setLoading(false)
+      })
   }
 
-  const forceRefresh = async (e) => {
+  function forceRefresh(e) {
     e.stopPropagation()
     setLoading(true)
-    try {
-      await fetch(`${API}/api/summary/refresh`, {
-        method: 'POST',
-        headers: { 'x-user-plan': 'pro' },
+    fetch(API + '/api/summary/refresh', {
+      method: 'POST',
+      headers: { 'x-user-plan': 'pro' },
+    })
+      .then(function() {
+        fetchSummary()
       })
-      await fetchSummary()
-    } catch (e) {
-      setError(e.message)
-      setLoading(false)
-    }
+      .catch(function(e) {
+        setError(e.message)
+        setLoading(false)
+      })
   }
 
-  useEffect(() => {
+  useEffect(function() {
     if (isPro) fetchSummary()
   }, [isPro])
 
-  const formatTime = (ts) => {
+  function formatTime(ts) {
     if (!ts) return ''
     return new Date(ts * 1000).toLocaleTimeString('en-AE', {
-      hour: '2-digit', minute: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
-  const formatExpiry = (secs) => {
+  function formatExpiry(secs) {
     if (!secs) return ''
-    return `refreshes in ${Math.round(secs / 60)}m`
+    return 'refreshes in ' + Math.round(secs / 60) + 'm'
   }
 
   return (
@@ -159,9 +172,8 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
       flexShrink: 0,
     }}>
 
-      {/* Header bar */}
       <div
-        onClick={() => setExpanded(!expanded)}
+        onClick={function() { setExpanded(!expanded) }}
         style={{
           padding: '9px 12px',
           display: 'flex',
@@ -173,24 +185,30 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
         }}
       >
         <div style={{
-          width: '7px', height: '7px', borderRadius: '50%',
+          width: '7px',
+          height: '7px',
+          borderRadius: '50%',
           background: isPro ? '#B87333' : '#333',
-          boxShadow: isPro && !loading ? '0 0 5px #B87333' : 'none',
+          boxShadow: (isPro && !loading) ? '0 0 5px #B87333' : 'none',
           flexShrink: 0,
         }} />
 
         <span style={{
-          fontSize: '10px', fontWeight: 700,
-          color: '#B87333', letterSpacing: '0.8px', flex: 1,
+          fontSize: '10px',
+          fontWeight: 700,
+          color: '#B87333',
+          letterSpacing: '0.8px',
+          flex: 1,
         }}>
           AI MARKET BRIEFING
         </span>
 
         <span style={{
-          fontSize: '9px', fontWeight: 700,
+          fontSize: '9px',
+          fontWeight: 700,
           padding: '1px 5px',
           background: isPro ? 'rgba(184,115,51,0.15)' : 'rgba(80,80,80,0.2)',
-          border: `1px solid ${isPro ? 'rgba(184,115,51,0.35)' : '#2a2a2a'}`,
+          border: '1px solid ' + (isPro ? 'rgba(184,115,51,0.35)' : '#2a2a2a'),
           borderRadius: '3px',
           color: isPro ? '#B87333' : '#444',
         }}>
@@ -202,13 +220,16 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
             onClick={forceRefresh}
             title="Force refresh"
             style={{
-              fontSize: '12px', color: '#444',
-              background: 'none', border: 'none',
-              cursor: 'pointer', padding: '0 2px',
+              fontSize: '12px',
+              color: '#444',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0 2px',
               lineHeight: 1,
             }}
           >
-            ↻
+            {'↻'}
           </button>
         )}
 
@@ -217,10 +238,8 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
         </span>
       </div>
 
-      {/* Body */}
       {expanded && (
         <div>
-
           {!isPro && <UpgradeGate />}
 
           {isPro && loading && (
@@ -229,12 +248,16 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
                 Analysing live signals...
               </div>
               <div style={{
-                height: '2px', background: '#0F3460',
-                borderRadius: '2px', overflow: 'hidden',
+                height: '2px',
+                background: '#0F3460',
+                borderRadius: '2px',
+                overflow: 'hidden',
               }}>
                 <div style={{
-                  height: '100%', width: '35%',
-                  background: '#B87333', borderRadius: '2px',
+                  height: '100%',
+                  width: '35%',
+                  background: '#B87333',
+                  borderRadius: '2px',
                   animation: 'summarySlide 1.4s ease-in-out infinite',
                 }} />
               </div>
@@ -248,17 +271,21 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
                 background: 'rgba(231,76,60,0.08)',
                 border: '1px solid rgba(231,76,60,0.25)',
                 borderRadius: '4px',
-                fontSize: '11px', color: '#E74C3C',
+                fontSize: '11px',
+                color: '#E74C3C',
               }}>
                 {error}
               </div>
               <button
                 onClick={fetchSummary}
                 style={{
-                  padding: '6px', background: 'rgba(184,115,51,0.08)',
+                  padding: '6px',
+                  background: 'rgba(184,115,51,0.08)',
                   border: '1px solid rgba(184,115,51,0.25)',
-                  borderRadius: '4px', color: '#B87333',
-                  fontSize: '11px', cursor: 'pointer',
+                  borderRadius: '4px',
+                  color: '#B87333',
+                  fontSize: '11px',
+                  cursor: 'pointer',
                 }}
               >
                 Retry
@@ -267,7 +294,7 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
           )}
 
           {isPro && summary && !loading && (
-            <>
+            <div>
               <div style={{
                 padding: '12px',
                 maxHeight: '300px',
@@ -282,16 +309,15 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
                 justifyContent: 'space-between',
               }}>
                 <span style={{ fontSize: '9px', color: '#3a3a3a' }}>
-                  {meta?.event_count} signals · {formatTime(meta?.generated_at)}
-                  {meta?.cached ? ' · cached' : ' · fresh'}
+                  {meta && meta.event_count} signals · {formatTime(meta && meta.generated_at)}
+                  {meta && meta.cached ? ' · cached' : ' · fresh'}
                 </span>
                 <span style={{ fontSize: '9px', color: '#3a3a3a' }}>
-                  {formatExpiry(meta?.expires_in)}
+                  {formatExpiry(meta && meta.expires_in)}
                 </span>
               </div>
-            </>
+            </div>
           )}
-
         </div>
       )}
 
