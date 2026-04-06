@@ -181,7 +181,7 @@ def _generate_summary(events: list) -> str:
 {watch_list}
 
 ---
-Generated: {now} | {len(events)} signals analysed | No AI used"""
+Generated: {now} | {len(events)} signals analysed 
 
     return summary
 
