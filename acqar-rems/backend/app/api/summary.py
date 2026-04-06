@@ -245,7 +245,7 @@ def _generate_summary(events: list) -> str:
         + "\n\n---\n"
         + "Generated: " + generated_at
         + " | " + str(len(events)) + " signals"
-        + " | Next update in 60 min"
+       
     )
 
     return summary
