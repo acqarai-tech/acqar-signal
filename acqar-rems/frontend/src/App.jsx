@@ -126,6 +126,91 @@
 // }
 
 
+// import { Routes, Route, Navigate, useLocation } from 'react-router-dom'  // ← add useLocation
+// import { useState, useEffect } from 'react'
+// import { supabase } from './lib/supabase'
+// import Dashboard from './pages/Dashboard'
+// import { EventsProvider } from './context/EventsContext'
+// import { SocketProvider } from './context/SocketContext'
+// import Landing from './pages/Landing'
+// import Login from './pages/Login'
+// import RegisterPage from './pages/RegisterPage'
+// import { trackPage } from './analytics'  // ← ADD THIS
+
+// // ← ADD THIS COMPONENT
+// // function PageTracker() {
+// //   const location = useLocation()
+
+// //   useEffect(() => {
+// //     trackPage(location.pathname)
+// //   }, [location])
+
+// //   return null
+// // }
+
+
+// function PageTracker() {
+//   const location = useLocation()
+
+//   useEffect(() => {
+//     trackPage(location.pathname)
+//   }, [location.pathname])  // ← change [location] to [location.pathname]
+
+//   return null
+// }
+// function ProtectedRoute({ children }) {
+//   const [checking, setChecking] = useState(true)
+//   const [allowed, setAllowed] = useState(false)
+
+//   useEffect(() => {
+//     const isAdmin = localStorage.getItem("admin_auth") === "true"
+//     if (isAdmin) {
+//       setAllowed(true)
+//       setChecking(false)
+//       return
+//     }
+//     supabase.auth.getSession().then(({ data }) => {
+//       setAllowed(!!data.session)
+//       setChecking(false)
+//     })
+//   }, [])
+
+//   if (checking) return null
+//   if (!allowed) return <Navigate to="/login" replace />
+//   return children
+// }
+
+// export default function App() {
+//   return (
+//     <SocketProvider>
+//       <EventsProvider>
+//         <PageTracker />  {/* ← ADD THIS — tracks every route change */}
+//         <Routes>
+//           <Route path="/" element={<Landing />} />
+//           <Route path="/login" element={<Login />} />
+//           <Route path="/signup" element={<RegisterPage />} />
+
+//           {/* ✅ NEW — unprotected terminal route for iframe embed */}
+//           <Route path="/terminal" element={<Dashboard />} />
+
+//           <Route
+//             path="/dashboard"
+//             element={
+//               <ProtectedRoute>
+//                 <Dashboard />
+//               </ProtectedRoute>
+//             }
+//           />
+//           <Route path="*" element={<Navigate to="/" replace />} />
+//         </Routes>
+//       </EventsProvider>
+//     </SocketProvider>
+//   )
+// }
+
+
+
+
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'  // ← add useLocation
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
@@ -135,6 +220,7 @@ import { SocketProvider } from './context/SocketContext'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import RegisterPage from './pages/RegisterPage'
+import SummaryPage from './pages/SummaryPage'
 import { trackPage } from './analytics'  // ← ADD THIS
 
 // ← ADD THIS COMPONENT
@@ -189,6 +275,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<RegisterPage />} />
+          <Route path="/summary" element={<SummaryPage />} />
 
           {/* ✅ NEW — unprotected terminal route for iframe embed */}
           <Route path="/terminal" element={<Dashboard />} />
