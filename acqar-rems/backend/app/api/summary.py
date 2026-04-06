@@ -18,16 +18,30 @@ CACHE_TTL = 86400  # 24 hours
 
 
 def _get_events(store: dict) -> list:
-    """Get real events only. Fall back to all events if not enough real ones."""
+    """Get real events only, filtered to exclude old year headlines."""
+    current_year = str(datetime.now(timezone.utc).year)  # "2026"
+
     real_events = []
     all_events = []
 
     for e in store.values():
         all_events.append(e)
-        if not e.get("is_seed", False) and not e.get("is_demo", False):
+
+        if e.get("is_seed", False) or e.get("is_demo", False):
+            continue
+
+        # Check title — skip if it mentions old year but not current year
+        title = e.get("title", "")
+        is_old = False
+        for old_year in ["2024", "2025"]:
+            if old_year in title and current_year not in title:
+                is_old = True
+                break
+
+        if not is_old:
             real_events.append(e)
 
-    # Use real events if we have enough, otherwise fall back to all
+    # Use real filtered events if enough, else fall back to all
     events = real_events if len(real_events) >= 5 else all_events
 
     events.sort(
