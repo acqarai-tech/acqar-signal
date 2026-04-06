@@ -1,7 +1,6 @@
 # backend/app/api/summary.py
 
 from fastapi import APIRouter, Request, HTTPException, Header
-from datetime import datetime, timezone
 import time
 import os
 import httpx
@@ -11,13 +10,12 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/summary", tags=["summary"])
 
-# In-memory cache
 _cache = {
     "content": None,
     "generated_at": 0,
     "event_count": 0,
 }
-CACHE_TTL = 3600  # 60 minutes — reduces API calls
+CACHE_TTL = 3600
 
 
 def _get_last_24h_events(store: dict) -> list:
@@ -36,9 +34,9 @@ def _get_last_24h_events(store: dict) -> list:
 def _build_prompt(events: list) -> str:
     lines = []
     for e in events:
-        cat   = e.get("category", "general").upper()
-        area  = e.get("location_name", "Dubai")
-        sev   = e.get("severity", 1)
+        cat = e.get("category", "general").upper()
+        area = e.get("location_name", "Dubai")
+        sev = e.get("severity", 1)
         title = e.get("title", "")
         source = e.get("source", "")
         price = e.get("price_aed")
@@ -49,9 +47,7 @@ def _build_prompt(events: list) -> str:
         elif price and price >= 1_000:
             price_str = f" AED {price/1_000:.0f}K"
 
-        lines.append(
-            f"[{cat}][{area}][S{sev}] {title}{price_str} ({source})"
-        )
+        lines.append(f"[{cat}][{area}][S{sev}] {title}{price_str} ({source})")
 
     feed_text = "\n".join(lines)
 
@@ -83,13 +79,11 @@ Be concise and data-driven. Use AED figures where present."""
 
 
 async def _call_gemini(prompt: str) -> str:
-    """Call Gemini with fallback models if rate limited."""
     api_key = os.getenv("GEMINI_API_KEY", "")
     if not api_key:
         raise ValueError("GEMINI_API_KEY not set in environment")
 
-    # Try models in order — lite has higher free tier limits
-   models = [
+    models = [
         "gemini-2.0-flash-lite",
         "gemini-2.5-flash-preview-04-17",
         "gemini-1.5-flash",
@@ -117,6 +111,11 @@ async def _call_gemini(prompt: str) -> str:
                     last_error = f"Rate limited on {model}"
                     continue
 
+                if resp.status_code == 404:
+                    logger.warning(f"Model {model} not found, trying next...")
+                    last_error = f"Model not found: {model}"
+                    continue
+
                 resp.raise_for_status()
                 data = resp.json()
                 text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -124,15 +123,13 @@ async def _call_gemini(prompt: str) -> str:
                 return text
 
         except httpx.HTTPStatusError as e:
-            if e.response.status_code == 429:
-                last_error = f"Rate limited on {model}"
-                logger.warning(f"Rate limited on {model}, trying next...")
+            if e.response.status_code in [429, 404]:
+                last_error = f"Error {e.response.status_code} on {model}"
+                logger.warning(f"{last_error}, trying next...")
                 continue
             raise
 
-    raise Exception(
-        f"All Gemini models rate limited. Try again in 1 minute. Last: {last_error}"
-    )
+    raise Exception(f"All Gemini models failed. Last error: {last_error}")
 
 
 @router.get("")
@@ -140,7 +137,6 @@ async def get_ai_summary(
     request: Request,
     x_user_plan: str = Header(default="free"),
 ):
-    # Pro gate
     if x_user_plan.lower() != "pro":
         raise HTTPException(
             status_code=403,
@@ -150,7 +146,6 @@ async def get_ai_summary(
             },
         )
 
-    # Cache hit — serve cached if still fresh
     age = time.time() - _cache["generated_at"]
     if _cache["content"] and age < CACHE_TTL:
         return {
@@ -161,7 +156,6 @@ async def get_ai_summary(
             "cache_expires_in": int(CACHE_TTL - age),
         }
 
-    # Get events
     store = request.app.state.events_store
     events = _get_last_24h_events(store)
 
@@ -180,8 +174,6 @@ async def get_ai_summary(
         _cache["generated_at"] = time.time()
         _cache["event_count"] = len(events)
 
-        logger.info(f"AI summary generated from {len(events)} events")
-
         return {
             "summary": summary,
             "cached": False,
@@ -193,9 +185,7 @@ async def get_ai_summary(
     except Exception as e:
         logger.error(f"AI summary generation failed: {e}")
 
-        # If we have old cached content, return it instead of erroring
         if _cache["content"]:
-            logger.info("Returning stale cache due to error")
             return {
                 "summary": _cache["content"],
                 "cached": True,
