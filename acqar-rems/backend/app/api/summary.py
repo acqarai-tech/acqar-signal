@@ -84,8 +84,6 @@ async def _call_gemini(prompt: str) -> str:
         raise ValueError("GEMINI_API_KEY not set in environment")
 
     models = [
-        "gemini-2.5-flash-lite-preview-06-17",
-        "gemini-2.5-flash",
         "gemini-2.0-flash",
         "gemini-2.0-flash-lite",
     ]
@@ -116,6 +114,11 @@ async def _call_gemini(prompt: str) -> str:
                     last_error = f"Model not found: {model}"
                     continue
 
+                if resp.status_code == 403:
+                    logger.warning(f"Access denied on {model}, trying next...")
+                    last_error = f"Access denied: {model}"
+                    continue
+
                 resp.raise_for_status()
                 data = resp.json()
                 text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -123,7 +126,7 @@ async def _call_gemini(prompt: str) -> str:
                 return text
 
         except httpx.HTTPStatusError as e:
-            if e.response.status_code in [429, 404]:
+            if e.response.status_code in [429, 404, 403]:
                 last_error = f"Error {e.response.status_code} on {model}"
                 logger.warning(f"{last_error}, trying next...")
                 continue
