@@ -2,12 +2,11 @@
 
 from fastapi import APIRouter, Request, HTTPException, Header
 import time
-import os
-import httpx
 import logging
+from collections import Counter
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/api/summary", tags=["summary"])
 
 _cache = {
@@ -28,111 +27,163 @@ def _get_last_24h_events(store: dict) -> list:
         key=lambda x: (x.get("severity", 0), x.get("created_at_ts", 0)),
         reverse=True
     )
-    return events[:60]
+    return events
 
 
-def _build_prompt(events: list) -> str:
-    lines = []
-    for e in events:
-        cat = e.get("category", "general").upper()
-        area = e.get("location_name", "Dubai")
-        sev = e.get("severity", 1)
-        title = e.get("title", "")
+def _generate_summary(events: list) -> str:
+    if len(events) < 3:
+        return "Insufficient market signals in the last 24 hours. Check back soon."
+
+    # ── Count categories ───────────────────────────────────────────────
+    categories = Counter(e.get("category", "general") for e in events)
+    top_cat = categories.most_common(1)[0][0]
+
+    # ── Count areas ────────────────────────────────────────────────────
+    areas = Counter(e.get("location_name", "Dubai") for e in events)
+    top_areas = [a for a, _ in areas.most_common(3)]
+
+    # ── Severity analysis ──────────────────────────────────────────────
+    high_sev = [e for e in events if e.get("severity", 1) >= 4]
+    critical  = [e for e in events if e.get("severity", 1) == 5]
+    avg_sev   = sum(e.get("severity", 1) for e in events) / len(events)
+
+    # ── Top 3 events by severity ───────────────────────────────────────
+    top_events = sorted(events, key=lambda x: x.get("severity", 0), reverse=True)[:3]
+
+    # ── Sentiment logic ────────────────────────────────────────────────
+    bullish_cats = {"transaction", "investment", "offplan", "foreign_buyers"}
+    bearish_cats = {"regulatory"}
+
+    bullish_count = sum(1 for e in events if e.get("category") in bullish_cats)
+    bearish_count = sum(1 for e in events if e.get("category") in bearish_cats)
+
+    if avg_sev >= 3.5 or len(critical) >= 2:
+        sentiment = "Bearish"
+        sentiment_reason = f"{len(high_sev)} high-severity signals detected in the last 24 hours indicate elevated market stress."
+    elif bullish_count > bearish_count * 1.5:
+        sentiment = "Bullish"
+        sentiment_reason = f"Transaction and investment signals dominate at {bullish_count} events, outpacing regulatory concerns."
+    elif bearish_count > bullish_count:
+        sentiment = "Bearish"
+        sentiment_reason = f"Regulatory signals are elevated with {bearish_count} events flagged in the monitoring window."
+    else:
+        sentiment = "Neutral"
+        sentiment_reason = f"Mixed signals across {len(categories)} categories with no dominant trend direction."
+
+    # ── Category label map ─────────────────────────────────────────────
+    cat_labels = {
+        "transaction":    "Transaction Activity",
+        "offplan":        "Off-Plan Launches",
+        "investment":     "Investment Flow",
+        "regulatory":     "Regulatory",
+        "infrastructure": "Infrastructure",
+        "construction":   "Construction",
+        "price_signal":   "Price Signals",
+        "rental_yield":   "Rental Yield",
+        "foreign_buyers": "Foreign Buyer Activity",
+        "freezone":       "Free Zone Activity",
+    }
+
+    top_cat_label = cat_labels.get(top_cat, top_cat.title())
+    top_areas_str = ", ".join(top_areas)
+
+    # ── Market Overview ────────────────────────────────────────────────
+    overview = (
+        f"Dubai's real estate market generated {len(events)} signals over the last 24 hours, "
+        f"with {top_cat_label} emerging as the dominant theme. "
+        f"Activity is concentrated in {top_areas_str}, "
+        f"with {len(high_sev)} high-priority events requiring close attention."
+    )
+
+    # ── Top Developments ───────────────────────────────────────────────
+    dev_lines = []
+    for i, e in enumerate(top_events, 1):
+        title  = e.get("title", "Untitled event")
+        area   = e.get("location_name", "Dubai")
         source = e.get("source", "")
-        price = e.get("price_aed")
+        sev    = e.get("severity", 1)
+        price  = e.get("price_aed")
 
         price_str = ""
         if price and price >= 1_000_000:
-            price_str = f" AED {price/1_000_000:.1f}M"
+            price_str = f" valued at AED {price/1_000_000:.1f}M"
         elif price and price >= 1_000:
-            price_str = f" AED {price/1_000:.0f}K"
+            price_str = f" valued at AED {price/1_000:.0f}K"
 
-        lines.append(f"[{cat}][{area}][S{sev}] {title}{price_str} ({source})")
+        sev_label = {1: "Low", 2: "Low", 3: "Medium", 4: "High", 5: "Critical"}.get(sev, "Medium")
+        src_str = f" ({source})" if source else ""
 
-    feed_text = "\n".join(lines)
+        dev_lines.append(
+            f"{i}. {title}{price_str} in {area}{src_str}. Severity: {sev_label}."
+        )
 
-    return f"""You are a senior Dubai real estate market analyst for ACQAR SIGNAL.
+    developments = "\n".join(dev_lines)
 
-Analyze the following {len(events)} market signals from the last 24 hours and write a structured intelligence briefing.
+    # ── Hot Areas ──────────────────────────────────────────────────────
+    area_details = []
+    for area, count in areas.most_common(3):
+        area_events = [e for e in events if e.get("location_name") == area]
+        area_cats   = Counter(e.get("category") for e in area_events)
+        top_area_cat = cat_labels.get(area_cats.most_common(1)[0][0], "General")
+        area_details.append(f"{area} ({count} signals, led by {top_area_cat})")
 
-SIGNALS:
-{feed_text}
+    hot_areas = ", ".join(area_details) + "."
 
-Write the briefing with these exact sections:
+    # ── Watch List ─────────────────────────────────────────────────────
+    watch_items = []
 
-**Market Overview**
-2-3 sentences on overall market tone today.
+    if len(critical) > 0:
+        watch_items.append(
+            f"Monitor {len(critical)} critical-severity signal(s) for escalation in the next 48 hours."
+        )
+
+    if "regulatory" in categories and categories["regulatory"] >= 2:
+        watch_items.append(
+            "Track regulatory developments — multiple policy signals may indicate upcoming market rule changes."
+        )
+
+    if "offplan" in categories and categories["offplan"] >= 2:
+        watch_items.append(
+            f"Watch off-plan launch momentum in {top_areas[0]} — {categories['offplan']} launches detected."
+        )
+
+    if "price_signal" in categories:
+        watch_items.append(
+            "Price signal activity detected — monitor AED/sqft movements in active areas."
+        )
+
+    if len(watch_items) == 0:
+        watch_items.append(
+            f"Continue monitoring {top_areas[0]} for follow-through on current activity levels."
+        )
+        watch_items.append(
+            "Watch for any regulatory announcements that may impact transaction volumes."
+        )
+
+    watch_list = "\n".join(f"{i+1}. {w}" for i, w in enumerate(watch_items[:3]))
+
+    # ── Assemble full briefing ─────────────────────────────────────────
+    now = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
+
+    summary = f"""**Market Overview**
+{overview}
 
 **Top Developments**
-The 3 most significant events with brief analysis.
+{developments}
 
 **Hot Areas**
-Which Dubai areas had the most activity and why.
+{hot_areas}
 
 **Sentiment**
-Bullish / Neutral / Bearish with one clear reason.
+{sentiment}. {sentiment_reason}
 
 **Watch List**
-2-3 things to monitor in the next 48 hours.
+{watch_list}
 
-Be concise and data-driven. Use AED figures where present."""
+---
+Generated: {now} | {len(events)} signals analysed | No AI used"""
 
-
-async def _call_gemini(prompt: str) -> str:
-    api_key = os.getenv("GEMINI_API_KEY", "")
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY not set in environment")
-
-    models = [
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-    ]
-
-    last_error = None
-
-    for model in models:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-        body = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "maxOutputTokens": 900,
-                "temperature": 0.4,
-            }
-        }
-
-        try:
-            async with httpx.AsyncClient(timeout=45) as client:
-                resp = await client.post(url, json=body)
-
-                if resp.status_code == 429:
-                    logger.warning(f"Rate limited on {model}, trying next...")
-                    last_error = f"Rate limited on {model}"
-                    continue
-
-                if resp.status_code == 404:
-                    logger.warning(f"Model {model} not found, trying next...")
-                    last_error = f"Model not found: {model}"
-                    continue
-
-                if resp.status_code == 403:
-                    logger.warning(f"Access denied on {model}, trying next...")
-                    last_error = f"Access denied: {model}"
-                    continue
-
-                resp.raise_for_status()
-                data = resp.json()
-                text = data["candidates"][0]["content"]["parts"][0]["text"]
-                logger.info(f"Summary generated using {model}")
-                return text
-
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code in [429, 404, 403]:
-                last_error = f"Error {e.response.status_code} on {model}"
-                logger.warning(f"{last_error}, trying next...")
-                continue
-            raise
-
-    raise Exception(f"All Gemini models failed. Last error: {last_error}")
+    return summary
 
 
 @router.get("")
@@ -162,46 +213,19 @@ async def get_ai_summary(
     store = request.app.state.events_store
     events = _get_last_24h_events(store)
 
-    if len(events) < 3:
-        return {
-            "summary": "Insufficient market signals in the last 24 hours. Check back soon.",
-            "cached": False,
-            "event_count": len(events),
-        }
+    summary = _generate_summary(events)
 
-    try:
-        prompt = _build_prompt(events)
-        summary = await _call_gemini(prompt)
+    _cache["content"] = summary
+    _cache["generated_at"] = time.time()
+    _cache["event_count"] = len(events)
 
-        _cache["content"] = summary
-        _cache["generated_at"] = time.time()
-        _cache["event_count"] = len(events)
-
-        return {
-            "summary": summary,
-            "cached": False,
-            "generated_at": _cache["generated_at"],
-            "event_count": len(events),
-            "cache_expires_in": CACHE_TTL,
-        }
-
-    except Exception as e:
-        logger.error(f"AI summary generation failed: {e}")
-
-        if _cache["content"]:
-            return {
-                "summary": _cache["content"],
-                "cached": True,
-                "stale": True,
-                "generated_at": _cache["generated_at"],
-                "event_count": _cache["event_count"],
-                "cache_expires_in": 0,
-            }
-
-        raise HTTPException(
-            status_code=503,
-            detail={"error": "generation_failed", "message": str(e)},
-        )
+    return {
+        "summary": summary,
+        "cached": False,
+        "generated_at": _cache["generated_at"],
+        "event_count": len(events),
+        "cache_expires_in": CACHE_TTL,
+    }
 
 
 @router.post("/refresh")
