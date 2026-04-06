@@ -147,12 +147,14 @@ logger = logging.getLogger(__name__)
 # Create Socket.io server
 sio = socketio.AsyncServer(
     async_mode="asgi",
-    cors_allowed_origins=[
-        "http://localhost:5173",
-        "https://acqar-signal.vercel.app",
-        "https://*.vercel.app",
-           "https://signal.acqar.com",
-    ],
+   cors_allowed_origins=[
+    "http://localhost:5173",
+    "https://acqar.vercel.app",
+    "https://acqar-signal.vercel.app",
+    "https://signal.acqar.com",
+    "https://acqar.com",
+    "https://www.acqar.com",
+],
     logger=False,
     engineio_logger=False
 )
@@ -182,13 +184,15 @@ app = FastAPI(title="ACQAR SIGNAL API", description="Real-time Dubai Real Estate
 # CORS
 app.add_middleware(
     CORSMiddleware,
-  allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://*.vercel.app",
-        "https://acqar-signal.vercel.app",  # ← your actual URL
-         "https://signal.acqar.com",
-    ],
+allow_origins=[
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://acqar.vercel.app",
+    "https://acqar-signal.vercel.app",
+    "https://signal.acqar.com",
+    "https://acqar.com",
+    "https://www.acqar.com",
+],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
