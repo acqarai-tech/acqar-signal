@@ -118,10 +118,11 @@
 //             background: '#0D1B2A',
 //             borderTop: '2px solid #B87333',
 //             borderRadius: '16px 16px 0 0',
-//             display: 'flex', flexDirection: 'column',
+//             display: mobileDrawer === 'chat' ? 'none' : 'flex',
+//             flexDirection: 'column',
 //             overflow: 'hidden',
 //             transition: 'bottom 0.35s cubic-bezier(0.4,0,0.2,1)',
-//             zIndex: 999, // ✅ FIXED: was 110
+//             zIndex: 999,
 //             boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
 //           }}>
 //             <div style={{
@@ -147,6 +148,29 @@
 //             <EventFeed plan={userPlan} />
 //           </div>
 
+
+//           {/* Chat Drawer */}
+//           {/* Chat Drawer */}
+//           {mobileDrawer === 'chat' && (
+//             <div style={{
+//               position: 'absolute',
+//               bottom: 0,
+//               left: 0, right: 0,
+//               height: 'min(75%, 620px)',
+//               minHeight: 300,
+//               background: '#111827',
+//               borderTop: '2px solid #6366f1',
+//               borderRadius: '16px 16px 0 0',
+//               display: 'flex', flexDirection: 'column',
+//               overflow: 'hidden',
+//               zIndex: 1000,
+//               boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
+//             }}>
+//               <ChatPanel onClose={() => setMobileDrawer(null)} />
+//             </div>
+//           )}
+
+
 //           {/* Floating buttons */}
 //           <div style={{
 //             position: 'absolute', bottom: 16, left: 0, right: 0,
@@ -169,6 +193,21 @@
 //                 WebkitUserSelect: 'none',  // ✅ ADDED
 //               }}
 //             ><span>☰</span> Feed</button>
+
+//             <button
+//               onClick={() => setMobileDrawer('chat')}
+//               style={{
+//                 display: 'flex', alignItems: 'center', gap: '6px',
+//                 padding: '10px 20px', background: 'rgba(99,102,241,0.15)',
+//                 border: '1px solid #6366f1', borderRadius: '24px',
+//                 color: '#a5b4fc', fontSize: '13px', fontWeight: 600,
+//                 cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+//                 backdropFilter: 'blur(10px)', touchAction: 'manipulation',
+//                 WebkitTapHighlightColor: 'transparent',
+//                 userSelect: 'none',
+//                 WebkitUserSelect: 'none',
+//               }}
+//             ><span>💬</span> Chat</button>
 //           </div>
 
 //         </div>
@@ -242,6 +281,8 @@
 
 
 
+
+
 import { useState, useEffect } from 'react'
 import { useEvents } from '../context/EventsContext'
 import Header from '../components/Header'
@@ -251,6 +292,7 @@ import ChatPanel from '../components/ChatPanel'
 import FilterBar from '../components/FilterBar'
 import EventDetail from '../components/EventDetail'
 import OverlayPanel from '../components/OverlayPanel'
+import AISummaryPanel from '../components/AISummaryPanel'
 
 
 // function useIsMobile() {
@@ -410,6 +452,7 @@ export default function Dashboard() {
               zIndex: 1000,
               boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
             }}>
+              <AISummaryPanel userPlan={userPlan} />   {/* 👈 ADD THIS LINE */}
               <ChatPanel onClose={() => setMobileDrawer(null)} />
             </div>
           )}
@@ -496,6 +539,7 @@ export default function Dashboard() {
 
         {chatOpen ? (
           <div style={{ flexShrink: 0, width: 340, borderLeft: '1px solid #0F3460', display: 'flex', flexDirection: 'column' }}>
+            <AISummaryPanel userPlan={userPlan} />   {/* 👈 ADD THIS LINE */}
             <ChatPanel onClose={() => setChatOpen(false)} />
           </div>
         ) : (
