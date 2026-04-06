@@ -10,6 +10,16 @@ export default function SummaryPage() {
   const [error, setError] = useState(null)
 
   useEffect(function() {
+    function handleMessage(e) {
+      if (e.data === 'PRINT_REPORT') {
+        window.print()
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return function() { window.removeEventListener('message', handleMessage) }
+  }, [])
+
+  useEffect(function() {
     fetch(API + '/api/summary', {
       headers: { 'x-user-plan': 'pro' }
     })
