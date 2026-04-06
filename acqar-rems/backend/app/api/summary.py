@@ -18,8 +18,18 @@ CACHE_TTL = 86400  # 24 hours
 
 
 def _get_events(store: dict) -> list:
-    """Get all events — seed, real, everything. Instant report."""
-    events = list(store.values())
+    """Get real events only. Fall back to all events if not enough real ones."""
+    real_events = []
+    all_events = []
+
+    for e in store.values():
+        all_events.append(e)
+        if not e.get("is_seed", False) and not e.get("is_demo", False):
+            real_events.append(e)
+
+    # Use real events if we have enough, otherwise fall back to all
+    events = real_events if len(real_events) >= 5 else all_events
+
     events.sort(
         key=lambda x: (x.get("severity", 0), x.get("created_at_ts", 0)),
         reverse=True
