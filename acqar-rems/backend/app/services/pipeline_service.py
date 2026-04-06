@@ -6,7 +6,6 @@ import sys
 import os
 import time
 
-# Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 logger = logging.getLogger(__name__)
@@ -19,27 +18,12 @@ class PipelineService:
         self.events_fetched_today = 0
         self.errors: List[str] = []
         self._task: Optional[asyncio.Task] = None
-        self.app_state = None  # Set by main.py
+        self.app_state = None
 
     async def start(self, app_state):
         """Start the background pipeline loop"""
         self.app_state = app_state
         self.is_running = True
-
-        # ── Load seed events immediately so map is never empty ──
-        try:
-            from app.services.seed_data import get_seed_events
-            seed_events = get_seed_events()
-            loaded = 0
-            for event in seed_events:
-                eid = event.get('id')
-                if eid and eid not in self.app_state.events_store:
-                    self.app_state.events_store[eid] = event
-                    loaded += 1
-            logger.info(f"✓ Loaded {loaded} seed events into store")
-        except Exception as e:
-            logger.error(f"Failed to load seed data: {e}")
-
         self._task = asyncio.create_task(self._run_loop())
         logger.info("Pipeline started")
 
@@ -59,10 +43,10 @@ class PipelineService:
                 self.errors.append(str(e))
                 if len(self.errors) > 10:
                     self.errors = self.errors[-10:]
-            await asyncio.sleep(180)  # 3 minutes
+            await asyncio.sleep(180)
 
     async def _fetch_and_process(self):
-        """One fetch cycle: RSS + GDELT → classify → store → emit"""
+        """One fetch cycle: RSS + GDELT + classify + store + emit"""
         logger.info("Starting fetch cycle...")
         try:
             import sys, os
@@ -76,7 +60,6 @@ class PipelineService:
             from data_pipeline.fetchers.dld_fetcher import DLDFetcher
             from data_pipeline.processors.classifier import EventClassifier
 
-            # Initialize new fetchers if available
             twitter = None
             linkedin = None
             try:
@@ -97,7 +80,6 @@ class PipelineService:
             dld = DLDFetcher()
             classifier = EventClassifier()
 
-            # Build task list
             fetch_tasks = [
                 asyncio.create_task(rss.fetch_all()),
                 asyncio.create_task(gdelt.fetch_dubai_events(hours_back=2)),
@@ -127,7 +109,7 @@ class PipelineService:
                     logger.warning(f"{label} fetch failed: {result}")
 
             logger.info(f"Total articles fetched: {len(articles)}")
-            # ── Dubai RE relevance filter: skip non-Dubai content ──
+
             def _is_relevant(a: dict) -> bool:
                 text = (a.get("title", "") + " " + a.get("summary", "")).lower()
                 has_dubai = any(kw in text for kw in [
@@ -140,19 +122,19 @@ class PipelineService:
                     "developer", "launch", "residential", "commercial"
                 ])
                 return has_dubai and has_re
+
             before = len(articles)
             articles = [a for a in articles if _is_relevant(a)]
-            logger.info(f"Relevance filter: {before} → {len(articles)} articles (Dubai RE only)")
+            logger.info(f"Relevance filter: {before} to {len(articles)} articles")
+
             if not articles:
                 logger.info("No new articles this cycle")
                 self.last_fetch_at = datetime.now(timezone.utc)
                 return []
 
-            # Classify all articles
             events = classifier.classify_batch(articles)
             logger.info(f"Classified {len(events)} events")
 
-            # Store new events (deduplicate)
             new_events = []
             for event in events:
                 event_id = event.get('id')
@@ -160,7 +142,6 @@ class PipelineService:
                     event['created_at_ts'] = time.time()
                     event['created_at'] = datetime.now(timezone.utc).isoformat()
                     event['updated_at'] = datetime.now(timezone.utc).isoformat()
-                    # Ensure signals list exists
                     if 'signals' not in event:
                         event['signals'] = [{'source': event.get('source', 'RSS'), 'url': event.get('url', ''), 'snippet': event.get('title', '')[:100]}]
                     self.app_state.events_store[event_id] = event
@@ -171,12 +152,10 @@ class PipelineService:
             self.app_state.pipeline_status = self.get_status()
             self.app_state.last_event_at = self.last_fetch_at.isoformat()
 
-            # Emit new events via Socket.io (max 5 per cycle to avoid flood)
             if new_events and hasattr(self.app_state, 'sio'):
                 for event in new_events[:5]:
                     await self.app_state.sio.emit('new_event', event)
 
-            # Emit signal row update to all connected clients if events were added
             if new_events and hasattr(self.app_state, 'sio'):
                 try:
                     await self.app_state.sio.emit("signal_row_update", {
