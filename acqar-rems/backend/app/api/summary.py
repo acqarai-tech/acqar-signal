@@ -14,33 +14,12 @@ _cache = {
     "generated_at": 0,
     "event_count": 0,
 }
-CACHE_TTL = 86400  # 24 hours — updates once per day
+CACHE_TTL = 86400  # 24 hours
 
 
-def _get_last_24h_events(store: dict) -> list:
-    cutoff = time.time() - 86400
-    current_year = str(datetime.now(timezone.utc).year)
-
-    events = []
-    for e in store.values():
-        if e.get("is_seed", False) or e.get("is_demo", False):
-            continue
-        if e.get("created_at_ts", 0) < cutoff:
-            continue
-
-        title = e.get("title", "").lower()
-        summary_text = e.get("summary", "").lower()
-        text = title + " " + summary_text
-
-        skip = False
-        for old_year in ["2020", "2021", "2022", "2023", "2024", "2025"]:
-            if old_year in text and current_year not in text:
-                skip = True
-                break
-
-        if not skip:
-            events.append(e)
-
+def _get_events(store: dict) -> list:
+    """Get all events — seed, real, everything. Instant report."""
+    events = list(store.values())
     events.sort(
         key=lambda x: (x.get("severity", 0), x.get("created_at_ts", 0)),
         reverse=True
@@ -53,16 +32,13 @@ def _generate_summary(events: list) -> str:
     today = now.strftime("%d %B %Y")
     generated_at = now.strftime("%d %b %Y, %H:%M UTC")
 
-    if len(events) < 3:
+    if len(events) == 0:
         return (
             "**ACQAR SIGNAL**\n"
             + "**Dubai Real Estate Intelligence Report**\n"
             + "**" + today + "**\n\n"
-            + "Today's market briefing is being compiled. "
-            + "Live signals are being collected from RSS feeds, "
-            + "DLD transaction data, and market sources. "
-            + "The full report will be ready within 15 minutes. "
-            + "Please check back shortly or click the refresh button above."
+            + "No market data available at this time. "
+            + "Please check back in a few minutes."
         )
 
     categories = Counter(e.get("category", "general") for e in events)
@@ -106,8 +82,7 @@ def _generate_summary(events: list) -> str:
         sentiment_para = (
             "Market sentiment today is bearish. "
             + str(len(high_sev))
-            + " high-severity signals were recorded, "
-            + "indicating elevated stress across key submarkets. "
+            + " high-severity signals were recorded across key submarkets. "
             + "Investors and agents should exercise caution and monitor "
             + "developments closely over the next 48 hours."
         )
@@ -118,7 +93,7 @@ def _generate_summary(events: list) -> str:
             + "Transaction and investment activity is driving positive momentum "
             + "across Dubai's residential and commercial sectors. "
             + "Demand signals remain strong with " + str(bullish_count)
-            + " positive market events recorded in the last 24 hours."
+            + " positive market events recorded."
         )
     elif bearish_count > bullish_count:
         sentiment = "CAUTIOUS"
@@ -139,23 +114,26 @@ def _generate_summary(events: list) -> str:
             + "as buyers and developers assess current conditions."
         )
 
-    # Overview paragraph
-    top_areas_str = ", ".join(top_areas[:3])
-    if len(top_areas) > 3:
-        top_areas_str = ", ".join(top_areas[:2]) + " and " + top_areas[2]
+    # Overview
+    if len(top_areas) >= 3:
+        top_areas_str = top_areas[0] + ", " + top_areas[1] + " and " + top_areas[2]
+    elif len(top_areas) == 2:
+        top_areas_str = top_areas[0] + " and " + top_areas[1]
+    else:
+        top_areas_str = top_areas[0] if top_areas else "Dubai"
 
     overview_para = (
-        "Dubai's real estate market remained active over the past 24 hours "
-        + "with " + top_cat_label + " dominating today's signals. "
-        + "The most active areas were " + top_areas_str + ", "
-        + "where the bulk of today's market movement was recorded. "
+        "Dubai's real estate market recorded significant activity "
+        + "with " + top_cat_label + " dominating today's intelligence signals. "
+        + "The most active submarkets were " + top_areas_str + ", "
+        + "where the bulk of today's market movement was concentrated. "
     )
 
     if len(high_sev) > 0:
         overview_para += (
             str(len(high_sev))
-            + " high-priority developments emerged that warrant close attention "
-            + "from market participants, developers, and investors."
+            + " high-priority developments emerged that warrant "
+            + "close attention from market participants, developers, and investors."
         )
     else:
         overview_para += (
@@ -163,7 +141,7 @@ def _generate_summary(events: list) -> str:
             + "with no extreme disruptions recorded."
         )
 
-    # Key Developments — narrative style
+    # Key Developments
     dev_sections = []
     for i, e in enumerate(top_events, 1):
         title = e.get("title", "Untitled")
@@ -193,14 +171,14 @@ def _generate_summary(events: list) -> str:
         if src_str:
             dev_section += " | " + src_str
         if summary_text and len(summary_text) > 20:
-            short_summary = summary_text[:200] + "..." if len(summary_text) > 200 else summary_text
-            dev_section += "\n   " + short_summary
+            short = summary_text[:220] + "..." if len(summary_text) > 220 else summary_text
+            dev_section += "\n   " + short
 
         dev_sections.append(dev_section)
 
     developments = "\n\n".join(dev_sections)
 
-    # Area Analysis — narrative
+    # Area Analysis
     area_paras = []
     for area, count in areas.most_common(4):
         area_events = [e for e in events if e.get("location_name") == area]
@@ -211,8 +189,7 @@ def _generate_summary(events: list) -> str:
         area_high = [e for e in area_events if e.get("severity", 1) >= 4]
 
         area_para = (
-            top_area_cat + " was the primary driver in "
-            + area + " today"
+            top_area_cat + " was the primary driver in " + area + " today"
         )
         if len(area_high) > 0:
             area_para += (
@@ -224,7 +201,7 @@ def _generate_summary(events: list) -> str:
 
     area_analysis = " ".join(area_paras)
 
-    # Watch List — narrative
+    # Watch List
     watch_items = []
 
     if len(critical) > 0:
@@ -236,7 +213,7 @@ def _generate_summary(events: list) -> str:
     if "regulatory" in categories and categories["regulatory"] >= 2:
         watch_items.append(
             "Multiple regulatory signals (" + str(categories["regulatory"])
-            + ") were detected today. Track upcoming policy announcements "
+            + ") detected today. Track upcoming policy announcements "
             + "that may affect transaction processes or developer requirements."
         )
 
@@ -250,13 +227,13 @@ def _generate_summary(events: list) -> str:
 
     if "price_signal" in categories:
         watch_items.append(
-            "Price movement signals were detected across active submarkets. "
-            + "Watch AED per sqft trends in the coming days for directional confirmation."
+            "Price movement signals detected across active submarkets. "
+            + "Watch AED per sqft trends in coming days for directional confirmation."
         )
 
     if "foreign_buyers" in categories:
         watch_items.append(
-            "Foreign buyer activity signals were recorded today. "
+            "Foreign buyer activity signals recorded today. "
             + "Track nationality-specific demand patterns "
             + "which may influence premium area pricing."
         )
@@ -265,10 +242,10 @@ def _generate_summary(events: list) -> str:
         watch_items.append(
             "Continue monitoring " + top_areas[0]
             + " and " + (top_areas[1] if len(top_areas) > 1 else "key submarkets")
-            + " for follow-through on today's activity levels."
+            + " for follow-through on current activity levels."
         )
         watch_items.append(
-            "Watch for any DLD or RERA announcements that may "
+            "Watch for DLD or RERA announcements that may "
             + "affect transaction volumes or off-plan regulations."
         )
 
@@ -277,7 +254,7 @@ def _generate_summary(events: list) -> str:
         watch_text += str(i) + ". " + w + "\n"
     watch_text = watch_text.strip()
 
-    # Assemble full report
+    # Full Report
     report = (
         "**ACQAR SIGNAL**\n"
         + "**Dubai Real Estate Intelligence Report**\n"
@@ -300,10 +277,9 @@ def _generate_summary(events: list) -> str:
 
         + "---\n"
         + "Report compiled: " + generated_at + "\n"
-        + "Coverage period: Last 24 hours\n"
         + "Data sources: Gulf News, The National, Arabian Business, "
         + "Zawya, DLD Transactions, Reddit, GDELT\n"
-       
+        + "Next report: " + today + " (updates every 24 hours)"
     )
 
     return report
@@ -334,7 +310,7 @@ async def get_ai_summary(
         }
 
     store = request.app.state.events_store
-    events = _get_last_24h_events(store)
+    events = _get_events(store)
 
     summary = _generate_summary(events)
 
