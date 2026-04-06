@@ -28,9 +28,10 @@ useEffect(function() {
     })
       .then(function(r) { return r.json() })
       .then(function(d) {
-        setSummary(d.summary)
-        setLoading(false)
-      })
+  setSummary(d.summary)
+  setLoading(false)
+  window.parent.postMessage({ type: 'SUMMARY_DATA', summary: d.summary }, '*')
+})
       .catch(function(e) {
         setError(e.message)
         setLoading(false)
