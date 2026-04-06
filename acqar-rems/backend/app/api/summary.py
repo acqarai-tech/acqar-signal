@@ -84,10 +84,10 @@ async def _call_gemini(prompt: str) -> str:
         raise ValueError("GEMINI_API_KEY not set in environment")
 
     models = [
+        "gemini-2.5-flash-lite-preview-06-17",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
         "gemini-2.0-flash-lite",
-        "gemini-2.5-flash-preview-04-17",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-001",
     ]
 
     last_error = None
