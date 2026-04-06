@@ -67,7 +67,7 @@ function UpgradeGate() {
           24-hour AI intelligence summary generated from live Dubai RE signals.
         </div>
       </div>
-      
+      <a
         href="https://acqar.ai"
         target="_blank"
         rel="noopener noreferrer"
