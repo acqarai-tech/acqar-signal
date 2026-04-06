@@ -452,7 +452,7 @@ export default function Dashboard() {
               zIndex: 1000,
               boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
             }}>
-              <AISummaryPanel userPlan={userPlan} />   {/* 👈 ADD THIS LINE */}
+              <AISummaryPanel userPlan={userPlan} />  
               <ChatPanel onClose={() => setMobileDrawer(null)} />
             </div>
           )}
@@ -539,7 +539,7 @@ export default function Dashboard() {
 
         {chatOpen ? (
           <div style={{ flexShrink: 0, width: 340, borderLeft: '1px solid #0F3460', display: 'flex', flexDirection: 'column' }}>
-            <AISummaryPanel userPlan={userPlan} />   {/* 👈 ADD THIS LINE */}
+            <AISummaryPanel userPlan={userPlan} />   
             <ChatPanel onClose={() => setChatOpen(false)} />
           </div>
         ) : (
