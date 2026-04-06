@@ -9,15 +9,18 @@ export default function SummaryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(function() {
-    function handleMessage(e) {
-      if (e.data === 'PRINT_REPORT') {
-        window.print()
-      }
+useEffect(function() {
+  function handleMessage(e) {
+    if (e.data === 'PRINT_REPORT') {
+      window.print()
     }
-    window.addEventListener('message', handleMessage)
-    return function() { window.removeEventListener('message', handleMessage) }
-  }, [])
+    if (e.data === 'GET_SUMMARY') {
+      window.parent.postMessage({ type: 'SUMMARY_DATA', summary: summary }, '*')
+    }
+  }
+  window.addEventListener('message', handleMessage)
+  return function() { window.removeEventListener('message', handleMessage) }
+}, [summary])
 
   useEffect(function() {
     fetch(API + '/api/summary', {
