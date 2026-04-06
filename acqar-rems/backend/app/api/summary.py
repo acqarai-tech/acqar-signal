@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/summary", tags=["summary"])
 
-# ── In-memory cache (shared across all Pro users) ──────────────────────────
+# ── In-memory cache ────────────────────────────────────────────────────────
 _cache = {
     "content": None,
     "generated_at": 0,
@@ -23,22 +23,19 @@ CACHE_TTL = 1800  # 30 minutes
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 def _get_last_24h_events(store: dict) -> list:
-    """Pull events from last 24h, sorted by severity desc."""
     cutoff = time.time() - 86400
     events = [
         e for e in store.values()
         if e.get("created_at_ts", 0) >= cutoff
     ]
-    # Sort: highest severity first, then newest first
     events.sort(
         key=lambda x: (x.get("severity", 0), x.get("created_at_ts", 0)),
         reverse=True
     )
-    return events[:60]  # Cap at 60 events for prompt safety
+    return events[:60]
 
 
 def _build_prompt(events: list) -> str:
-    """Build the analyst prompt from events."""
     lines = []
     for e in events:
         cat    = e.get("category", "general").upper()
@@ -91,48 +88,41 @@ No filler phrases. No bullet points inside sections — use short paragraphs. \
 Write like a Bloomberg Intelligence brief, not a blog post."""
 
 
-async def _call_claude(prompt: str) -> str:
-    """Call Claude Haiku 4.5 via Anthropic API."""
-    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+async def _call_gemini(prompt: str) -> str:
+    """Call Gemini 2.0 Flash via Google AI API — free tier."""
+    api_key = os.getenv("GEMINI_API_KEY", "")
     if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY not set in environment")
+        raise ValueError("GEMINI_API_KEY not set in environment")
 
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-    }
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+
     body = {
-        "model": "claude-haiku-4-5-20251001",
-        "max_tokens": 900,
-        "messages": [{"role": "user", "content": prompt}],
+        "contents": [
+            {
+                "parts": [{"text": prompt}]
+            }
+        ],
+        "generationConfig": {
+            "maxOutputTokens": 900,
+            "temperature": 0.4,
+        }
     }
 
     async with httpx.AsyncClient(timeout=45) as client:
-        resp = await client.post(
-            "https://api.anthropic.com/v1/messages",
-            headers=headers,
-            json=body,
-        )
+        resp = await client.post(url, json=body)
         resp.raise_for_status()
         data = resp.json()
-        return data["content"][0]["text"]
+        return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
-# ── Endpoint ───────────────────────────────────────────────────────────────
+# ── Endpoints ──────────────────────────────────────────────────────────────
 
 @router.get("")
 async def get_ai_summary(
     request: Request,
     x_user_plan: str = Header(default="free"),
 ):
-    """
-    AI-generated 24h market briefing.
-    Restricted to Pro users (x-user-plan: pro header).
-    Cached for 30 minutes — all Pro users share the same cached summary.
-    """
-
-    # ── Pro gate ──────────────────────────────────────────────────────────
+    # Pro gate
     if x_user_plan.lower() != "pro":
         raise HTTPException(
             status_code=403,
@@ -142,7 +132,7 @@ async def get_ai_summary(
             },
         )
 
-    # ── Cache hit ─────────────────────────────────────────────────────────
+    # Cache hit
     age = time.time() - _cache["generated_at"]
     if _cache["content"] and age < CACHE_TTL:
         return {
@@ -153,7 +143,7 @@ async def get_ai_summary(
             "cache_expires_in": int(CACHE_TTL - age),
         }
 
-    # ── Generate fresh summary ────────────────────────────────────────────
+    # Generate fresh
     store = request.app.state.events_store
     events = _get_last_24h_events(store)
 
@@ -166,14 +156,13 @@ async def get_ai_summary(
 
     try:
         prompt = _build_prompt(events)
-        summary = await _call_claude(prompt)
+        summary = await _call_gemini(prompt)
 
-        # Update cache
         _cache["content"] = summary
         _cache["generated_at"] = time.time()
         _cache["event_count"] = len(events)
 
-        logger.info(f"AI summary generated from {len(events)} events")
+        logger.info(f"AI summary generated from {len(events)} events using Gemini")
 
         return {
             "summary": summary,
@@ -196,7 +185,6 @@ async def force_refresh_summary(
     request: Request,
     x_user_plan: str = Header(default="free"),
 ):
-    """Force-clear cache and regenerate. Pro only."""
     if x_user_plan.lower() != "pro":
         raise HTTPException(status_code=403, detail="Pro required")
 
