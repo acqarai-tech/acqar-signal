@@ -51,7 +51,9 @@ function UpgradeGate() {
         border: '1px solid rgba(184,115,51,0.3)',
         display: 'flex', alignItems: 'center',
         justifyContent: 'center', fontSize: '14px',
-      }}>🔒</div>
+      }}>
+        🔒
+      </div>
       <div>
         <div style={{ fontSize: '11px', fontWeight: 700, color: '#B87333', marginBottom: '4px' }}>
           AI Daily Briefing
@@ -65,7 +67,8 @@ function UpgradeGate() {
         target="_blank"
         rel="noopener noreferrer"
         style={{
-          display: 'block', width: '100%',
+          display: 'block',
+          width: '100%',
           padding: '7px 12px',
           background: '#B87333',
           color: 'white',
@@ -76,7 +79,7 @@ function UpgradeGate() {
           textAlign: 'center',
         }}
       >
-        Upgrade to PRO — AED 49/mo →
+        Upgrade to PRO
       </a>
     </div>
   )
@@ -156,7 +159,7 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
       flexShrink: 0,
     }}>
 
-      {/* ── Header bar ── */}
+      {/* Header bar */}
       <div
         onClick={() => setExpanded(!expanded)}
         style={{
@@ -169,7 +172,6 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
           borderBottom: expanded ? '1px solid #0F3460' : 'none',
         }}
       >
-        {/* Pulse dot */}
         <div style={{
           width: '7px', height: '7px', borderRadius: '50%',
           background: isPro ? '#B87333' : '#333',
@@ -184,7 +186,6 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
           AI MARKET BRIEFING
         </span>
 
-        {/* PRO badge */}
         <span style={{
           fontSize: '9px', fontWeight: 700,
           padding: '1px 5px',
@@ -196,7 +197,6 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
           PRO
         </span>
 
-        {/* Refresh — only when loaded */}
         {isPro && summary && !loading && (
           <button
             onClick={forceRefresh}
@@ -207,27 +207,26 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
               cursor: 'pointer', padding: '0 2px',
               lineHeight: 1,
             }}
-          >↻</button>
+          >
+            ↻
+          </button>
         )}
 
-        {/* Collapse arrow */}
         <span style={{ fontSize: '9px', color: '#444' }}>
           {expanded ? '▲' : '▼'}
         </span>
       </div>
 
-      {/* ── Body ── */}
+      {/* Body */}
       {expanded && (
         <div>
 
-          {/* Not pro → show upgrade */}
           {!isPro && <UpgradeGate />}
 
-          {/* Loading state */}
           {isPro && loading && (
             <div style={{ padding: '14px 12px' }}>
               <div style={{ fontSize: '10px', color: '#555', marginBottom: '8px', textAlign: 'center' }}>
-                Analysing live signals…
+                Analysing live signals...
               </div>
               <div style={{
                 height: '2px', background: '#0F3460',
@@ -242,7 +241,6 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
             </div>
           )}
 
-          {/* Error state */}
           {isPro && error && !loading && (
             <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{
@@ -254,18 +252,20 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
               }}>
                 {error}
               </div>
-              <button onClick={fetchSummary} style={{
-                padding: '6px', background: 'rgba(184,115,51,0.08)',
-                border: '1px solid rgba(184,115,51,0.25)',
-                borderRadius: '4px', color: '#B87333',
-                fontSize: '11px', cursor: 'pointer',
-              }}>
+              <button
+                onClick={fetchSummary}
+                style={{
+                  padding: '6px', background: 'rgba(184,115,51,0.08)',
+                  border: '1px solid rgba(184,115,51,0.25)',
+                  borderRadius: '4px', color: '#B87333',
+                  fontSize: '11px', cursor: 'pointer',
+                }}
+              >
                 Retry
               </button>
             </div>
           )}
 
-          {/* Summary content */}
           {isPro && summary && !loading && (
             <>
               <div style={{
@@ -275,8 +275,6 @@ export default function AISummaryPanel({ userPlan = 'free' }) {
               }}>
                 <SummaryContent text={summary} />
               </div>
-
-              {/* Footer meta */}
               <div style={{
                 padding: '5px 12px',
                 borderTop: '1px solid #0F3460',
