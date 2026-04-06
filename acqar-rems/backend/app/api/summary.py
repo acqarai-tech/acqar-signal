@@ -303,7 +303,7 @@ def _generate_summary(events: list) -> str:
         + "Report compiled: " + generated_at + "\n"
         + "Data sources: Gulf News, The National, Arabian Business, "
         + "Zawya, DLD Transactions, Reddit, GDELT\n"
-        + "Next report: " + today + " (updates every 24 hours)"
+       
     )
 
     return report
