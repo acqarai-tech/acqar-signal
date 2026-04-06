@@ -22,6 +22,8 @@ def _get_last_24h_events(store: dict) -> list:
     events = [
         e for e in store.values()
         if e.get("created_at_ts", 0) >= cutoff
+        and not e.get("is_seed", False)
+        and not e.get("is_demo", False)
     ]
     events.sort(
         key=lambda x: (x.get("severity", 0), x.get("created_at_ts", 0)),
@@ -32,7 +34,11 @@ def _get_last_24h_events(store: dict) -> list:
 
 def _generate_summary(events: list) -> str:
     if len(events) < 3:
-        return "Insufficient market signals in the last 24 hours. Check back soon."
+        return (
+            "Live market signals are still being collected from RSS feeds and data sources. "
+            "The briefing will auto-generate once sufficient real-time 2026 data is available. "
+            "Check back in 15 minutes."
+        )
 
     categories = Counter(e.get("category", "general") for e in events)
     top_cat = categories.most_common(1)[0][0]
@@ -54,16 +60,31 @@ def _generate_summary(events: list) -> str:
 
     if avg_sev >= 3.5 or len(critical) >= 2:
         sentiment = "Bearish"
-        sentiment_reason = str(len(high_sev)) + " high-severity signals detected in the last 24 hours indicate elevated market stress."
+        sentiment_reason = (
+            str(len(high_sev))
+            + " high-severity signals detected in the last 24 hours indicate elevated market stress."
+        )
     elif bullish_count > bearish_count * 1.5:
         sentiment = "Bullish"
-        sentiment_reason = "Transaction and investment signals dominate at " + str(bullish_count) + " events, outpacing regulatory concerns."
+        sentiment_reason = (
+            "Transaction and investment signals dominate at "
+            + str(bullish_count)
+            + " events, outpacing regulatory concerns."
+        )
     elif bearish_count > bullish_count:
         sentiment = "Bearish"
-        sentiment_reason = "Regulatory signals are elevated with " + str(bearish_count) + " events flagged in the monitoring window."
+        sentiment_reason = (
+            "Regulatory signals are elevated with "
+            + str(bearish_count)
+            + " events flagged in the monitoring window."
+        )
     else:
         sentiment = "Neutral"
-        sentiment_reason = "Mixed signals across " + str(len(categories)) + " categories with no dominant trend direction."
+        sentiment_reason = (
+            "Mixed signals across "
+            + str(len(categories))
+            + " categories with no dominant trend direction."
+        )
 
     cat_labels = {
         "transaction": "Transaction Activity",
@@ -84,7 +105,7 @@ def _generate_summary(events: list) -> str:
     overview = (
         "Dubai's real estate market generated "
         + str(len(events))
-        + " signals over the last 24 hours, with "
+        + " live signals over the last 24 hours, with "
         + top_cat_label
         + " emerging as the dominant theme. Activity is concentrated in "
         + top_areas_str
@@ -107,11 +128,16 @@ def _generate_summary(events: list) -> str:
         elif price and price >= 1_000:
             price_str = " valued at AED " + str(round(price / 1_000)) + "K"
 
-        sev_label = {1: "Low", 2: "Low", 3: "Medium", 4: "High", 5: "Critical"}.get(sev, "Medium")
+        sev_label = {
+            1: "Low", 2: "Low", 3: "Medium", 4: "High", 5: "Critical"
+        }.get(sev, "Medium")
+
         src_str = " (" + source + ")" if source else ""
 
         dev_lines.append(
-            str(i) + ". " + title + price_str + " in " + area + src_str + ". Severity: " + sev_label + "."
+            str(i) + ". " + title + price_str
+            + " in " + area + src_str
+            + ". Severity: " + sev_label + "."
         )
 
     developments = "\n".join(dev_lines)
@@ -120,8 +146,12 @@ def _generate_summary(events: list) -> str:
     for area, count in areas.most_common(3):
         area_events = [e for e in events if e.get("location_name") == area]
         area_cats = Counter(e.get("category") for e in area_events)
-        top_area_cat = cat_labels.get(area_cats.most_common(1)[0][0], "General")
-        area_details.append(area + " (" + str(count) + " signals, led by " + top_area_cat + ")")
+        top_area_cat = cat_labels.get(
+            area_cats.most_common(1)[0][0], "General"
+        )
+        area_details.append(
+            area + " (" + str(count) + " signals, led by " + top_area_cat + ")"
+        )
 
     hot_areas = ", ".join(area_details) + "."
 
@@ -129,7 +159,8 @@ def _generate_summary(events: list) -> str:
 
     if len(critical) > 0:
         watch_items.append(
-            "Monitor " + str(len(critical)) + " critical-severity signal(s) for escalation in the next 48 hours."
+            "Monitor " + str(len(critical))
+            + " critical-severity signal(s) for escalation in the next 48 hours."
         )
 
     if "regulatory" in categories and categories["regulatory"] >= 2:
@@ -139,7 +170,8 @@ def _generate_summary(events: list) -> str:
 
     if "offplan" in categories and categories["offplan"] >= 2:
         watch_items.append(
-            "Watch off-plan launch momentum in " + top_areas[0] + ". " + str(categories["offplan"]) + " launches detected."
+            "Watch off-plan launch momentum in " + top_areas[0]
+            + ". " + str(categories["offplan"]) + " launches detected."
         )
 
     if "price_signal" in categories:
@@ -149,13 +181,16 @@ def _generate_summary(events: list) -> str:
 
     if len(watch_items) == 0:
         watch_items.append(
-            "Continue monitoring " + top_areas[0] + " for follow-through on current activity levels."
+            "Continue monitoring " + top_areas[0]
+            + " for follow-through on current activity levels."
         )
         watch_items.append(
             "Watch for any regulatory announcements that may impact transaction volumes."
         )
 
-    watch_list = "\n".join(str(i + 1) + ". " + w for i, w in enumerate(watch_items[:3]))
+    watch_list = "\n".join(
+        str(i + 1) + ". " + w for i, w in enumerate(watch_items[:3])
+    )
 
     now = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
 
@@ -171,7 +206,7 @@ def _generate_summary(events: list) -> str:
         + "\n\n**Watch List**\n"
         + watch_list
         + "\n\n---\nGenerated: " + now
-        + " | " + str(len(events)) + " signals analysed"
+        + " | " + str(len(events)) + " live signals analysed"
     )
 
     return summary
