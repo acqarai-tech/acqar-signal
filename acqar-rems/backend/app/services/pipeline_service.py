@@ -226,26 +226,26 @@ class PipelineService:
         self.app_state = None
 
     async def start(self, app_state):
-    """Start the background pipeline loop"""
-    self.app_state = app_state
-    self.is_running = True
+        """Start the background pipeline loop"""
+        self.app_state = app_state
+        self.is_running = True
 
-    # Load seed events with fresh timestamps on every startup
-    try:
-        from app.services.seed_data import get_seed_events
-        seed_events = get_seed_events()
-        loaded = 0
-        for event in seed_events:
-            eid = event.get('id')
-            if eid:
-                self.app_state.events_store[eid] = event
-                loaded += 1
-        logger.info(f"✓ Loaded {loaded} seed events into store")
-    except Exception as e:
-        logger.error(f"Failed to load seed data: {e}")
+        # Load seed events with fresh timestamps on every startup
+        try:
+            from app.services.seed_data import get_seed_events
+            seed_events = get_seed_events()
+            loaded = 0
+            for event in seed_events:
+                eid = event.get('id')
+                if eid:
+                    self.app_state.events_store[eid] = event
+                    loaded += 1
+            logger.info(f"✓ Loaded {loaded} seed events into store")
+        except Exception as e:
+            logger.error(f"Failed to load seed data: {e}")
 
-    self._task = asyncio.create_task(self._run_loop())
-    logger.info("Pipeline started")
+        self._task = asyncio.create_task(self._run_loop())
+        logger.info("Pipeline started")
 
     async def stop(self):
         """Stop the pipeline"""
@@ -254,32 +254,32 @@ class PipelineService:
             self._task.cancel()
 
    async def _run_loop(self):
-    """Main loop: fetch every 3 minutes"""
-    _seed_refresh_counter = 0
-    while self.is_running:
-        try:
-            await self._fetch_and_process()
-        except Exception as e:
-            logger.error(f"Pipeline loop error: {e}")
-            self.errors.append(str(e))
-            if len(self.errors) > 10:
-                self.errors = self.errors[-10:]
-
-        # Refresh seed timestamps every 20 cycles (~1 hour)
-        _seed_refresh_counter += 1
-        if _seed_refresh_counter >= 20:
+        """Main loop: fetch every 3 minutes"""
+        _seed_refresh_counter = 0
+        while self.is_running:
             try:
-                from app.services.seed_data import get_seed_events
-                for event in get_seed_events():
-                    eid = event.get('id')
-                    if eid:
-                        self.app_state.events_store[eid] = event
-                logger.info("✓ Seed timestamps refreshed")
+                await self._fetch_and_process()
             except Exception as e:
-                logger.warning(f"Seed refresh failed: {e}")
-            _seed_refresh_counter = 0
+                logger.error(f"Pipeline loop error: {e}")
+                self.errors.append(str(e))
+                if len(self.errors) > 10:
+                    self.errors = self.errors[-10:]
 
-        await asyncio.sleep(180)
+            # Refresh seed timestamps every 20 cycles (~1 hour)
+            _seed_refresh_counter += 1
+            if _seed_refresh_counter >= 20:
+                try:
+                    from app.services.seed_data import get_seed_events
+                    for event in get_seed_events():
+                        eid = event.get('id')
+                        if eid:
+                            self.app_state.events_store[eid] = event
+                    logger.info("✓ Seed timestamps refreshed")
+                except Exception as e:
+                    logger.warning(f"Seed refresh failed: {e}")
+                _seed_refresh_counter = 0
+
+            await asyncio.sleep(180)
 
     async def _fetch_and_process(self):
         """One fetch cycle: RSS + GDELT + classify + store + emit"""
@@ -434,6 +434,7 @@ class PipelineService:
             ],
             "errors": self.errors[-5:]
         }
+
 
 
 
