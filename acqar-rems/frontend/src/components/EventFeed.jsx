@@ -812,8 +812,8 @@ export default function EventFeed({ plan = 'free' }) {
           const eventTs = e.created_at_ts || new Date(e.created_at).getTime() / 1000
           return eventTs >= thirtyMinutesAgo
         })
-     case 'reports':
-  return filteredEvents.filter(e => e.severity >= 4).slice(0, isFree ? 4 : 10)
+   case 'reports':
+  return filteredEvents.filter(e => e.severity >= 4).slice(0, isFree ? 4 : filteredEvents.filter(e => e.severity >= 4).length)
       case 'feed':
       default:
         return filteredEvents
@@ -1025,9 +1025,6 @@ export default function EventFeed({ plan = 'free' }) {
     </div>
   )
 }
-
-
-
 
 
 
