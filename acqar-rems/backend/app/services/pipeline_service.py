@@ -200,10 +200,9 @@
 #         }
 
 
-
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional
 import sys
 import os
@@ -224,14 +223,13 @@ class PipelineService:
         self.app_state = None
 
     async def start(self, app_state):
-        """Start the background pipeline loop — no fake seed data."""
+        """Start the background pipeline loop."""
         self.app_state = app_state
         self.is_running = True
         self._task = asyncio.create_task(self._run_loop())
-        logger.info("Pipeline started — waiting for first real fetch cycle")
+        logger.info("Pipeline started")
 
     async def stop(self):
-        """Stop the pipeline"""
         self.is_running = False
         if self._task:
             self._task.cancel()
@@ -246,7 +244,7 @@ class PipelineService:
                 self.errors.append(str(e))
                 if len(self.errors) > 10:
                     self.errors = self.errors[-10:]
-            await asyncio.sleep(180)  # 3 minutes
+            await asyncio.sleep(180)
 
     async def _fetch_and_process(self):
         """One fetch cycle: RSS + GDELT → classify → store → emit"""
@@ -276,16 +274,15 @@ class PipelineService:
             except Exception as e:
                 logger.debug(f"LinkedIn fetcher not available: {e}")
 
-            rss = RSSFetcher()
-            gdelt = GDELTFetcher()
+            rss    = RSSFetcher()
+            gdelt  = GDELTFetcher()
             reddit = RedditFetcher()
-            dld = DLDFetcher()
+            dld    = DLDFetcher()
             classifier = EventClassifier()
 
-            # All fetchers now use dynamic year + 48h date filter
             fetch_tasks = [
-                asyncio.create_task(rss.fetch_all(hours_back=48)),
-                asyncio.create_task(gdelt.fetch_dubai_events(hours_back=48)),
+                asyncio.create_task(rss.fetch_all()),
+                asyncio.create_task(gdelt.fetch_dubai_events(hours_back=72)),
                 asyncio.create_task(reddit.fetch_all()),
                 asyncio.create_task(dld.fetch_google_news_transaction_signals()),
             ]
@@ -327,47 +324,57 @@ class PipelineService:
                 ])
                 return has_dubai and has_re
 
-            before = len(articles)
+            before   = len(articles)
             articles = [a for a in articles if _is_relevant(a)]
-            logger.info(f"Relevance filter: {before} → {len(articles)} articles (Dubai RE only)")
+            logger.info(f"Relevance filter: {before} → {len(articles)} articles")
 
             if not articles:
                 logger.info("No new articles this cycle")
                 self.last_fetch_at = datetime.now(timezone.utc)
                 return []
 
-            # Classify all articles
             events = classifier.classify_batch(articles)
             logger.info(f"Classified {len(events)} events")
 
-            # Store new events (deduplicate)
             new_events = []
             for event in events:
                 event_id = event.get('id')
                 if event_id and event_id not in self.app_state.events_store:
-                    event['created_at_ts'] = time.time()
-                    event['created_at'] = datetime.now(timezone.utc).isoformat()
-                    event['updated_at'] = datetime.now(timezone.utc).isoformat()
+                    # Use the article's real published_at as created_at_ts so
+                    # the frontend time filters work correctly
+                    pub_str = event.get('published_at') or event.get('created_at')
+                    try:
+                        pub_dt  = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
+                        if pub_dt.tzinfo is None:
+                            pub_dt = pub_dt.replace(tzinfo=timezone.utc)
+                        created_ts = pub_dt.timestamp()
+                    except Exception:
+                        created_ts = time.time()
+
+                    event['created_at_ts'] = created_ts
+                    event['created_at']    = datetime.fromtimestamp(created_ts, tz=timezone.utc).isoformat()
+                    event['updated_at']    = datetime.now(timezone.utc).isoformat()
+
                     if 'signals' not in event:
                         event['signals'] = [{
-                            'source': event.get('source', 'RSS'),
-                            'url': event.get('url', ''),
+                            'source':  event.get('source', 'RSS'),
+                            'url':     event.get('url', ''),
                             'snippet': event.get('title', '')[:100]
                         }]
+
                     self.app_state.events_store[event_id] = event
                     new_events.append(event)
                     self.events_fetched_today += 1
 
-            self.last_fetch_at = datetime.now(timezone.utc)
-            self.app_state.pipeline_status = self.get_status()
-            self.app_state.last_event_at = self.last_fetch_at.isoformat()
+            self.last_fetch_at              = datetime.now(timezone.utc)
+            self.app_state.pipeline_status  = self.get_status()
+            self.app_state.last_event_at    = self.last_fetch_at.isoformat()
 
             # Emit new events via Socket.io (max 5 per cycle)
             if new_events and hasattr(self.app_state, 'sio'):
                 for event in new_events[:5]:
                     await self.app_state.sio.emit('new_event', event)
 
-            # Emit signal row update
             if new_events and hasattr(self.app_state, 'sio'):
                 try:
                     await self.app_state.sio.emit("signal_row_update", {
@@ -376,7 +383,7 @@ class PipelineService:
                 except Exception as e:
                     logger.debug(f"Failed to emit signal_row_update: {e}")
 
-            logger.info(f"Stored {len(new_events)} new events. Total in store: {len(self.app_state.events_store)}")
+            logger.info(f"Stored {len(new_events)} new events. Total: {len(self.app_state.events_store)}")
             return new_events
 
         except Exception as e:
@@ -389,8 +396,8 @@ class PipelineService:
 
     def get_status(self) -> dict:
         return {
-            "is_running": self.is_running,
-            "last_fetch_at": self.last_fetch_at.isoformat() if self.last_fetch_at else None,
+            "is_running":           self.is_running,
+            "last_fetch_at":        self.last_fetch_at.isoformat() if self.last_fetch_at else None,
             "events_fetched_today": self.events_fetched_today,
             "active_sources": [
                 "Gulf News Property RSS",
