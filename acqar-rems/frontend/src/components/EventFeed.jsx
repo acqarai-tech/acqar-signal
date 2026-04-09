@@ -828,7 +828,7 @@ export default function EventFeed({ plan = 'free' }) {
     const ts = e.created_at_ts || new Date(e.created_at).getTime() / 1000
     return ts >= now - 1800
   }).length
-  const reportsCount = filteredEvents.filter(e => e.severity >= 4).length
+  const reportsCount = isFree ? 4 : filteredEvents.filter(e => e.severity >= 4).length
 
   // Handle Reports tab click for free users
   const handleTabClick = (key) => {
@@ -1025,9 +1025,6 @@ export default function EventFeed({ plan = 'free' }) {
     </div>
   )
 }
-
-
-
 
 
 
