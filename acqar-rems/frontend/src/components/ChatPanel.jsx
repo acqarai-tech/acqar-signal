@@ -2442,7 +2442,7 @@ useEffect(() => {
           <span style={{ fontSize: '11px', color: '#818cf8' }}>
             🔒 <strong>Read-only.</strong> Upgrade to Pro to join the conversation.
           </span>
-          <a href="/pricing" style={{
+          <a href="https://acqar.vercel.app/pricing" style={{
             fontSize: '11px', fontWeight: 700,
             background: '#6366f1', color: 'white',
             padding: '5px 10px', borderRadius: '6px',
