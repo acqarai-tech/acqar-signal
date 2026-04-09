@@ -288,9 +288,9 @@ class RSSFetcher:
 
                 for entry in feed.entries:
                     try:
-                        title = entry.get('title', '')
+                        title   = entry.get('title', '')
                         summary = entry.get('summary', '')
-                        link = entry.get('link', '')
+                        link    = entry.get('link', '')
 
                         if not link:
                             continue
@@ -300,11 +300,13 @@ class RSSFetcher:
                         if article_id in self.seen_ids:
                             continue
 
-                        combined_text = (title + ' ' + summary).lower()
-                        relevant_keywords = ['dubai', 'uae', 'property', 'real estate', 'housing',
-                                           'apartment', 'villa', 'developer', 'emaar', 'damac',
-                                           'nakheel', 'residential', 'commercial', 'transaction',
-                                           'dld', 'rera', 'realty']
+                        combined_text     = (title + ' ' + summary).lower()
+                        relevant_keywords = [
+                            'dubai', 'uae', 'property', 'real estate', 'housing',
+                            'apartment', 'villa', 'developer', 'emaar', 'damac',
+                            'nakheel', 'residential', 'commercial', 'transaction',
+                            'dld', 'rera', 'realty'
+                        ]
 
                         if not any(keyword in combined_text for keyword in relevant_keywords):
                             continue
@@ -312,19 +314,22 @@ class RSSFetcher:
                         published_at = None
                         if hasattr(entry, 'published_parsed') and entry.published_parsed:
                             try:
-                                published_at = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc).isoformat()
-                            except:
+                                published_at = datetime(
+                                    *entry.published_parsed[:6],
+                                    tzinfo=timezone.utc
+                                ).isoformat()
+                            except Exception:
                                 published_at = datetime.now(timezone.utc).isoformat()
                         else:
                             published_at = datetime.now(timezone.utc).isoformat()
 
                         article = {
-                            'id': article_id,
-                            'title': title,
-                            'summary': summary,
-                            'url': link,
+                            'id':           article_id,
+                            'title':        title,
+                            'summary':      summary,
+                            'url':          link,
                             'published_at': published_at,
-                            'source': feed_config['source'],
+                            'source':       feed_config['source'],
                             'source_weight': feed_config['weight']
                         }
 
@@ -343,9 +348,10 @@ class RSSFetcher:
 
         return articles
 
-    async def fetch_all(self, hours_back: int = 48) -> List[Dict]:
+    async def fetch_all(self) -> List[Dict]:
         """
-        Fetch all RSS feeds concurrently with dynamic year URLs and date filtering.
+        Fetch all RSS feeds concurrently with dynamic year URLs.
+        No hard date cutoff here — pipeline_service handles age via created_at_ts.
         """
         feeds = _get_rss_feeds()
 
@@ -362,25 +368,17 @@ class RSSFetcher:
                 all_articles.extend(result)
 
         # Deduplicate
-        seen = set()
+        seen            = set()
         unique_articles = []
         for article in all_articles:
             if article['id'] not in seen:
                 unique_articles.append(article)
                 seen.add(article['id'])
 
-        # DATE FILTER — drop anything older than hours_back
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_back)
-        fresh = []
-        for a in unique_articles:
-            try:
-                pub = datetime.fromisoformat(a["published_at"].replace("Z", "+00:00"))
-                if pub.tzinfo is None:
-                    pub = pub.replace(tzinfo=timezone.utc)
-                if pub >= cutoff:
-                    fresh.append(a)
-            except Exception:
-                fresh.append(a)
+        # Sort newest first
+        unique_articles.sort(
+            key=lambda x: x.get('published_at', ''),
+            reverse=True
+        )
 
-        fresh.sort(key=lambda x: x.get('published_at', ''), reverse=True)
-        return fresh
+        return unique_articles
