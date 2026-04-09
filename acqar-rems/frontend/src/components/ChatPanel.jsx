@@ -2450,7 +2450,7 @@ useEffect(() => {
             🔒 <strong>Read-only.</strong> Upgrade to Pro to join the conversation.
           </span>
         <a 
-  href="/pricing"
+  href="https://acqar.vercel.app/pricing"
   target="_top"
   rel="noopener noreferrer"
   style={{
