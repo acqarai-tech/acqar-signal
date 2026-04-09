@@ -1387,6 +1387,549 @@
 
 
 
+// import { useEffect, useRef, useState } from 'react'
+// import { supabase } from '../lib/supabase'
+
+// const nameColor = (name = '') => {
+//   const colors = [
+//     '#E8A838', '#E74C3C', '#3498DB', '#2ECC71',
+//     '#9B59B6', '#1ABC9C', '#E67E22', '#D4AC0D',
+//     '#F39C12', '#16A085', '#27AE60', '#8E44AD',
+//   ]
+//   let hash = 0
+//   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+//   return colors[Math.abs(hash) % colors.length]
+// }
+
+// function formatTime(ts) {
+//   const d = new Date(ts)
+//   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+// }
+
+
+// // ── Daily AI chat generator ──
+// const TODAY_KEY = `acqar_chat_v4_${new Date().toISOString().slice(0, 10)}`
+
+// // Clean up yesterday's cache
+// Object.keys(localStorage)
+//   .filter(k => k.startsWith('acqar_chat_') && k !== TODAY_KEY)
+//   .forEach(k => localStorage.removeItem(k))
+
+// const PERSONA_NAMES = {
+//   owner:    'Sara Al Hashimi',
+//   buyer:    'Marco Ferretti',
+//   investor: 'Khalid Al Mansouri',
+//   broker:   'James Crawford',
+// }
+
+// // ── Fallback messages (shows if backend is down) ──
+// const FALLBACK_MESSAGES = [
+//   { id: 'f1', user_name: 'Khalid Al Mansouri', content: 'Dubai transaction volumes continue to strengthen — off-plan demand holding firm across Business Bay and Creek Harbour.', created_at: new Date(Date.now() - 20 * 60000).toISOString() },
+//   { id: 'f2', user_name: 'James Crawford', content: 'Strong buyer interest at AED 1.5–2M right now. Dubai Hills and JVC are the sweet spots for end-use buyers.', created_at: new Date(Date.now() - 18 * 60000).toISOString() },
+//   { id: 'f3', user_name: 'Sara Al Hashimi', content: 'My JVC tenants just renewed above asking — 8.5% yield on a studio. Rental market is very tight right now.', created_at: new Date(Date.now() - 15 * 60000).toISOString() },
+//   { id: 'f4', user_name: 'Marco Ferretti', content: 'Does the AED 2M Golden Visa threshold apply to off-plan or ready property only?', created_at: new Date(Date.now() - 12 * 60000).toISOString() },
+//   { id: 'f5', user_name: 'James Crawford', content: 'Marco — ready property at AED 2M qualifies immediately. Off-plan only counts once fully paid.', created_at: new Date(Date.now() - 10 * 60000).toISOString() },
+// ]
+
+// // ── Build chat messages from backend events ──
+// function buildMessagesFromEvents(events) {
+//   const top = events.slice(0, 5)
+//   const now = Date.now()
+//   const total = top.length
+
+//   // Each event generates a mini thread: opener → 1-2 replies → follow-up
+//   // Personas react differently based on their role
+//   const threads = [
+//     // Event 0 — Investor opens, Broker replies, Buyer asks
+//     (e) => [
+//      { name: 'Khalid Al Mansouri', msg: `${e.title}${e.location_name ? " — " + e.location_name + " is moving." : ""} Transaction velocity is picking up. I'm watching this closely.` },
+//       { name: 'James Crawford',     msg: `Khalid — same on my end. Had 3 client calls this morning about exactly this. Buyers are staying active despite everything.` },
+//       { name: 'Marco Ferretti',     msg: `Does this affect the AED 1.5–2M range specifically? That's my budget and I don't want to miss the window.` },
+//       { name: 'James Crawford',     msg: `Marco — if anything this strengthens the case for Dubai Hills at your budget. Resale velocity there is very strong right now.` },
+//     ],
+//     // Event 1 — Broker opens, Owner reacts, Investor adds data
+//     (e) => [
+//       { name: 'James Crawford',     msg: `Just flagged this to my team: ${e.title}. ${e.location_name ? e.location_name + ' specifically is one to watch.' : 'Whole market is reacting.'}` },
+//      { name: 'Sara Al Hashimi',    msg: `This hits landlords directly. ${e.category === 'regulatory' ? "Regulatory changes always compress yields first — I've seen this before." : 'My JVC renewals are already reflecting this pressure.'}` },
+//       { name: 'Khalid Al Mansouri', msg: `Sara — that's actually the signal. When owner sentiment shifts, smart buyers move. Off-plan pipeline is still very strong from what I track.` },
+//     ],
+//     // Event 2 — Owner raises concern, Broker reassures, Buyer follows
+//     (e) => [
+//       { name: 'Sara Al Hashimi',    msg: `Anyone else watching this? ${e.title}. My tenant renewals are up for discussion next month and this changes the calculus.` },
+//       { name: 'James Crawford',     msg: `Sara — for mid-market JVC the fundamentals are still solid. Demand from end-users is real, not speculative. I wouldn't panic on renewals.` },
+//       { name: 'Marco Ferretti',     msg: `This is actually reassuring for me as a buyer. If landlords are cautious it means less competition on ready units?` },
+//       { name: 'Sara Al Hashimi',    msg: `Marco — yes, but don't wait too long. Enquiries are up and serious buyers are already moving.` },
+//     ],
+//     // Event 3 — Investor drops data point, others react
+//     (e) => [
+//       { name: 'Khalid Al Mansouri', msg: `${e.title}. ${e.location_name ? e.location_name + ' pricing is repricing faster than I expected.' : 'This is a structural shift, not a spike.'}` },
+//       { name: 'James Crawford',     msg: `Khalid — 100%. I've had 6 offers accepted this week alone above asking. The narrative of a soft market is completely disconnected from what's actually happening.` },
+//       { name: 'Sara Al Hashimi',    msg: `${e.category === 'price_signal' ? 'Higher prices help my exit strategy but crush my yield story. Classic dilemma.' : 'Watching how developers respond to this — execution credibility matters now more than ever.'}` },
+//     ],
+//     // Event 4 — Buyer asks, everyone answers
+//     (e) => [
+//       { name: 'Marco Ferretti',     msg: `Quick question for the group — seeing "${e.title}" in the news. Should I be accelerating my search or does this give me more time?` },
+//       { name: 'James Crawford',     msg: `Accelerate. The buyers who wait for the right moment in Dubai consistently miss it. The data is clear — Q1 was the strongest quarter on record.` },
+//       { name: 'Khalid Al Mansouri', msg: `Marco — at AED 1.8M with end-use intent, ${e.location_name ? e.location_name : 'Dubai Hills'} gives you both lifestyle and Golden Visa path. That's a very clean structure.` },
+//       { name: 'Sara Al Hashimi',    msg: `And don't forget — ready property at AED 2M unlocks Golden Visa immediately. Worth stretching slightly if you can.` },
+//     ],
+//   ]
+
+//   const chat = []
+//   top.forEach((event, i) => {
+//     const thread = threads[i % threads.length](event)
+//     thread.forEach((msg, j) => {
+//       // Space messages 2 minutes apart within each thread, 5 min between threads
+//      const threadOffset = i * 5 * 60000
+// const msgOffset = j * 2 * 60000
+// const baseTime = now - (total * 5 * 60000)
+// chat.push({
+//   id: `ev_${i}_${j}`,
+//   user_name: msg.name,
+//   content: msg.msg,
+//   created_at: new Date(baseTime + threadOffset + msgOffset).toISOString()
+// })
+//     })
+//   })
+
+//   return chat
+// }
+// // ── Daily chat generator — uses your own backend, no external API ──
+// async function generateDailyChat() {
+//   const cached = localStorage.getItem(TODAY_KEY)
+//   if (cached) {
+//     try { return JSON.parse(cached) } catch { localStorage.removeItem(TODAY_KEY) }
+//   }
+
+//   try {
+//     // ✅ Use your own backend — already has real UAE RE events
+//     const res = await fetch('/api/events/community-signals?limit=5', {
+//       signal: AbortSignal.timeout(6000)
+//     })
+//     if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+//     const data = await res.json()
+//     const signals = data.signals || []
+//     if (!signals.length) throw new Error('no signals')
+
+//     console.log('✅ Live signals:', signals.length, signals[0]?.text)
+
+//     // Convert signals → events shape for buildMessagesFromEvents
+//    const events = signals
+//   .filter(s => {
+//     const t = s.text || ''
+//     if (t.includes(' | ') && t.includes('Helping')) return false
+//     if (t.includes('Portfolio Manager')) return false
+//     if (t.includes('Specialist |')) return false
+//     if (t.toLowerCase().includes('searching')) return false
+//     if (t.toLowerCase().includes('while global markets')) return false
+//     if (t.toLowerCase().includes('the structure that')) return false
+//     if (t.length < 30) return false
+//     return true
+//   })
+//   .map(s => {
+//     // Clean title aggressively
+//     let title = s.text
+//       .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}]\s*/gu, '')
+//       .replace(/Searching\s+"[^"]*"\s*\.{3}/gi, '')
+//       .replace(/\s*[-|]\s*(LinkedIn|Arabian Business|Gulf News|Zawya|The National|Bayut|Property Finder).*$/i, '')
+//       .replace(/\s{2,}/g, ' ')
+//       .trim()
+
+//     // If title contains colon (article headline style), keep only the part before colon
+//     // e.g. "UAE Property Investment 2026: The Structure That..." → "UAE Property Investment 2026"
+//     if (title.includes(': ')) {
+//       const beforeColon = title.split(': ')[0].trim()
+//       if (beforeColon.length > 20) title = beforeColon
+//     }
+
+//     // Hard truncate at 80 chars cleanly
+//     if (title.length > 80) {
+//       title = title.slice(0, 80).replace(/\s+\S*$/, '').trim()
+//     }
+
+//     return {
+//       title,
+//       location_name: s.location || '',
+//       category: s.category || 'transaction',
+//     }
+//   })
+//   .filter(e => e.title.length > 20)
+//   .slice(0, 5)
+
+//     const shaped = buildMessagesFromEvents(events)
+//     localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
+//     return shaped
+
+//   } catch (err) {
+//     console.warn('community-signals failed:', err.message, '— using fallback')
+//     return FALLBACK_MESSAGES
+//   }
+// }
+// // ── Helper: extract Dubai location from headline ──
+// function extractLocation(title = '') {
+//   const areas = ['Palm Jumeirah', 'Dubai Hills', 'Business Bay', 'Downtown Dubai',
+//     'Dubai Marina', 'JVC', 'Creek Harbour', 'Jumeirah', 'DIFC', 'Dubai South',
+//     'Abu Dhabi', 'Sharjah', 'RAK', 'Meydan', 'JBR']
+//   return areas.find(a => title.includes(a)) || ''
+// }
+
+// // ── Helper: detect category from headline ──
+// function extractCategory(title = '') {
+//   const t = title.toLowerCase()
+//   if (t.includes('regulation') || t.includes('law') || t.includes('rera') || t.includes('dld')) return 'regulatory'
+//   if (t.includes('price') || t.includes('aed') || t.includes('sqft') || t.includes('yield')) return 'price_signal'
+//   if (t.includes('launch') || t.includes('off-plan') || t.includes('offplan')) return 'offplan'
+//   return 'transaction'
+// }
+// export default function ChatPanel({ onClose }) {
+
+//   // ── Real logged-in user from Supabase ──
+//   const params = new URLSearchParams(window.location.search)
+// const urlName = params.get('username') || 'User'
+// const urlUserId = params.get('userid') || ''
+// const [authUser, setAuthUser] = useState(urlUserId ? { id: urlUserId } : null)
+// const [myName, setMyName] = useState(urlName)
+
+// //   useEffect(() => {
+// //     // Get current session
+// //    const loadUser = async () => {
+// //   const { data } = await supabase.auth.getSession()
+// //   const user = data?.session?.user ?? null
+// //   if (user) {
+// //     setAuthUser(user)
+// //     const { data: userRow } = await supabase
+// //       .from('users')
+// //       .select('name')
+// //       .eq('id', user.id)
+// //       .maybeSingle()
+// //    const name =
+// //   user.user_metadata?.name ||
+// //   user.user_metadata?.full_name ||
+// //   user.email?.split('@')[0] ||
+// //   'User'
+// // setMyName(name)
+// //   } else {
+// //     const isAdmin = localStorage.getItem('admin_auth') === 'true'
+// //     if (isAdmin) {
+// //       setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
+// //       setMyName('Admin')
+// //     }
+// //   }
+// // }
+// // loadUser()
+
+// //     // Listen for auth changes
+// //    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+// //   const user = session?.user ?? null
+// //   if (user) {
+// //     setAuthUser(user)
+// //     supabase
+// //       .from('users')
+// //       .select('name')
+// //       .eq('id', user.id)
+// //       .maybeSingle()
+// //       .then(({ data: userRow }) => {
+// //         const name =
+// //   user.user_metadata?.name ||
+// //   user.user_metadata?.full_name ||
+// //   user.email?.split('@')[0] ||
+// //   'User'
+// // setMyName(name)
+// //       })
+// //   } else {
+// //     const isAdmin = localStorage.getItem('admin_auth') === 'true'
+// //     if (isAdmin) {
+// //       setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
+// //       setMyName('Admin')
+// //     } else {
+// //       setAuthUser(null)
+// //       setMyName('User')
+// //     }
+// //   }
+// // })
+// //     return () => listener?.subscription?.unsubscribe()
+// //   }, [])
+
+//   // ── Chat state ──
+ 
+// const [messages, setMessages] = useState([])
+//   const [input, setInput] = useState('')
+//   const [loading, setLoading] = useState(false)
+//   const [error, setError] = useState(null)
+//   const [msgCount, setMsgCount] = useState(null)
+
+//   const bottomRef = useRef(null)
+//   const inputRef = useRef(null)
+
+//   // ── Fetch messages ──
+  
+//   useEffect(() => {
+//   const fetchMessages = async () => {
+//     setLoading(true)
+//     setError(null)
+//     try {
+//       const dailyChat = await generateDailyChat()
+//       const { data, error } = await supabase
+//         .from('messages')
+//         .select('id, user_name, content, created_at')
+//         .order('created_at', { ascending: true })
+//         .limit(100)
+//       const realMessages = (!error && data) ? data : []
+//       setMessages([...dailyChat, ...realMessages])
+//     } catch (err) {
+//       console.error('fetchMessages error:', err)
+//       setMessages(FALLBACK_MESSAGES)
+//     } finally {
+//       setLoading(false)  // ← ALWAYS runs — no more infinite loading spinner
+//     }
+//   }
+//   fetchMessages()
+// }, [])
+
+//   // ── Message count ──
+//   useEffect(() => {
+//     const fetchCount = async () => {
+//       const { count } = await supabase
+//         .from('messages')
+//         .select('*', { count: 'exact', head: true })
+//       if (count !== null) setMsgCount(count)
+//     }
+//     fetchCount()
+//   }, [messages])
+
+//   // ── Realtime ──
+//   useEffect(() => {
+//     const channel = supabase
+//       .channel('chat-room-' + Math.random())
+//       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+//         setMessages(prev => {
+//           if (prev.find(m => m.id === payload.new.id)) return prev
+//           return [...prev, payload.new]
+//         })
+//       })
+//       .subscribe()
+//     return () => supabase.removeChannel(channel)
+//   }, [])
+
+//   // ── Auto scroll ──
+//   useEffect(() => {
+//     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+//   }, [messages])
+
+//   // ── Send ──
+//  const sendMessage = async (e) => {
+//   e?.preventDefault()
+//   if (!myName || !authUser) return
+//     const text = input.trim()
+//     if (!text) return
+//     setInput('')
+//     const { error } = await supabase.from('messages').insert({
+//       user_id: authUser.id,
+//       user_name: myName,
+//       content: text,
+//     })
+//     if (error) setError('Failed to send: ' + error.message)
+//   }
+
+//   const handleKeyDown = (e) => {
+//     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
+//   }
+
+//   return (
+//     <div style={{
+//       height: '100%',
+//       display: 'flex',
+//       flexDirection: 'column',
+//       background: '#111827',
+//       fontFamily: "'Inter', sans-serif",
+//       overflow: 'hidden',
+//       pointerEvents: 'auto',
+//     }}>
+
+//       {/* Header */}
+//       {onClose && (
+//         <div style={{
+//           display: 'flex', alignItems: 'center', gap: '7px',
+//           padding: '0 12px',
+//           background: '#0d1117',
+//           borderBottom: '1px solid #1f2937',
+//           flexShrink: 0,
+//           height: 44,
+//           position: 'sticky',
+//           top: 0,
+//           zIndex: 9999,
+//         }}>
+//           <div style={{
+//             width: 22, height: 22, borderRadius: '6px', background: '#1f2937',
+//             display: 'flex', alignItems: 'center', justifyContent: 'center',
+//             fontSize: '11px', flexShrink: 0,
+//           }}>💬</div>
+
+//           <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>CHAT</span>
+
+//           <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
+//           <span style={{
+//             fontSize: '10px', fontWeight: 700,
+//             color: nameColor(myName),
+//             maxWidth: '140px', overflow: 'hidden',
+//             textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+//           }}>{myName}</span>
+
+//           <div style={{ flex: 1 }} />
+
+//           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+//             <span style={{ fontSize: '13px' }}>🟠</span>
+//             <span style={{ fontSize: '12px', fontWeight: 700, color: '#f9fafb' }}>
+//               {msgCount !== null ? msgCount.toLocaleString() : '—'}
+//             </span>
+//           </div>
+
+//           <button
+//             onClick={() => window.location.reload()}
+//             style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '15px', padding: '4px' }}
+//           >↺</button>
+
+//           <button
+//             onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }}
+//             onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }}
+//             onClick={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }}
+//             style={{
+//               width: 36, height: 36, background: '#1f2937',
+//               border: '1px solid #374151', borderRadius: '6px',
+//               color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
+//               display: 'flex', alignItems: 'center', justifyContent: 'center',
+//               touchAction: 'manipulation',
+//               WebkitTapHighlightColor: 'transparent',
+//               position: 'relative',
+//               zIndex: 999,
+//             }}
+//           >✕</button>
+//         </div>
+//       )}
+
+//       {/* Error */}
+//       {error && (
+//         <div style={{
+//           padding: '5px 12px', background: 'rgba(239,68,68,0.15)',
+//           borderBottom: '1px solid rgba(239,68,68,0.4)',
+//           fontSize: '10px', color: '#f87171',
+//           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
+//         }}>
+//           {error}
+//           <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer' }}>✕</button>
+//         </div>
+//       )}
+
+//       {/* Messages */}
+//       <div style={{
+//         flex: 1, overflowY: 'auto', padding: '4px 0 8px',
+//         scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent',
+//         WebkitOverflowScrolling: 'touch',
+//       }}>
+//         {loading && (
+//           <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
+//             Loading messages...
+//           </div>
+//         )}
+//         {!loading && messages.length === 0 && (
+//           <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
+//             No messages yet. Say something!
+//           </div>
+//         )}
+//         {messages.map((msg, i) => {
+//           const isOwn = msg.user_name === myName
+//           const color = isOwn ? '#B87333' : nameColor(msg.user_name)
+//           const prevMsg = messages[i - 1]
+//           const sameUser = prevMsg && prevMsg.user_name === msg.user_name
+//           const timeDiff = prevMsg ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000 : 999
+//           const showHeader = !sameUser || timeDiff > 120
+//           return (
+//             <div key={msg.id} style={{
+//               padding: showHeader ? '10px 14px 2px' : '1px 14px',
+//               background: isOwn ? 'rgba(184,115,51,0.05)' : 'transparent',
+//               borderLeft: isOwn ? '2px solid rgba(184,115,51,0.5)' : '2px solid transparent',
+//             }}>
+//               {showHeader && (
+//                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '2px' }}>
+//                   <span style={{ fontSize: '13px', fontWeight: 700, color }}>{msg.user_name}</span>
+//                   <span style={{ fontSize: '9px', color: '#374151' }}>{formatTime(msg.created_at)}</span>
+//                 </div>
+//               )}
+//               <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: 1.5, wordBreak: 'break-word' }}>
+//                 {msg.content}
+//               </div>
+//             </div>
+//           )
+//         })}
+//         <div ref={bottomRef} />
+//       </div>
+
+//       {/* Input */}
+//       <div style={{
+//         padding: '10px 12px',
+//         paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
+//         borderTop: '1px solid #1f2937',
+//         background: '#0d1117', flexShrink: 0,
+//         display: 'flex', gap: '8px', alignItems: 'center',
+//       }}>
+//         <input
+//           ref={inputRef}
+//           value={input}
+//           onChange={e => setInput(e.target.value)}
+//           onKeyDown={handleKeyDown}
+//           placeholder={authUser ? `Message as ${myName}...` : 'Sign in to chat...'}
+//           maxLength={200}
+//           disabled={false}
+//           style={{
+//             flex: 1, padding: '10px 14px', fontSize: '16px',
+//             background: '#1f2937',
+//             border: '1px solid #374151',
+//             color: '#f9fafb',
+//             borderRadius: '8px', outline: 'none',
+//             transition: 'border-color 0.15s',
+//             WebkitAppearance: 'none',
+//             cursor: authUser ? 'text' : 'not-allowed',
+//             opacity: authUser ? 1 : 0.5,
+//           }}
+//           onFocus={e => e.target.style.borderColor = '#6366f1'}
+//           onBlur={e => e.target.style.borderColor = '#374151'}
+//         />
+//         <button
+//           type="button"
+//           onClick={sendMessage}
+//          disabled={!input.trim()}
+//           style={{
+//             width: 40, height: 40, borderRadius: '8px',
+//             background: input.trim() ? '#6366f1' : '#1f2937',
+//             border: 'none', color: 'white',
+//             cursor: input.trim() ? 'pointer' : 'default',
+//             display: 'flex', alignItems: 'center', justifyContent: 'center',
+//             fontSize: '16px', flexShrink: 0,
+//             transition: 'background 0.15s',
+//             touchAction: 'manipulation',
+//             WebkitTapHighlightColor: 'transparent',
+//           }}
+//         >↗</button>
+//       </div>
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
@@ -1408,7 +1951,8 @@ function formatTime(ts) {
 
 
 // ── Daily AI chat generator ──
-const TODAY_KEY = `acqar_chat_v4_${new Date().toISOString().slice(0, 10)}`
+const currentHour = new Date().toISOString().slice(0, 13) // "2025-01-15T14"
+const TODAY_KEY = `acqar_chat_v4_${currentHour}`
 
 // Clean up yesterday's cache
 Object.keys(localStorage)
@@ -1503,14 +2047,17 @@ async function generateDailyChat() {
 
   try {
     // ✅ Use your own backend — already has real UAE RE events
-    const res = await fetch('/api/events/community-signals?limit=5', {
+    const res = await fetch('/api/events/community-signals?limit=5&source=reddit', {
       signal: AbortSignal.timeout(6000)
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
     const data = await res.json()
-    const signals = data.signals || []
-    if (!signals.length) throw new Error('no signals')
+   const allSignals = data.signals || []
+const signals = allSignals.filter(s =>
+  (s.source || s.source_type || s.platform || '').toLowerCase().includes('reddit')
+)
+if (!signals.length) throw new Error('no signals')
 
     console.log('✅ Live signals:', signals.length, signals[0]?.text)
 
@@ -1582,7 +2129,7 @@ function extractCategory(title = '') {
   if (t.includes('launch') || t.includes('off-plan') || t.includes('offplan')) return 'offplan'
   return 'transaction'
 }
-export default function ChatPanel({ onClose }) {
+export default function ChatPanel({ onClose, userPlan }) {
 
   // ── Real logged-in user from Supabase ──
   const params = new URLSearchParams(window.location.search)
@@ -1658,10 +2205,28 @@ const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [msgCount, setMsgCount] = useState(null)
+  const canChat = userPlan !== 'free'
 
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
+
+  
+// ── Auto-refresh when hour changes ──
+useEffect(() => {
+  const msUntilNextHour = () => {
+    const now = new Date()
+    return (60 - now.getMinutes()) * 60000 - now.getSeconds() * 1000
+  }
+
+  const timeout = setTimeout(() => {
+    // Clear old cache so generateDailyChat fetches fresh
+    localStorage.removeItem(TODAY_KEY)
+    window.location.reload()
+  }, msUntilNextHour())
+
+  return () => clearTimeout(timeout)
+}, [])
   // ── Fetch messages ──
   
   useEffect(() => {
@@ -1720,7 +2285,7 @@ const [messages, setMessages] = useState([])
   // ── Send ──
  const sendMessage = async (e) => {
   e?.preventDefault()
-  if (!myName || !authUser) return
+  if (!myName || !authUser || !canChat) return
     const text = input.trim()
     if (!text) return
     setInput('')
@@ -1865,53 +2430,74 @@ const [messages, setMessages] = useState([])
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div style={{
-        padding: '10px 12px',
-        paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-        borderTop: '1px solid #1f2937',
-        background: '#0d1117', flexShrink: 0,
-        display: 'flex', gap: '8px', alignItems: 'center',
-      }}>
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={authUser ? `Message as ${myName}...` : 'Sign in to chat...'}
-          maxLength={200}
-          disabled={false}
-          style={{
-            flex: 1, padding: '10px 14px', fontSize: '16px',
-            background: '#1f2937',
-            border: '1px solid #374151',
-            color: '#f9fafb',
-            borderRadius: '8px', outline: 'none',
-            transition: 'border-color 0.15s',
-            WebkitAppearance: 'none',
-            cursor: authUser ? 'text' : 'not-allowed',
-            opacity: authUser ? 1 : 0.5,
-          }}
-          onFocus={e => e.target.style.borderColor = '#6366f1'}
-          onBlur={e => e.target.style.borderColor = '#374151'}
-        />
-        <button
-          type="button"
-          onClick={sendMessage}
-         disabled={!input.trim()}
-          style={{
-            width: 40, height: 40, borderRadius: '8px',
-            background: input.trim() ? '#6366f1' : '#1f2937',
-            border: 'none', color: 'white',
-            cursor: input.trim() ? 'pointer' : 'default',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '16px', flexShrink: 0,
-            transition: 'background 0.15s',
-            touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >↗</button>
-      </div>
+      {/* Free plan — read-only banner */}
+      {authUser && !canChat && (
+        <div style={{
+          padding: '10px 12px',
+          background: 'rgba(99,102,241,0.1)',
+          borderTop: '1px solid rgba(99,102,241,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: '11px', color: '#818cf8' }}>
+            🔒 <strong>Read-only.</strong> Upgrade to Pro to join the conversation.
+          </span>
+          <a href="/pricing" style={{
+            fontSize: '11px', fontWeight: 700,
+            background: '#6366f1', color: 'white',
+            padding: '5px 10px', borderRadius: '6px',
+            textDecoration: 'none',
+          }}>Upgrade</a>
+        </div>
+      )}
+
+      {/* Input — paid users only */}
+      {canChat && (
+        <div style={{
+          padding: '10px 12px',
+          paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
+          borderTop: '1px solid #1f2937',
+          background: '#0d1117', flexShrink: 0,
+          display: 'flex', gap: '8px', alignItems: 'center',
+        }}>
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={authUser ? `Message as ${myName}...` : 'Sign in to chat...'}
+            maxLength={200}
+            style={{
+              flex: 1, padding: '10px 14px', fontSize: '16px',
+              background: '#1f2937',
+              border: '1px solid #374151',
+              color: '#f9fafb',
+              borderRadius: '8px', outline: 'none',
+              transition: 'border-color 0.15s',
+              WebkitAppearance: 'none',
+              cursor: 'text',
+            }}
+            onFocus={e => e.target.style.borderColor = '#6366f1'}
+            onBlur={e => e.target.style.borderColor = '#374151'}
+          />
+          <button
+            type="button"
+            onClick={sendMessage}
+            disabled={!input.trim()}
+            style={{
+              width: 40, height: 40, borderRadius: '8px',
+              background: input.trim() ? '#6366f1' : '#1f2937',
+              border: 'none', color: 'white',
+              cursor: input.trim() ? 'pointer' : 'default',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '16px', flexShrink: 0,
+              transition: 'background 0.15s',
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >↗</button>
+        </div>
+      )}
     </div>
   )
 }
