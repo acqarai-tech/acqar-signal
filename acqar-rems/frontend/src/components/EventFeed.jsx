@@ -714,10 +714,11 @@ WebkitOverflowScrolling: 'touch',
         </div>
 
         {/* Price */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', marginBottom: '2px' }}>
-          <span style={{ fontSize: '11px', color: '#B87333', fontWeight: 700, marginBottom: '4px' }}>Đ</span>
-          <span style={{ fontSize: '32px', fontWeight: 900, color: '#B87333', lineHeight: 1 }}>29</span>
-        </div>
+        {/* Price */}
+<div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', marginBottom: '2px' }}>
+  <span style={{ fontSize: '11px', color: '#B87333', fontWeight: 900, marginBottom: '4px', letterSpacing: '0.05em' }}>AED</span>
+  <span style={{ fontSize: '32px', fontWeight: 900, color: '#B87333', lineHeight: 1 }}>29</span>
+</div>
         <div style={{
           fontSize: '9px', fontWeight: 700, color: '#B87333',
           letterSpacing: '0.6px', marginBottom: '12px',
@@ -1024,7 +1025,6 @@ export default function EventFeed({ plan = 'free' }) {
     </div>
   )
 }
-
 
 
 
