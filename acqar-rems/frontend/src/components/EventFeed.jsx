@@ -591,12 +591,14 @@ export default function EventFeed({ plan = 'free' }) {
           return eventTs >= thirtyMinutesAgo
         })
  case 'reports':
-  const cutoff72h = Date.now() / 1000 - (72 * 3600)
+  const cutoff168h = Date.now() / 1000 - (168 * 3600)
   const reportEvents = filteredEvents.filter(e =>
     e.severity >= 4 &&
-    (e.created_at_ts || new Date(e.created_at).getTime() / 1000) >= cutoff72h
+    (e.created_at_ts || new Date(e.created_at).getTime() / 1000) >= cutoff168h
   )
-  return reportEvents.slice(0, isFree ? 4 : reportEvents.length)
+  // For free users always return at least the events so the blur overlay shows
+  if (isFree) return reportEvents.length > 0 ? reportEvents.slice(0, 4) : filteredEvents.filter(e => e.severity >= 4).slice(0, 4)
+  return reportEvents
       case 'feed':
       default:
         return filteredEvents
