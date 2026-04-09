@@ -224,11 +224,11 @@ class PipelineService:
         self.app_state = None
 
     async def start(self, app_state):
-        """Start the background pipeline loop"""
+        """Start the background pipeline loop — no fake seed data."""
         self.app_state = app_state
         self.is_running = True
         self._task = asyncio.create_task(self._run_loop())
-        logger.info("Pipeline started")
+        logger.info("Pipeline started — waiting for first real fetch cycle")
 
     async def stop(self):
         """Stop the pipeline"""
@@ -246,13 +246,12 @@ class PipelineService:
                 self.errors.append(str(e))
                 if len(self.errors) > 10:
                     self.errors = self.errors[-10:]
-            await asyncio.sleep(180)
+            await asyncio.sleep(180)  # 3 minutes
 
     async def _fetch_and_process(self):
-        """One fetch cycle: RSS + GDELT + classify + store + emit"""
+        """One fetch cycle: RSS + GDELT → classify → store → emit"""
         logger.info("Starting fetch cycle...")
         try:
-            import sys, os
             backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             if backend_dir not in sys.path:
                 sys.path.insert(0, backend_dir)
@@ -283,9 +282,10 @@ class PipelineService:
             dld = DLDFetcher()
             classifier = EventClassifier()
 
+            # All fetchers now use dynamic year + 48h date filter
             fetch_tasks = [
-                asyncio.create_task(rss.fetch_all()),
-                asyncio.create_task(gdelt.fetch_dubai_events(hours_back=2)),
+                asyncio.create_task(rss.fetch_all(hours_back=48)),
+                asyncio.create_task(gdelt.fetch_dubai_events(hours_back=48)),
                 asyncio.create_task(reddit.fetch_all()),
                 asyncio.create_task(dld.fetch_google_news_transaction_signals()),
             ]
@@ -313,6 +313,7 @@ class PipelineService:
 
             logger.info(f"Total articles fetched: {len(articles)}")
 
+            # Dubai RE relevance filter
             def _is_relevant(a: dict) -> bool:
                 text = (a.get("title", "") + " " + a.get("summary", "")).lower()
                 has_dubai = any(kw in text for kw in [
@@ -328,16 +329,18 @@ class PipelineService:
 
             before = len(articles)
             articles = [a for a in articles if _is_relevant(a)]
-            logger.info(f"Relevance filter: {before} to {len(articles)} articles")
+            logger.info(f"Relevance filter: {before} → {len(articles)} articles (Dubai RE only)")
 
             if not articles:
                 logger.info("No new articles this cycle")
                 self.last_fetch_at = datetime.now(timezone.utc)
                 return []
 
+            # Classify all articles
             events = classifier.classify_batch(articles)
             logger.info(f"Classified {len(events)} events")
 
+            # Store new events (deduplicate)
             new_events = []
             for event in events:
                 event_id = event.get('id')
@@ -346,7 +349,11 @@ class PipelineService:
                     event['created_at'] = datetime.now(timezone.utc).isoformat()
                     event['updated_at'] = datetime.now(timezone.utc).isoformat()
                     if 'signals' not in event:
-                        event['signals'] = [{'source': event.get('source', 'RSS'), 'url': event.get('url', ''), 'snippet': event.get('title', '')[:100]}]
+                        event['signals'] = [{
+                            'source': event.get('source', 'RSS'),
+                            'url': event.get('url', ''),
+                            'snippet': event.get('title', '')[:100]
+                        }]
                     self.app_state.events_store[event_id] = event
                     new_events.append(event)
                     self.events_fetched_today += 1
@@ -355,10 +362,12 @@ class PipelineService:
             self.app_state.pipeline_status = self.get_status()
             self.app_state.last_event_at = self.last_fetch_at.isoformat()
 
-           if new_events and hasattr(self.app_state, 'sio'):
-                for event in new_events[:20]:
+            # Emit new events via Socket.io (max 5 per cycle)
+            if new_events and hasattr(self.app_state, 'sio'):
+                for event in new_events[:5]:
                     await self.app_state.sio.emit('new_event', event)
 
+            # Emit signal row update
             if new_events and hasattr(self.app_state, 'sio'):
                 try:
                     await self.app_state.sio.emit("signal_row_update", {
@@ -390,13 +399,13 @@ class PipelineService:
                 "Zawya RE RSS",
                 "Property Finder Blog RSS",
                 "Bayut Blog RSS",
-                "Google News: DLD/RERA",
-                "Google News: Emaar/DAMAC/Nakheel",
-                "Google News: Dubai Transactions",
-                "Google News: Palm/Marina/Downtown",
-                "Google News: Off-Plan Launches",
-                "Google News: Dubai Investment",
-                "DLD Transaction Signals",
+                "Google News: DLD/RERA (dynamic year)",
+                "Google News: Emaar/DAMAC/Nakheel (dynamic year)",
+                "Google News: Dubai Transactions (dynamic year)",
+                "Google News: Palm/Marina/Downtown (dynamic year)",
+                "Google News: Off-Plan Launches (dynamic year)",
+                "Google News: Dubai Investment (dynamic year)",
+                "DLD Transaction Signals (dynamic year)",
                 "Reddit (r/DubaiRealEstate)",
             ],
             "errors": self.errors[-5:]
