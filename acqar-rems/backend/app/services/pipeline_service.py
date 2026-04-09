@@ -253,7 +253,7 @@ class PipelineService:
         if self._task:
             self._task.cancel()
 
-   async def _run_loop(self):
+    async def _run_loop(self):
         """Main loop: fetch every 3 minutes"""
         _seed_refresh_counter = 0
         while self.is_running:
@@ -434,7 +434,6 @@ class PipelineService:
             ],
             "errors": self.errors[-5:]
         }
-
 
 
 
