@@ -362,7 +362,8 @@ async def connect(sid, environ):
     app.state.chat_connections += 1
     app.state.monitor_count += 1
     logger.info(f"Client connected: {sid}")
-    events = list(app.state.events_store.values())[-20:]
+    all_events = list(app.state.events_store.values())
+    events = [e for e in all_events if not e.get('is_seed') and not e.get('is_demo')][-20:]
     await sio.emit('initial_events', {'events': events}, to=sid)
     await sio.emit('market_update', {'monitor_count': app.state.monitor_count}, to=sid)
 
