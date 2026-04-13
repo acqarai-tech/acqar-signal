@@ -3067,7 +3067,7 @@ useEffect(() => {
     padding: '5px 10px', borderRadius: '6px',
     textDecoration: 'none',
   }}
->Upgrade</a>
+>CLAIM YOUR SPOT → </a>
         </div>
       )}
 
