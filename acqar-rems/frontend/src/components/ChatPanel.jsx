@@ -3654,7 +3654,7 @@ useEffect(() => {
             🔒 <strong>Read-only.</strong> Upgrade to ACQAR Pro to chat.
           </span>
         <a 
-  href="https://acqar.vercel.app/pricing"
+  href="https://www.acqar.com/pricing"
   target="_top"
   rel="noopener noreferrer"
  style={{
