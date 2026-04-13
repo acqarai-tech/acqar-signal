@@ -813,14 +813,7 @@ import { useEvents } from '../context/EventsContext'
 import EventCard from './EventCard'
 import ReactDOM from 'react-dom'
 
-<style>{`
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-  
-  @keyframes livePulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
-  }
-`}</style>
+
 // ─── Plan config ────────────────────────────────────────────────────────────
 // Set this from your auth context / user state.
 // true  = free user  → Reports tab is locked
@@ -867,7 +860,7 @@ const SEVERITY_COLORS = {
       />
 
       {/* Card */}
-      <div style={{
+           <div className="pro-popup-card" style={{
         position: 'fixed',
         top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
@@ -876,6 +869,8 @@ const SEVERITY_COLORS = {
         maxHeight: '90dvh',
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
         background: '#fff',
         borderRadius: '20px',
         padding: '28px 24px',
@@ -1299,9 +1294,15 @@ export default function EventFeed({ plan = 'free' }) {
       )}
 
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
         @keyframes livePulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        .pro-popup-card::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </div>
