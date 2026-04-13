@@ -3650,7 +3650,7 @@ useEffect(() => {
           gap: '6px',
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: '9px', color: 'white', flexShrink: 1, minWidth: 0 }}>
+          <span style={{ fontSize: '10px', color: 'white', flexShrink: 1, minWidth: 0 }}>
             🔒 <strong>Read-only.</strong> Upgrade to ACQAR Pro to chat.
           </span>
         <a 
