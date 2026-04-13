@@ -3644,9 +3644,10 @@ useEffect(() => {
       {authUser && !canChat && (
         <div style={{
           padding: '10px 12px',
-          background: 'rgba(99,102,241,0.1)',
-          borderTop: '1px solid rgba(99,102,241,0.25)',
+          background: '#0d1117',
+          borderTop: '1px solid #1f2937',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: '10px',
           flexShrink: 0,
         }}>
           <span style={{ fontSize: '11px', color: 'white', flexShrink: 1, minWidth: 0 }}>
