@@ -811,7 +811,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useEvents } from '../context/EventsContext'
 import EventCard from './EventCard'
+import ReactDOM from 'react-dom'
 
+<style>{`
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+`}</style>
 // ─── Plan config ────────────────────────────────────────────────────────────
 // Set this from your auth context / user state.
 // true  = free user  → Reports tab is locked
@@ -834,7 +843,18 @@ const SEVERITY_COLORS = {
 // ─── Pricing Popup ───────────────────────────────────────────────────────────
 
     function ProUpgradePopup({ onClose }) {
-  return (
+  // Mount to document.body so it escapes overflow:hidden parent
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  if (!mounted) return null
+
+  return ReactDOM.createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -842,7 +862,7 @@ const SEVERITY_COLORS = {
         style={{
           position: 'fixed', inset: 0,
           background: 'rgba(0,0,0,0.55)',
-          zIndex: 30,
+          zIndex: 99999,
         }}
       />
 
@@ -851,7 +871,7 @@ const SEVERITY_COLORS = {
         position: 'fixed',
         top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
-        zIndex: 31,
+        zIndex: 100000,
         width: 'min(420px, calc(100vw - 32px))',
         maxHeight: '90dvh',
         overflowY: 'auto',
@@ -860,8 +880,9 @@ const SEVERITY_COLORS = {
         borderRadius: '20px',
         padding: '28px 24px',
         boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        WebkitFontSmoothing: 'antialiased',
       }}>
-
         {/* Close */}
         <button
           onClick={onClose}
@@ -885,7 +906,7 @@ const SEVERITY_COLORS = {
         <h2 style={{
           fontSize: 38, fontWeight: 900, fontStyle: 'italic',
           letterSpacing: '-1px', textTransform: 'uppercase',
-          color: '#1a1a1a', marginBottom: 10, lineHeight: 1,
+          color: '#1a1a1a', lineHeight: 1,
           margin: '0 0 10px 0',
         }}>
           ACQAR PRO
@@ -894,7 +915,7 @@ const SEVERITY_COLORS = {
         {/* Description */}
         <p style={{
           fontSize: 13, color: '#666',
-          lineHeight: 1.6, marginBottom: 20, fontWeight: 500,
+          lineHeight: 1.6, fontWeight: 500,
           margin: '0 0 20px 0',
         }}>
           For property owners and buyers who need Dubai real estate intelligence platform.
@@ -962,39 +983,86 @@ const SEVERITY_COLORS = {
         </div>
 
         {/* CTA Button */}
+       {/* CTA Button */}
         <a
           href={PRICING_URL}
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            display: 'block', textAlign: 'center',
-            background: '#B87333', color: '#fff',
-            borderRadius: '12px', fontSize: 13, fontWeight: 900,
-            letterSpacing: '0.1em', padding: '14px',
-            textTransform: 'uppercase', textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            background: '#B87333',
+            color: '#fff',
+            borderRadius: '12px',
+            fontSize: 16,
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            padding: '16px 32px',
+            textDecoration: 'none',
             marginBottom: 10,
+            boxShadow: '0 8px 32px rgba(184,115,51,0.30)',
+            transition: 'all 0.2s',
+            fontFamily: "'Inter', system-ui, sans-serif",
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#D4924A'
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(184,115,51,0.40)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = '#B87333'
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(184,115,51,0.30)'
           }}
         >
           CLAIM YOUR SPOT →
         </a>
-
+        {/* Dismiss */}
         {/* Dismiss */}
         <button
           onClick={onClose}
           style={{
-            display: 'block', width: '100%', textAlign: 'center',
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 11, color: '#aaa', fontWeight: 700,
-            letterSpacing: '0.08em', textTransform: 'uppercase', padding: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            width: '100%',
+            padding: '14px 24px',
+            background: 'transparent',
+            color: 'rgba(26,26,26,0.45)',
+            border: '1px solid rgba(26,26,26,0.15)',
+            borderRadius: '12px',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontFamily: "'Inter', system-ui, sans-serif",
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#1a1a1a'
+            e.currentTarget.style.borderColor = 'rgba(26,26,26,0.3)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = 'rgba(26,26,26,0.45)'
+            e.currentTarget.style.borderColor = 'rgba(26,26,26,0.15)'
           }}
         >
-          MAYBE LATER
+          Maybe Later
         </button>
 
       </div>
-    </>
+    </>,
+    document.body
   )
 }
+  
+
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function EventFeed({ plan = 'free' }) {
@@ -1239,6 +1307,5 @@ export default function EventFeed({ plan = 'free' }) {
     </div>
   )
 }
-
 
 
