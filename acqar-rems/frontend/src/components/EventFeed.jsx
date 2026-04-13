@@ -818,7 +818,7 @@ import ReactDOM from 'react-dom'
 // Set this from your auth context / user state.
 // true  = free user  → Reports tab is locked
 // false = pro user   → Reports tab is fully accessible
-const PRICING_URL = 'https://acqar.vercel.app/pricing'
+const PRICING_URL = 'https://www.acqar.com/pricing'
 
 // Replace this line with real auth context later:
 // const { plan } = useAuth()
