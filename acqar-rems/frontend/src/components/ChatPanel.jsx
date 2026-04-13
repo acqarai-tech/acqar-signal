@@ -3647,7 +3647,7 @@ useEffect(() => {
           background: '#0d1117',
           borderTop: '1px solid #1f2937',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: '10px',
+          gap: '6px',
           flexShrink: 0,
         }}>
           <span style={{ fontSize: '11px', color: 'white', flexShrink: 1, minWidth: 0 }}>
