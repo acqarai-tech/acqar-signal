@@ -3649,7 +3649,7 @@ useEffect(() => {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: '11px', color: '#818cf8', flexShrink: 1, minWidth: 0 }}>
+          <span style={{ fontSize: '11px', color: 'white', flexShrink: 1, minWidth: 0 }}>
             🔒 <strong>Read-only.</strong> Upgrade to Pro to join the conversation.
           </span>
         <a 
