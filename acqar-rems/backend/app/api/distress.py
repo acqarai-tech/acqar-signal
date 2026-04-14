@@ -1,9 +1,9 @@
-# backend/app/api/distress.py
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
-import httpx, hashlib
+import httpx, hashlib, re
 import xml.etree.ElementTree as ET
-import re
+from email.utils import parsedate_to_datetime
+from urllib.parse import urlparse, parse_qs, unquote
 
 router = APIRouter(prefix="/api/distress", tags=["distress"])
 
@@ -12,21 +12,50 @@ DISTRESS_KEYWORDS = [
     "must sell", "price drop", "deal alert", "below op price",
     "below original price", "offplan loss", "handover issue",
     "transfer ready", "urgent", "below asking", "quick sale",
-    "investor loss", "distressed", "forced sale", "selling at loss"
+    "investor loss", "distressed", "forced sale", "selling at loss",
+    "dubai", "property", "real estate"
 ]
 
-# Google News RSS searches — always works, never blocked
 RSS_FEEDS = [
     "https://news.google.com/rss/search?q=distress+deal+dubai+real+estate&hl=en&gl=AE&ceid=AE:en",
     "https://news.google.com/rss/search?q=urgent+sale+dubai+property&hl=en&gl=AE&ceid=AE:en",
     "https://news.google.com/rss/search?q=below+market+price+dubai+apartment&hl=en&gl=AE&ceid=AE:en",
     "https://news.google.com/rss/search?q=motivated+seller+dubai+property&hl=en&gl=AE&ceid=AE:en",
-    "https://news.google.com/rss/search?q=dubai+property+price+drop+2025&hl=en&gl=AE&ceid=AE:en",
+    "https://news.google.com/rss/search?q=dubai+property+price+drop+2026&hl=en&gl=AE&ceid=AE:en",
+    "https://news.google.com/rss/search?q=dubai+distressed+property+sale&hl=en&gl=AE&ceid=AE:en",
 ]
 
-def clean_html(text):
-    """Remove HTML tags from text"""
-    return re.sub(r'<[^>]+>', '', text or '').strip()
+def clean_text(text):
+    """Remove HTML tags and fix HTML entities"""
+    text = re.sub(r'<[^>]+>', '', text or '')
+    text = text.replace('&nbsp;', ' ')
+    text = text.replace('&amp;', '&')
+    text = text.replace('&lt;', '<')
+    text = text.replace('&gt;', '>')
+    text = text.replace('&quot;', '"')
+    return text.strip()
+
+async def resolve_google_news_url(client, google_url):
+    """
+    Try to get the real article URL from Google News redirect.
+    Google News URLs look like: https://news.google.com/rss/articles/CBMi...
+    We follow the redirect to get the real URL.
+    """
+    try:
+        resp = await client.get(
+            google_url,
+            follow_redirects=True,
+            timeout=8,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; ACQAR/1.0)"}
+        )
+        # After redirects, the final URL is the real article
+        final_url = str(resp.url)
+        # If it's still a google URL, return original
+        if "google.com" in final_url:
+            return google_url
+        return final_url
+    except Exception:
+        return google_url  # fallback to Google News URL
 
 async def fetch_distress_deals():
     deals = []
@@ -49,42 +78,40 @@ async def fetch_distress_deals():
                 items = root.findall(".//item")
 
                 for item in items:
-                    title = clean_html(item.findtext("title", ""))
-                    description = clean_html(item.findtext("description", ""))
-                    link = item.findtext("link", "")
+                    title = clean_text(item.findtext("title", ""))
+                    description = clean_text(item.findtext("description", ""))
+                    google_link = item.findtext("link", "")
                     pub_date_str = item.findtext("pubDate", "")
                     source_tag = item.find("source")
                     source_name = source_tag.text if source_tag is not None else "News"
 
                     # Parse date
                     try:
-                        from email.utils import parsedate_to_datetime
                         pub_date = parsedate_to_datetime(pub_date_str)
                         if pub_date.tzinfo is None:
                             pub_date = pub_date.replace(tzinfo=timezone.utc)
-                        # Skip if older than 7 days
                         if pub_date < week_ago:
                             continue
                     except Exception:
                         pub_date = datetime.now(timezone.utc)
 
                     combined = (title + " " + description).lower()
-
-                    # Must match at least one distress keyword
                     if not any(kw in combined for kw in DISTRESS_KEYWORDS):
                         continue
 
-                    # Deduplicate by title
                     title_hash = hashlib.md5(title.encode()).hexdigest()[:12]
                     if title_hash in seen:
                         continue
                     seen.add(title_hash)
 
+                    # ── Resolve real URL ──
+                    real_url = await resolve_google_news_url(client, google_link)
+
                     deals.append({
                         "id": title_hash,
                         "title": title,
                         "body": description[:800],
-                        "url": link,
+                        "url": real_url,          # ← real article URL now
                         "source": source_name,
                         "score": 0,
                         "posted_at": pub_date.isoformat(),
@@ -92,7 +119,7 @@ async def fetch_distress_deals():
                     })
 
             except Exception as e:
-                print(f"RSS feed error [{feed_url}]: {e}")
+                print(f"RSS feed error: {e}")
                 continue
 
     # Fallback mock data
@@ -102,7 +129,7 @@ async def fetch_distress_deals():
             {
                 "id": "mock1",
                 "title": "DISTRESS DEAL ALERT – 1BR JVC Below Original Price | Urgent AED 650K",
-                "body": "Owner relocating urgently. Bought off-plan at AED 780K. Accepting AED 650K for quick transfer. Unit ready, no mortgage.",
+                "body": "Owner relocating urgently. Bought off-plan at AED 780K. Accepting AED 650K for quick transfer.",
                 "url": "https://www.reddit.com/r/DubaiRealEstate",
                 "source": "r/DubaiRealEstate",
                 "score": 47,
@@ -118,16 +145,6 @@ async def fetch_distress_deals():
                 "score": 83,
                 "posted_at": now_iso,
                 "flair": "For Sale",
-            },
-            {
-                "id": "mock3",
-                "title": "Price Drop – Studio Business Bay, Handover Delayed, Selling at Loss",
-                "body": "Paid AED 520K off-plan, selling for AED 470K. Transfer ready immediately.",
-                "url": "https://www.reddit.com/r/DubaiRealEstate",
-                "source": "r/DubaiRealEstate",
-                "score": 29,
-                "posted_at": now_iso,
-                "flair": "Off-Plan Loss",
             },
         ]
 
