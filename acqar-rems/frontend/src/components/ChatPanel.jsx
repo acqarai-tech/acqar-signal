@@ -3787,39 +3787,39 @@ function buildMessagesFromEvents(events) {
   // Each event generates a mini thread: opener → 1-2 replies → follow-up
   // Personas react differently based on their role
   const threads = [
-    (e) => [
-      { name: 'Khalid Al Mansouri', msg: `Just saw this: "${e.title}". Anyone else tracking this? I picked up a unit in ${e.location_name || 'Business Bay'} last week — timing felt right.` },
-      { name: 'James Crawford',     msg: `Yes — ${e.location_name ? e.location_name + ' is moving fast right now.' : 'That area is moving fast.'} Closed a similar deal for a client recently, demand is very strong.` },
-      { name: 'Marco Ferretti',     msg: `Re: "${e.title.slice(0, 55)}..." — what is the typical service charge psf in that zone? That is always my first question.` },
-      { name: 'Khalid Al Mansouri', msg: `Around AED 12–16/sqft depending on the building. Net yield still works out at 6.5–7% in most cases — comfortable entry.` },
-    ],
-    (e) => [
-      { name: 'Sara Al Hashimi',    msg: `This caught my eye today: "${e.title}". I have a unit listed in ${e.location_name || 'JVC'} right now — feels like good timing to sell.` },
-      { name: 'James Crawford',     msg: `Sara — ${e.location_name || 'that area'} has had strong enquiry volume this week. How are you priced vs recent DLD transactions?` },
-      { name: 'Marco Ferretti',     msg: `Is "${e.title.slice(0, 45)}..." affecting asking prices in ${e.location_name || 'that zone'}? I am actively looking to buy right now.` },
-      { name: 'Sara Al Hashimi',    msg: `Marco — prices are firm. Sellers know the demand is there. If you are serious about ${e.location_name || 'this area'}, move quickly.` },
-    ],
-    (e) => [
-      { name: 'Marco Ferretti',     msg: `Group — just read: "${e.title}". How does this change the buy-vs-wait decision for ${e.location_name || 'Dubai'} right now?` },
-      { name: 'James Crawford',     msg: `Marco — in my view it accelerates the timeline for buyers. ${e.location_name || 'This market'} does not wait. Inventory at this price point is thin.` },
-      { name: 'Sara Al Hashimi',    msg: `Agreed. I had a client hesitate 2 weeks on a unit in ${e.location_name || 'Business Bay'} and lost it AED 80k above their original offer.` },
-      { name: 'Khalid Al Mansouri', msg: `The signal is clear from "${e.title.slice(0, 55)}...". I am deploying more capital in ${e.location_name || 'core Dubai'} this quarter.` },
-    ],
-    (e) => [
-      { name: 'James Crawford',     msg: `Market update: "${e.title}". Seeing this play out directly in transactions — ${e.location_name || 'villa segment'} especially active.` },
-      { name: 'Khalid Al Mansouri', msg: `James — ${e.location_name ? e.location_name + ' inventory' : 'Inventory'} is very thin right now. Seeing multiple offers on anything well-priced.` },
-      { name: 'Sara Al Hashimi',    msg: `I have a listing in ${e.location_name || 'Damac Hills'} with 6 viewings this week alone. Sellers are firmly in control right now.` },
-      { name: 'Marco Ferretti',     msg: `What is the 90-day outlook for ${e.location_name || 'this area'} given: "${e.title.slice(0, 50)}..."?` },
-      { name: 'James Crawford',     msg: `Strong. End-users dominate right now, not speculators. That makes price support more durable — less downside risk.` },
-    ],
-    (e) => [
-      { name: 'Sara Al Hashimi',    msg: `New signal: "${e.title}". Anyone already positioned in ${e.location_name || 'this area'}?` },
-      { name: 'Khalid Al Mansouri', msg: `Sara — yes, I have 2 units in ${e.location_name || 'that zone'}. This news supports my thesis completely. Holding long term.` },
-      { name: 'James Crawford',     msg: `For context on "${e.title.slice(0, 50)}..." — I have had 3 separate buyer enquiries about ${e.location_name || 'this area'} just today alone.` },
-      { name: 'Marco Ferretti',     msg: `What entry price makes sense in ${e.location_name || 'this market'} given current signals?` },
-      { name: 'Khalid Al Mansouri', msg: `Marco — depends on exit timeline. For 3+ years, almost any entry in ${e.location_name || 'core Dubai'} works. The fundamentals are solid.` },
-    ],
-  ]
+  (e) => [
+    { name: 'Khalid Al Mansouri', msg: `Just saw this: "${e.title}". Anyone else tracking this? I picked up a unit in ${e.location_name || 'Business Bay'} last week — timing felt right.` },
+    { name: 'James Crawford',     msg: `Yes — ${e.location_name ? e.location_name + ' is moving fast right now.' : 'That area is moving fast.'} Closed a similar deal for a client recently, demand is very strong.` },
+    { name: 'Marco Ferretti',     msg: `Re: "${e.title.slice(0, 55)}..." — what is the typical service charge psf in that zone? That is always my first question.` },
+    { name: 'Khalid Al Mansouri', msg: `Around AED 12–16/sqft depending on the building. Net yield still works out at 6.5–7% in most cases — comfortable entry.` },
+  ],
+  (e) => [
+    { name: 'Sara Al Hashimi',    msg: `This caught my eye today: "${e.title}". I have a unit listed in ${e.location_name || 'JVC'} right now — feels like good timing to sell.` },
+    { name: 'James Crawford',     msg: `Sara — ${e.location_name || 'that area'} has had strong enquiry volume this week. How are you priced vs recent DLD transactions?` },
+    { name: 'Marco Ferretti',     msg: `Is "${e.title.slice(0, 45)}..." affecting asking prices in ${e.location_name || 'that zone'}? I am actively looking to buy right now.` },
+    { name: 'Sara Al Hashimi',    msg: `Marco — prices are firm. Sellers know the demand is there. If you are serious about ${e.location_name || 'this area'}, move quickly.` },
+  ],
+  (e) => [
+    { name: 'Marco Ferretti',     msg: `Group — just read: "${e.title}". How does this change the buy-vs-wait decision for ${e.location_name || 'Dubai'} right now?` },
+    { name: 'James Crawford',     msg: `Marco — in my view it accelerates the timeline for buyers. ${e.location_name || 'This market'} does not wait. Inventory at this price point is thin.` },
+    { name: 'Sara Al Hashimi',    msg: `Agreed. I had a client hesitate 2 weeks on a unit in ${e.location_name || 'Business Bay'} and lost it AED 80k above their original offer.` },
+    { name: 'Khalid Al Mansouri', msg: `The signal is clear from "${e.title.slice(0, 55)}...". I am deploying more capital in ${e.location_name || 'core Dubai'} this quarter.` },
+  ],
+  (e) => [
+    { name: 'James Crawford',     msg: `Market update: "${e.title}". Seeing this play out directly in transactions — ${e.location_name || 'villa segment'} especially active.` },
+    { name: 'Khalid Al Mansouri', msg: `James — ${e.location_name ? e.location_name + ' inventory' : 'Inventory'} is very thin right now. Seeing multiple offers on anything well-priced.` },
+    { name: 'Sara Al Hashimi',    msg: `I have a listing in ${e.location_name || 'Damac Hills'} with 6 viewings this week alone. Sellers are firmly in control right now.` },
+    { name: 'Marco Ferretti',     msg: `What is the 90-day outlook for ${e.location_name || 'this area'} given: "${e.title.slice(0, 50)}..."?` },
+    { name: 'James Crawford',     msg: `Strong. End-users dominate right now, not speculators. That makes price support more durable — less downside risk.` },
+  ],
+  (e) => [
+    { name: 'Sara Al Hashimi',    msg: `New signal: "${e.title}". Anyone already positioned in ${e.location_name || 'this area'}?` },
+    { name: 'Khalid Al Mansouri', msg: `Sara — yes, I have 2 units in ${e.location_name || 'that zone'}. This news supports my thesis completely. Holding long term.` },
+    { name: 'James Crawford',     msg: `For context on "${e.title.slice(0, 50)}..." — I have had 3 separate buyer enquiries about ${e.location_name || 'this area'} just today alone.` },
+    { name: 'Marco Ferretti',     msg: `What entry price makes sense in ${e.location_name || 'this market'} given current signals?` },
+    { name: 'Khalid Al Mansouri', msg: `Marco — depends on exit timeline. For 3+ years, almost any entry in ${e.location_name || 'core Dubai'} works. The fundamentals are solid.` },
+  ],
+]
   const chat = []
   top.forEach((event, i) => {
     const thread = threads[i % threads.length](event)
