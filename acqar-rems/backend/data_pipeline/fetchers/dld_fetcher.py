@@ -33,16 +33,16 @@ FRANKFURTER_URL = "https://api.frankfurter.app/latest?from=USD&to=AED"
 # Area price benchmarks from known public sources
 # These are RERA published averages (update quarterly from RERA reports)
 RERA_AREA_BENCHMARKS = {
-    "Downtown Dubai": {"price_sqft_aed": 3200, "rental_yield_pct": 5.8, "source": "RERA Q4 2024"},
-    "Palm Jumeirah": {"price_sqft_aed": 2950, "rental_yield_pct": 4.5, "source": "RERA Q4 2024"},
-    "Dubai Marina": {"price_sqft_aed": 1850, "rental_yield_pct": 6.8, "source": "RERA Q4 2024"},
-    "Business Bay": {"price_sqft_aed": 1650, "rental_yield_pct": 7.2, "source": "RERA Q4 2024"},
-    "JVC": {"price_sqft_aed": 1100, "rental_yield_pct": 8.1, "source": "RERA Q4 2024"},
-    "Arabian Ranches": {"price_sqft_aed": 1450, "rental_yield_pct": 5.5, "source": "RERA Q4 2024"},
-    "Dubai Hills": {"price_sqft_aed": 1620, "rental_yield_pct": 5.9, "source": "RERA Q4 2024"},
-    "DIFC": {"price_sqft_aed": 2800, "rental_yield_pct": 5.9, "source": "RERA Q4 2024"},
-    "Jumeirah": {"price_sqft_aed": 2100, "rental_yield_pct": 5.2, "source": "RERA Q4 2024"},
-    "Mirdif": {"price_sqft_aed": 950, "rental_yield_pct": 7.8, "source": "RERA Q4 2024"},
+    "Downtown Dubai": {"price_sqft_aed": 3200, "rental_yield_pct": 5.8, "source": "RERA Q4 2026"},
+    "Palm Jumeirah": {"price_sqft_aed": 2950, "rental_yield_pct": 4.5, "source": "RERA Q4 2026"},
+    "Dubai Marina": {"price_sqft_aed": 1850, "rental_yield_pct": 6.8, "source": "RERA Q4 2026"},
+    "Business Bay": {"price_sqft_aed": 1650, "rental_yield_pct": 7.2, "source": "RERA Q4 2026"},
+    "JVC": {"price_sqft_aed": 1100, "rental_yield_pct": 8.1, "source": "RERA Q4 2026"},
+    "Arabian Ranches": {"price_sqft_aed": 1450, "rental_yield_pct": 5.5, "source": "RERA Q4 2026"},
+    "Dubai Hills": {"price_sqft_aed": 1620, "rental_yield_pct": 5.9, "source": "RERA Q4 2026"},
+    "DIFC": {"price_sqft_aed": 2800, "rental_yield_pct": 5.9, "source": "RERA Q4 2026"},
+    "Jumeirah": {"price_sqft_aed": 2100, "rental_yield_pct": 5.2, "source": "RERA Q4 2026"},
+    "Mirdif": {"price_sqft_aed": 950, "rental_yield_pct": 7.8, "source": "RERA Q4 2026"},
 }
 
 
