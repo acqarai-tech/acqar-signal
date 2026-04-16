@@ -898,6 +898,7 @@ const CATEGORY_LABELS = {
 
 export default function EventDetail({ hidden = false, onClose }) {
   const { selectedEvent: event, setSelectedEvent } = useEvents()
+  const [expandedSignal, setExpandedSignal] = useState(null)
 
   if (!event || hidden) return null
 
