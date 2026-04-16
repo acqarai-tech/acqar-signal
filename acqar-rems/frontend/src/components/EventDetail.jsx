@@ -876,6 +876,8 @@
 import { useEvents } from '../context/EventsContext'
 import { useState } from 'react'
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 function confidenceLabel(score) {
   const pct = Math.round((score || 0) * 100)
   if (pct < 20) return `${pct}% — Unconfirmed`
@@ -897,16 +899,49 @@ const CATEGORY_LABELS = {
 }
 
 export default function EventDetail({ hidden = false, onClose }) {
-  const { selectedEvent: event, setSelectedEvent } = useEvents()
+ const { selectedEvent: event, setSelectedEvent } = useEvents()
   const [expandedSignal, setExpandedSignal] = useState(null)
+  const [fetchedContent, setFetchedContent] = useState({})
+  const [loadingSignal, setLoadingSignal] = useState(null)
 
   if (!event || hidden) return null
 
   const catColor = CATEGORY_COLORS[event.category] || '#B87333'
 
-  function close() {
+ function close() {
     setSelectedEvent(null)
+    setExpandedSignal(null)
+    setFetchedContent({})
     if (onClose) onClose()
+  }
+
+  async function handleSignalClick(sig, i) {
+    if (expandedSignal === i) {
+      setExpandedSignal(null)
+      return
+    }
+    setExpandedSignal(i)
+
+    // If we already fetched this signal's content, skip
+    if (fetchedContent[i]) return
+
+    // Try to fetch full article via backend proxy
+    if (sig.url) {
+      setLoadingSignal(i)
+      try {
+        const res = await fetch(`${API}/api/fetch-article?url=${encodeURIComponent(sig.url)}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.text) {
+            setFetchedContent(prev => ({ ...prev, [i]: data.text }))
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch article:', e)
+      } finally {
+        setLoadingSignal(null)
+      }
+    }
   }
 
   return (
@@ -1041,14 +1076,14 @@ export default function EventDetail({ hidden = false, onClose }) {
       Signal Sources
     </div>
     {event.signals.map((sig, i) => {
-      const fullText = sig.body || sig.text || sig.full_text || event.summary || sig.snippet || ''
+      const fullText = fetchedContent[i] || sig.body || sig.text || sig.full_text || event.summary || sig.snippet || ''
       const isExpanded = expandedSignal === i
       const preview = fullText.length > 80 ? fullText.slice(0, 80) + '…' : fullText
 
       return (
         <div
           key={i}
-          onClick={() => setExpandedSignal(isExpanded ? null : i)}
+          onClick={() => handleSignalClick(sig, i)}
           style={{
             display: 'flex', alignItems: 'flex-start', gap: 8,
             padding: '8px 0', borderBottom: '1px solid #0F3460',
@@ -1063,7 +1098,11 @@ export default function EventDetail({ hidden = false, onClose }) {
 
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-              {isExpanded ? fullText : preview}
+              {isExpanded
+                ? loadingSignal === i
+                  ? '⏳ Loading full article...'
+                  : fullText
+                : preview}
             </div>
             {sig.url && (
               <a
