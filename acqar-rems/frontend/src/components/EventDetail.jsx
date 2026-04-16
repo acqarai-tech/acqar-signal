@@ -833,7 +833,6 @@ export default function EventDetail({ hidden = false, onClose }) {
               VIEW SOURCE — {(event.source || 'LINK').toUpperCase()} →
             </a>
 
-</a>
 <a
             
               href="https://www.acqar.com/truvalu"
