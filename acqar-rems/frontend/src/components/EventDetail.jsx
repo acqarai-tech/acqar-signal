@@ -623,260 +623,8 @@
 
 
 
-// import { useEvents } from '../context/EventsContext'
-// import { useState } from 'react'
-
-// function confidenceLabel(score) {
-//   const pct = Math.round((score || 0) * 100)
-//   if (pct < 20) return `${pct}% — Unconfirmed`
-//   if (pct < 40) return `${pct}% — Low confidence`
-//   if (pct < 60) return `${pct}% — Developing`
-//   if (pct < 80) return `${pct}% — Probable`
-//   if (pct < 95) return `${pct}% — High confidence`
-//   return `${pct}% — Confirmed`
-// }
-
-// const CATEGORY_COLORS = {
-//   transaction: '#E74C3C', offplan: '#2980B9', construction: '#F39C12',
-//   regulatory: '#8E44AD', infrastructure: '#27AE60', investment: '#16A085'
-// }
-
-// const CATEGORY_LABELS = {
-//   transaction: 'Transaction', offplan: 'Off-Plan', construction: 'Construction',
-//   regulatory: 'Regulatory', infrastructure: 'Infrastructure', investment: 'Investment'
-// }
-
-// export default function EventDetail({ hidden = false, onClose }) {
-//   const { selectedEvent: event, setSelectedEvent } = useEvents()
-
-//   if (!event || hidden) return null
-
-//   const catColor = CATEGORY_COLORS[event.category] || '#B87333'
-
-//   function close() {
-//     setSelectedEvent(null)
-//     if (onClose) onClose()
-//   }
-
-//   return (
-//     // ── STEP 2: Overlay backdrop ──
-//     <div
-//       onClick={e => { if (e.target === e.currentTarget) close() }}
-//       style={{
-//         position: 'fixed', inset: 0,
-//         background: 'rgba(0,0,0,0.65)',
-//         zIndex: 100000,
-//         display: 'flex', alignItems: 'center', justifyContent: 'center',
-//         padding: 20,
-//       }}
-//     >
-//       {/* ── STEP 3: Modal card ── */}
-//       <div style={{
-//         background: '#0D1B2A',
-//         border: '1px solid #B87333',
-//         borderRadius: 16,
-//         width: '100%', maxWidth: 560,
-//         maxHeight: '85vh', overflowY: 'auto',
-//         padding: 24,
-//         boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
-//         fontFamily: "'Inter', sans-serif",
-//         position: 'relative',
-//       }}>
-
-//         {/* ── STEP 4: Close button ── */}
-//         <button
-//           onClick={close}
-//           style={{
-//             position: 'absolute', top: 14, right: 16,
-//             background: 'none', border: '1px solid #333',
-//             fontSize: 14, cursor: 'pointer',
-//             color: '#B3B3B3', borderRadius: 4, padding: '2px 8px',
-//           }}
-//         >✕</button>
-
-//         {/* ── STEP 5: Top label ── */}
-//         <div style={{
-//           fontSize: 9, fontWeight: 900, color: '#B87333',
-//           letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10,
-//         }}>
-//           MARKET SIGNAL
-//         </div>
-
-//         {/* ── STEP 6: Title ── */}
-//         <h3 style={{
-//           fontSize: 16, fontWeight: 900, color: '#FAFAFA',
-//           marginBottom: 10, lineHeight: 1.4, paddingRight: 32,
-//         }}>
-//           {event.title}
-//         </h3>
-
-//         {/* ── STEP 7: Meta row ── */}
-//         <div style={{
-//           display: 'flex', gap: 8, marginBottom: 20,
-//           fontSize: 10, color: '#666', fontWeight: 600,
-//           flexWrap: 'wrap', alignItems: 'center',
-//         }}>
-//           <span style={{
-//             padding: '2px 8px', borderRadius: 4,
-//             background: catColor + '22', color: catColor,
-//             fontWeight: 700, fontSize: 9, letterSpacing: '0.5px',
-//           }}>
-//             {CATEGORY_LABELS[event.category] || event.category}
-//           </span>
-//           <span>·</span>
-//           <span style={{ color: '#999' }}>{event.location_name}</span>
-//           <span>·</span>
-//           <span style={{ color: '#999' }}>Severity {event.severity}</span>
-//           <span>·</span>
-//           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
-//         </div>
-
-//         {/* ── STEP 8: Summary ── */}
-//         {event.summary && (
-//           <p style={{
-//             fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
-//             marginBottom: 20, whiteSpace: 'pre-wrap',
-//           }}>
-//             {event.summary}
-//           </p>
-//         )}
-
-//         {/* ── STEP 9: Key stats grid ── */}
-//         <div style={{
-//           display: 'grid', gridTemplateColumns: '1fr 1fr',
-//           gap: 8, marginBottom: 20,
-//         }}>
-//           {[
-//             ['📍 Location', event.location_name],
-//             ['📡 Signals', `${event.signal_count} sources`],
-//             event.price_aed
-//               ? ['💰 Price', `AED ${(event.price_aed / 1000000).toFixed(1)}M`]
-//               : ['🔖 Category', CATEGORY_LABELS[event.category]],
-//             ['📰 Source', event.source],
-//           ].map(([label, val]) => (
-//             <div key={label} style={{
-//               background: 'rgba(255,255,255,0.04)',
-//               borderRadius: 6, padding: 10,
-//             }}>
-//               <div style={{ fontSize: 9, color: '#555', marginBottom: 3 }}>{label}</div>
-//               <div style={{ fontSize: 11, color: '#FAFAFA', fontWeight: 600 }}>{val}</div>
-//             </div>
-//           ))}
-//         </div>
-
-//         {/* ── STEP 10: Signal sources ── */}
-//         {event.signals && event.signals.length > 0 && (
-//           <div style={{ marginBottom: 20 }}>
-//             <div style={{
-//               fontSize: 10, color: '#B87333', fontWeight: 700,
-//               marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
-//             }}>
-//               Signal Sources
-//             </div>
-//             {event.signals.map((sig, i) => (
-//               <div key={i} style={{
-//                 display: 'flex', alignItems: 'flex-start', gap: 8,
-//                 padding: '8px 0', borderBottom: '1px solid #0F3460',
-//               }}>
-//                 <span style={{
-//                   fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
-//                   background: 'rgba(184,115,51,0.15)', color: '#B87333',
-//                   flexShrink: 0, marginTop: 1,
-//                 }}>{sig.source}</span>
-//                 <div style={{ flex: 1 }}>
-//                   <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.4 }}>
-//                     {sig.snippet}
-//                   </div>
-//                   {sig.url && (
-//                     <a
-//                       href={sig.url} target="_blank" rel="noopener noreferrer"
-//                       style={{
-//                         fontSize: 10, color: '#B87333',
-//                         textDecoration: 'none', borderBottom: '1px dotted #B87333',
-//                       }}
-//                     >
-//                       ↗ View source
-//                     </a>
-//                   )}
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         )}
-
-//         {/* ── STEP 11: Source button at the bottom ── */}
-//         {event.url && (
-//           <div style={{
-//             marginTop: 24, paddingTop: 16,
-//             borderTop: '1px solid #0F3460',
-//           }}>
-//             <div style={{
-//               fontSize: 10, fontWeight: 900, color: '#B87333',
-//               letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12,
-//             }}>
-//               PRIMARY SOURCE
-//             </div>
-//             <a
-//               href={event.url}
-//               target="_blank"
-//               rel="noopener noreferrer"
-//               style={{
-//                 display: 'inline-flex', alignItems: 'center',
-//                 justifyContent: 'center', gap: 8,
-//                 width: '100%', padding: '14px 22px',
-//                 background: '#B87333', color: '#fff',
-//                 borderRadius: 12, fontSize: 13, fontWeight: 700,
-//                 textDecoration: 'none', letterSpacing: '0.02em',
-//                 boxShadow: '0 8px 32px rgba(184,115,51,0.30)',
-//               }}
-//             >
-//               VIEW SOURCE — {(event.source || 'LINK').toUpperCase()} →
-//             </a>
-
-// <a
-            
-//               href="https://www.acqar.com/valuation"
-//               target="_blank"
-//               rel="noopener noreferrer"
-//               style={{
-//                 display: 'inline-flex', alignItems: 'center',
-//                 justifyContent: 'center', gap: 8,
-//                 width: '100%', padding: '14px 22px',
-//                 background: 'rgba(184,115,51,0.15)', color: '#B87333',
-//                 borderRadius: 12, fontSize: 13, fontWeight: 700,
-//                 textDecoration: 'none', letterSpacing: '0.02em',
-//                 border: '1px solid #B87333',
-//                 marginTop: 10,
-//               }}
-//             >
-//               GET PROPERTY VALUATION NOW
-//             </a>
-//           </div>
-//         )}
-          
-
-
-//       </div>
-//     </div>
-//   )
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useEvents } from '../context/EventsContext'
 import { useState } from 'react'
-
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 function confidenceLabel(score) {
   const pct = Math.round((score || 0) * 100)
@@ -899,49 +647,15 @@ const CATEGORY_LABELS = {
 }
 
 export default function EventDetail({ hidden = false, onClose }) {
- const { selectedEvent: event, setSelectedEvent } = useEvents()
-  const [expandedSignal, setExpandedSignal] = useState(null)
-  const [fetchedContent, setFetchedContent] = useState({})
-  const [loadingSignal, setLoadingSignal] = useState(null)
+  const { selectedEvent: event, setSelectedEvent } = useEvents()
 
   if (!event || hidden) return null
 
   const catColor = CATEGORY_COLORS[event.category] || '#B87333'
 
- function close() {
+  function close() {
     setSelectedEvent(null)
-    setExpandedSignal(null)
-    setFetchedContent({})
     if (onClose) onClose()
-  }
-
-  async function handleSignalClick(sig, i) {
-    if (expandedSignal === i) {
-      setExpandedSignal(null)
-      return
-    }
-    setExpandedSignal(i)
-
-    // If we already fetched this signal's content, skip
-    if (fetchedContent[i]) return
-
-    // Try to fetch full article via backend proxy
-    if (sig.url) {
-      setLoadingSignal(i)
-      try {
-        const res = await fetch(`${API}/api/events/fetch-article?url=${encodeURIComponent(sig.url)}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.text) {
-            setFetchedContent(prev => ({ ...prev, [i]: data.text }))
-          }
-        }
-      } catch (e) {
-        console.warn('Could not fetch article:', e)
-      } finally {
-        setLoadingSignal(null)
-      }
-    }
   }
 
   return (
@@ -1017,7 +731,15 @@ export default function EventDetail({ hidden = false, onClose }) {
           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
         </div>
 
-     
+        {/* ── STEP 8: Summary ── */}
+        {event.summary && (
+          <p style={{
+            fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
+            marginBottom: 20, whiteSpace: 'pre-wrap',
+          }}>
+            {event.summary}
+          </p>
+        )}
 
         {/* ── STEP 9: Key stats grid ── */}
         <div style={{
@@ -1043,104 +765,45 @@ export default function EventDetail({ hidden = false, onClose }) {
         </div>
 
         {/* ── STEP 10: Signal sources ── */}
-{event.signals && event.signals.length > 0 && (
-  <div style={{ marginBottom: 20 }}>
-    <div style={{
-      fontSize: 10, color: '#B87333', fontWeight: 700,
-      marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
-    }}>
-      Signal Sources
-    </div>
-    {event.signals.map((sig, i) => {
-      const isExpanded = expandedSignal === i
-      const fullText = fetchedContent[i]
-        || sig.body || sig.text || sig.full_text
-        || event.summary || sig.snippet || ''
-
-      return (
-        <div key={i}>
-          {/* ── Clickable source row ── */}
-          <div
-            onClick={() => setExpandedSignal(isExpanded ? null : i)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '10px 0', borderBottom: isExpanded ? 'none' : '1px solid #0F3460',
-              cursor: 'pointer',
-            }}
-          >
-            <span style={{
-              fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
-              background: 'rgba(184,115,51,0.15)', color: '#B87333',
-              flexShrink: 0,
-            }}>{sig.source}</span>
-
-            <div style={{ flex: 1, fontSize: 11, color: '#B3B3B3', lineHeight: 1.4 }}>
-              {sig.snippet?.slice(0, 60)}…
-            </div>
-
-            <span style={{ fontSize: 9, color: '#555', flexShrink: 0 }}>
-              {isExpanded ? '▲' : '▼'}
-            </span>
-          </div>
-
-          {/* ── Expanded full text panel (like distress deal detail popup) ── */}
-          {isExpanded && (
+        {event.signals && event.signals.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
             <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid #0F3460',
-              borderTop: 'none',
-              borderRadius: '0 0 8px 8px',
-              padding: '14px',
-              marginBottom: 8,
+              fontSize: 10, color: '#B87333', fontWeight: 700,
+              marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
             }}>
-              {/* Source label */}
-              <div style={{
-                fontSize: 9, fontWeight: 900, color: '#B87333',
-                letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
-              }}>
-                {sig.source}
-              </div>
-
-              {/* Full text — same as distress deal body */}
-              {loadingSignal === i ? (
-                <div style={{ fontSize: 12, color: '#666', padding: '8px 0' }}>
-                  ⏳ Fetching article from source...
-                </div>
-              ) : (
-                <p style={{
-                  fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
-                  whiteSpace: 'pre-wrap', marginBottom: 16,
-                }}>
-                  {fullText || 'No content available. Click "View source" to read the full article.'}
-                </p>
-              )}
-
-              {/* View source link */}
-              {sig.url && (
-                <a
-                  href={sig.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center',
-                    justifyContent: 'center', gap: 8,
-                    width: '100%', padding: '12px 18px',
-                    background: '#B87333', color: '#fff',
-                    borderRadius: 10, fontSize: 12, fontWeight: 700,
-                    textDecoration: 'none', letterSpacing: '0.02em',
-                    boxShadow: '0 8px 24px rgba(184,115,51,0.25)',
-                  }}
-                >
-                  VIEW FULL ARTICLE — {(sig.source || 'SOURCE').toUpperCase()} →
-                </a>
-              )}
+              Signal Sources
             </div>
-          )}
-        </div>
-      )
-    })}
-  </div>
-)}
+            {event.signals.map((sig, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'flex-start', gap: 8,
+                padding: '8px 0', borderBottom: '1px solid #0F3460',
+              }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+                  background: 'rgba(184,115,51,0.15)', color: '#B87333',
+                  flexShrink: 0, marginTop: 1,
+                }}>{sig.source}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.4 }}>
+                    {sig.snippet}
+                  </div>
+                  {sig.url && (
+                    <a
+                      href={sig.url} target="_blank" rel="noopener noreferrer"
+                      style={{
+                        fontSize: 10, color: '#B87333',
+                        textDecoration: 'none', borderBottom: '1px dotted #B87333',
+                      }}
+                    >
+                      ↗ View source
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── STEP 11: Source button at the bottom ── */}
         {event.url && (
           <div style={{
@@ -1197,3 +860,340 @@ export default function EventDetail({ hidden = false, onClose }) {
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { useEvents } from '../context/EventsContext'
+// import { useState } from 'react'
+
+// const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+// function confidenceLabel(score) {
+//   const pct = Math.round((score || 0) * 100)
+//   if (pct < 20) return `${pct}% — Unconfirmed`
+//   if (pct < 40) return `${pct}% — Low confidence`
+//   if (pct < 60) return `${pct}% — Developing`
+//   if (pct < 80) return `${pct}% — Probable`
+//   if (pct < 95) return `${pct}% — High confidence`
+//   return `${pct}% — Confirmed`
+// }
+
+// const CATEGORY_COLORS = {
+//   transaction: '#E74C3C', offplan: '#2980B9', construction: '#F39C12',
+//   regulatory: '#8E44AD', infrastructure: '#27AE60', investment: '#16A085'
+// }
+
+// const CATEGORY_LABELS = {
+//   transaction: 'Transaction', offplan: 'Off-Plan', construction: 'Construction',
+//   regulatory: 'Regulatory', infrastructure: 'Infrastructure', investment: 'Investment'
+// }
+
+// export default function EventDetail({ hidden = false, onClose }) {
+//  const { selectedEvent: event, setSelectedEvent } = useEvents()
+//   const [expandedSignal, setExpandedSignal] = useState(null)
+//   const [fetchedContent, setFetchedContent] = useState({})
+//   const [loadingSignal, setLoadingSignal] = useState(null)
+
+//   if (!event || hidden) return null
+
+//   const catColor = CATEGORY_COLORS[event.category] || '#B87333'
+
+//  function close() {
+//     setSelectedEvent(null)
+//     setExpandedSignal(null)
+//     setFetchedContent({})
+//     if (onClose) onClose()
+//   }
+
+//   async function handleSignalClick(sig, i) {
+//     if (expandedSignal === i) {
+//       setExpandedSignal(null)
+//       return
+//     }
+//     setExpandedSignal(i)
+
+//     // If we already fetched this signal's content, skip
+//     if (fetchedContent[i]) return
+
+//     // Try to fetch full article via backend proxy
+//     if (sig.url) {
+//       setLoadingSignal(i)
+//       try {
+//         const res = await fetch(`${API}/api/events/fetch-article?url=${encodeURIComponent(sig.url)}`)
+//         if (res.ok) {
+//           const data = await res.json()
+//           if (data.text) {
+//             setFetchedContent(prev => ({ ...prev, [i]: data.text }))
+//           }
+//         }
+//       } catch (e) {
+//         console.warn('Could not fetch article:', e)
+//       } finally {
+//         setLoadingSignal(null)
+//       }
+//     }
+//   }
+
+//   return (
+//     // ── STEP 2: Overlay backdrop ──
+//     <div
+//       onClick={e => { if (e.target === e.currentTarget) close() }}
+//       style={{
+//         position: 'fixed', inset: 0,
+//         background: 'rgba(0,0,0,0.65)',
+//         zIndex: 100000,
+//         display: 'flex', alignItems: 'center', justifyContent: 'center',
+//         padding: 20,
+//       }}
+//     >
+//       {/* ── STEP 3: Modal card ── */}
+//       <div style={{
+//         background: '#0D1B2A',
+//         border: '1px solid #B87333',
+//         borderRadius: 16,
+//         width: '100%', maxWidth: 560,
+//         maxHeight: '85vh', overflowY: 'auto',
+//         padding: 24,
+//         boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+//         fontFamily: "'Inter', sans-serif",
+//         position: 'relative',
+//       }}>
+
+//         {/* ── STEP 4: Close button ── */}
+//         <button
+//           onClick={close}
+//           style={{
+//             position: 'absolute', top: 14, right: 16,
+//             background: 'none', border: '1px solid #333',
+//             fontSize: 14, cursor: 'pointer',
+//             color: '#B3B3B3', borderRadius: 4, padding: '2px 8px',
+//           }}
+//         >✕</button>
+
+//         {/* ── STEP 5: Top label ── */}
+//         <div style={{
+//           fontSize: 9, fontWeight: 900, color: '#B87333',
+//           letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10,
+//         }}>
+//           MARKET SIGNAL
+//         </div>
+
+//         {/* ── STEP 6: Title ── */}
+//         <h3 style={{
+//           fontSize: 16, fontWeight: 900, color: '#FAFAFA',
+//           marginBottom: 10, lineHeight: 1.4, paddingRight: 32,
+//         }}>
+//           {event.title}
+//         </h3>
+
+//         {/* ── STEP 7: Meta row ── */}
+//         <div style={{
+//           display: 'flex', gap: 8, marginBottom: 20,
+//           fontSize: 10, color: '#666', fontWeight: 600,
+//           flexWrap: 'wrap', alignItems: 'center',
+//         }}>
+//           <span style={{
+//             padding: '2px 8px', borderRadius: 4,
+//             background: catColor + '22', color: catColor,
+//             fontWeight: 700, fontSize: 9, letterSpacing: '0.5px',
+//           }}>
+//             {CATEGORY_LABELS[event.category] || event.category}
+//           </span>
+//           <span>·</span>
+//           <span style={{ color: '#999' }}>{event.location_name}</span>
+//           <span>·</span>
+//           <span style={{ color: '#999' }}>Severity {event.severity}</span>
+//           <span>·</span>
+//           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
+//         </div>
+
+     
+
+//         {/* ── STEP 9: Key stats grid ── */}
+//         <div style={{
+//           display: 'grid', gridTemplateColumns: '1fr 1fr',
+//           gap: 8, marginBottom: 20,
+//         }}>
+//           {[
+//             ['📍 Location', event.location_name],
+//             ['📡 Signals', `${event.signal_count} sources`],
+//             event.price_aed
+//               ? ['💰 Price', `AED ${(event.price_aed / 1000000).toFixed(1)}M`]
+//               : ['🔖 Category', CATEGORY_LABELS[event.category]],
+//             ['📰 Source', event.source],
+//           ].map(([label, val]) => (
+//             <div key={label} style={{
+//               background: 'rgba(255,255,255,0.04)',
+//               borderRadius: 6, padding: 10,
+//             }}>
+//               <div style={{ fontSize: 9, color: '#555', marginBottom: 3 }}>{label}</div>
+//               <div style={{ fontSize: 11, color: '#FAFAFA', fontWeight: 600 }}>{val}</div>
+//             </div>
+//           ))}
+//         </div>
+
+//         {/* ── STEP 10: Signal sources ── */}
+// {event.signals && event.signals.length > 0 && (
+//   <div style={{ marginBottom: 20 }}>
+//     <div style={{
+//       fontSize: 10, color: '#B87333', fontWeight: 700,
+//       marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
+//     }}>
+//       Signal Sources
+//     </div>
+//     {event.signals.map((sig, i) => {
+//       const isExpanded = expandedSignal === i
+//       const fullText = fetchedContent[i]
+//         || sig.body || sig.text || sig.full_text
+//         || event.summary || sig.snippet || ''
+
+//       return (
+//         <div key={i}>
+//           {/* ── Clickable source row ── */}
+//           <div
+//             onClick={() => setExpandedSignal(isExpanded ? null : i)}
+//             style={{
+//               display: 'flex', alignItems: 'center', gap: 8,
+//               padding: '10px 0', borderBottom: isExpanded ? 'none' : '1px solid #0F3460',
+//               cursor: 'pointer',
+//             }}
+//           >
+//             <span style={{
+//               fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+//               background: 'rgba(184,115,51,0.15)', color: '#B87333',
+//               flexShrink: 0,
+//             }}>{sig.source}</span>
+
+//             <div style={{ flex: 1, fontSize: 11, color: '#B3B3B3', lineHeight: 1.4 }}>
+//               {sig.snippet?.slice(0, 60)}…
+//             </div>
+
+//             <span style={{ fontSize: 9, color: '#555', flexShrink: 0 }}>
+//               {isExpanded ? '▲' : '▼'}
+//             </span>
+//           </div>
+
+//           {/* ── Expanded full text panel (like distress deal detail popup) ── */}
+//           {isExpanded && (
+//             <div style={{
+//               background: 'rgba(255,255,255,0.03)',
+//               border: '1px solid #0F3460',
+//               borderTop: 'none',
+//               borderRadius: '0 0 8px 8px',
+//               padding: '14px',
+//               marginBottom: 8,
+//             }}>
+//               {/* Source label */}
+//               <div style={{
+//                 fontSize: 9, fontWeight: 900, color: '#B87333',
+//                 letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
+//               }}>
+//                 {sig.source}
+//               </div>
+
+//               {/* Full text — same as distress deal body */}
+//               {loadingSignal === i ? (
+//                 <div style={{ fontSize: 12, color: '#666', padding: '8px 0' }}>
+//                   ⏳ Fetching article from source...
+//                 </div>
+//               ) : (
+//                 <p style={{
+//                   fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
+//                   whiteSpace: 'pre-wrap', marginBottom: 16,
+//                 }}>
+//                   {fullText || 'No content available. Click "View source" to read the full article.'}
+//                 </p>
+//               )}
+
+//               {/* View source link */}
+//               {sig.url && (
+//                 <a
+//                   href={sig.url}
+//                   target="_blank"
+//                   rel="noopener noreferrer"
+//                   style={{
+//                     display: 'inline-flex', alignItems: 'center',
+//                     justifyContent: 'center', gap: 8,
+//                     width: '100%', padding: '12px 18px',
+//                     background: '#B87333', color: '#fff',
+//                     borderRadius: 10, fontSize: 12, fontWeight: 700,
+//                     textDecoration: 'none', letterSpacing: '0.02em',
+//                     boxShadow: '0 8px 24px rgba(184,115,51,0.25)',
+//                   }}
+//                 >
+//                   VIEW FULL ARTICLE — {(sig.source || 'SOURCE').toUpperCase()} →
+//                 </a>
+//               )}
+//             </div>
+//           )}
+//         </div>
+//       )
+//     })}
+//   </div>
+// )}
+//         {/* ── STEP 11: Source button at the bottom ── */}
+//         {event.url && (
+//           <div style={{
+//             marginTop: 24, paddingTop: 16,
+//             borderTop: '1px solid #0F3460',
+//           }}>
+//             <div style={{
+//               fontSize: 10, fontWeight: 900, color: '#B87333',
+//               letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12,
+//             }}>
+//               PRIMARY SOURCE
+//             </div>
+//             <a
+//               href={event.url}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               style={{
+//                 display: 'inline-flex', alignItems: 'center',
+//                 justifyContent: 'center', gap: 8,
+//                 width: '100%', padding: '14px 22px',
+//                 background: '#B87333', color: '#fff',
+//                 borderRadius: 12, fontSize: 13, fontWeight: 700,
+//                 textDecoration: 'none', letterSpacing: '0.02em',
+//                 boxShadow: '0 8px 32px rgba(184,115,51,0.30)',
+//               }}
+//             >
+//               VIEW SOURCE — {(event.source || 'LINK').toUpperCase()} →
+//             </a>
+
+// <a
+            
+//               href="https://www.acqar.com/valuation"
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               style={{
+//                 display: 'inline-flex', alignItems: 'center',
+//                 justifyContent: 'center', gap: 8,
+//                 width: '100%', padding: '14px 22px',
+//                 background: 'rgba(184,115,51,0.15)', color: '#B87333',
+//                 borderRadius: 12, fontSize: 13, fontWeight: 700,
+//                 textDecoration: 'none', letterSpacing: '0.02em',
+//                 border: '1px solid #B87333',
+//                 marginTop: 10,
+//               }}
+//             >
+//               GET PROPERTY VALUATION NOW
+//             </a>
+//           </div>
+//         )}
+          
+
+
+//       </div>
+//     </div>
+//   )
+// }
