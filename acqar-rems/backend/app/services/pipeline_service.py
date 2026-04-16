@@ -143,7 +143,12 @@ class PipelineService:
                     event['created_at'] = datetime.now(timezone.utc).isoformat()
                     event['updated_at'] = datetime.now(timezone.utc).isoformat()
                     if 'signals' not in event:
-                        event['signals'] = [{'source': event.get('source', 'RSS'), 'url': event.get('url', ''), 'snippet': event.get('title', '')[:100]}]
+                       event['signals'] = [{
+    'source': event.get('source', 'RSS'),
+    'url': event.get('url', ''),
+    'snippet': event.get('title', '')[:100],
+    'body': event.get('summary', '') or event.get('description', '') or event.get('title', '')
+}]
                     self.app_state.events_store[event_id] = event
                     new_events.append(event)
                     self.events_fetched_today += 1
