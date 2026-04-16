@@ -832,8 +832,30 @@ export default function EventDetail({ hidden = false, onClose }) {
             >
               VIEW SOURCE — {(event.source || 'LINK').toUpperCase()} →
             </a>
+
+</a>
+<a
+            
+              href="https://www.acqar.com/truvalu"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center',
+                justifyContent: 'center', gap: 8,
+                width: '100%', padding: '14px 22px',
+                background: 'rgba(184,115,51,0.15)', color: '#B87333',
+                borderRadius: 12, fontSize: 13, fontWeight: 700,
+                textDecoration: 'none', letterSpacing: '0.02em',
+                border: '1px solid #B87333',
+                marginTop: 10,
+              }}
+            >
+              ACQAR Intelligence
+            </a>
           </div>
         )}
+          
+
 
       </div>
     </div>
