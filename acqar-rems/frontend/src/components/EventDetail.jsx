@@ -1076,7 +1076,8 @@ export default function EventDetail({ hidden = false, onClose }) {
       Signal Sources
     </div>
     {event.signals.map((sig, i) => {
-      const fullText = fetchedContent[i] || sig.body || sig.text || sig.full_text || event.summary || sig.snippet || ''
+      const isTitle = (sig.snippet || '').trim() === (event.title || '').trim()
+const fullText = fetchedContent[i] || sig.body || sig.text || sig.full_text || (isTitle ? event.summary : sig.snippet) || event.summary || sig.snippet || ''
       const isExpanded = expandedSignal === i
       const preview = fullText.length > 80 ? fullText.slice(0, 80) + '…' : fullText
 
