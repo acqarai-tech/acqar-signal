@@ -12,3 +12,5 @@ asyncio-throttle
 APScheduler
 beautifulsoup4
 lxml
+yfinance>=0.2.36
+pandas>=2.0.0
