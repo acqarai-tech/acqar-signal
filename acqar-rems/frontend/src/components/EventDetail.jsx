@@ -623,6 +623,256 @@
 
 
 
+// import { useEvents } from '../context/EventsContext'
+// import { useState } from 'react'
+
+// function confidenceLabel(score) {
+//   const pct = Math.round((score || 0) * 100)
+//   if (pct < 20) return `${pct}% — Unconfirmed`
+//   if (pct < 40) return `${pct}% — Low confidence`
+//   if (pct < 60) return `${pct}% — Developing`
+//   if (pct < 80) return `${pct}% — Probable`
+//   if (pct < 95) return `${pct}% — High confidence`
+//   return `${pct}% — Confirmed`
+// }
+
+// const CATEGORY_COLORS = {
+//   transaction: '#E74C3C', offplan: '#2980B9', construction: '#F39C12',
+//   regulatory: '#8E44AD', infrastructure: '#27AE60', investment: '#16A085'
+// }
+
+// const CATEGORY_LABELS = {
+//   transaction: 'Transaction', offplan: 'Off-Plan', construction: 'Construction',
+//   regulatory: 'Regulatory', infrastructure: 'Infrastructure', investment: 'Investment'
+// }
+
+// export default function EventDetail({ hidden = false, onClose }) {
+//   const { selectedEvent: event, setSelectedEvent } = useEvents()
+
+//   if (!event || hidden) return null
+
+//   const catColor = CATEGORY_COLORS[event.category] || '#B87333'
+
+//   function close() {
+//     setSelectedEvent(null)
+//     if (onClose) onClose()
+//   }
+
+//   return (
+//     // ── STEP 2: Overlay backdrop ──
+//     <div
+//       onClick={e => { if (e.target === e.currentTarget) close() }}
+//       style={{
+//         position: 'fixed', inset: 0,
+//         background: 'rgba(0,0,0,0.65)',
+//         zIndex: 100000,
+//         display: 'flex', alignItems: 'center', justifyContent: 'center',
+//         padding: 20,
+//       }}
+//     >
+//       {/* ── STEP 3: Modal card ── */}
+//       <div style={{
+//         background: '#0D1B2A',
+//         border: '1px solid #B87333',
+//         borderRadius: 16,
+//         width: '100%', maxWidth: 560,
+//         maxHeight: '85vh', overflowY: 'auto',
+//         padding: 24,
+//         boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+//         fontFamily: "'Inter', sans-serif",
+//         position: 'relative',
+//       }}>
+
+//         {/* ── STEP 4: Close button ── */}
+//         <button
+//           onClick={close}
+//           style={{
+//             position: 'absolute', top: 14, right: 16,
+//             background: 'none', border: '1px solid #333',
+//             fontSize: 14, cursor: 'pointer',
+//             color: '#B3B3B3', borderRadius: 4, padding: '2px 8px',
+//           }}
+//         >✕</button>
+
+//         {/* ── STEP 5: Top label ── */}
+//         <div style={{
+//           fontSize: 9, fontWeight: 900, color: '#B87333',
+//           letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10,
+//         }}>
+//           MARKET SIGNAL
+//         </div>
+
+//         {/* ── STEP 6: Title ── */}
+//         <h3 style={{
+//           fontSize: 16, fontWeight: 900, color: '#FAFAFA',
+//           marginBottom: 10, lineHeight: 1.4, paddingRight: 32,
+//         }}>
+//           {event.title}
+//         </h3>
+
+//         {/* ── STEP 7: Meta row ── */}
+//         <div style={{
+//           display: 'flex', gap: 8, marginBottom: 20,
+//           fontSize: 10, color: '#666', fontWeight: 600,
+//           flexWrap: 'wrap', alignItems: 'center',
+//         }}>
+//           <span style={{
+//             padding: '2px 8px', borderRadius: 4,
+//             background: catColor + '22', color: catColor,
+//             fontWeight: 700, fontSize: 9, letterSpacing: '0.5px',
+//           }}>
+//             {CATEGORY_LABELS[event.category] || event.category}
+//           </span>
+//           <span>·</span>
+//           <span style={{ color: '#999' }}>{event.location_name}</span>
+//           <span>·</span>
+//           <span style={{ color: '#999' }}>Severity {event.severity}</span>
+//           <span>·</span>
+//           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
+//         </div>
+
+//         {/* ── STEP 8: Summary ── */}
+//         {event.summary && (
+//           <p style={{
+//             fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
+//             marginBottom: 20, whiteSpace: 'pre-wrap',
+//           }}>
+//             {event.summary}
+//           </p>
+//         )}
+
+//         {/* ── STEP 9: Key stats grid ── */}
+//         <div style={{
+//           display: 'grid', gridTemplateColumns: '1fr 1fr',
+//           gap: 8, marginBottom: 20,
+//         }}>
+//           {[
+//             ['📍 Location', event.location_name],
+//             ['📡 Signals', `${event.signal_count} sources`],
+//             event.price_aed
+//               ? ['💰 Price', `AED ${(event.price_aed / 1000000).toFixed(1)}M`]
+//               : ['🔖 Category', CATEGORY_LABELS[event.category]],
+//             ['📰 Source', event.source],
+//           ].map(([label, val]) => (
+//             <div key={label} style={{
+//               background: 'rgba(255,255,255,0.04)',
+//               borderRadius: 6, padding: 10,
+//             }}>
+//               <div style={{ fontSize: 9, color: '#555', marginBottom: 3 }}>{label}</div>
+//               <div style={{ fontSize: 11, color: '#FAFAFA', fontWeight: 600 }}>{val}</div>
+//             </div>
+//           ))}
+//         </div>
+
+//         {/* ── STEP 10: Signal sources ── */}
+//         {event.signals && event.signals.length > 0 && (
+//           <div style={{ marginBottom: 20 }}>
+//             <div style={{
+//               fontSize: 10, color: '#B87333', fontWeight: 700,
+//               marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
+//             }}>
+//               Signal Sources
+//             </div>
+//             {event.signals.map((sig, i) => (
+//               <div key={i} style={{
+//                 display: 'flex', alignItems: 'flex-start', gap: 8,
+//                 padding: '8px 0', borderBottom: '1px solid #0F3460',
+//               }}>
+//                 <span style={{
+//                   fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+//                   background: 'rgba(184,115,51,0.15)', color: '#B87333',
+//                   flexShrink: 0, marginTop: 1,
+//                 }}>{sig.source}</span>
+//                 <div style={{ flex: 1 }}>
+//                   <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.4 }}>
+//                     {sig.snippet}
+//                   </div>
+//                   {sig.url && (
+//                     <a
+//                       href={sig.url} target="_blank" rel="noopener noreferrer"
+//                       style={{
+//                         fontSize: 10, color: '#B87333',
+//                         textDecoration: 'none', borderBottom: '1px dotted #B87333',
+//                       }}
+//                     >
+//                       ↗ View source
+//                     </a>
+//                   )}
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         )}
+
+//         {/* ── STEP 11: Source button at the bottom ── */}
+//         {event.url && (
+//           <div style={{
+//             marginTop: 24, paddingTop: 16,
+//             borderTop: '1px solid #0F3460',
+//           }}>
+//             <div style={{
+//               fontSize: 10, fontWeight: 900, color: '#B87333',
+//               letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12,
+//             }}>
+//               PRIMARY SOURCE
+//             </div>
+//             <a
+//               href={event.url}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               style={{
+//                 display: 'inline-flex', alignItems: 'center',
+//                 justifyContent: 'center', gap: 8,
+//                 width: '100%', padding: '14px 22px',
+//                 background: '#B87333', color: '#fff',
+//                 borderRadius: 12, fontSize: 13, fontWeight: 700,
+//                 textDecoration: 'none', letterSpacing: '0.02em',
+//                 boxShadow: '0 8px 32px rgba(184,115,51,0.30)',
+//               }}
+//             >
+//               VIEW SOURCE — {(event.source || 'LINK').toUpperCase()} →
+//             </a>
+
+// <a
+            
+//               href="https://www.acqar.com/valuation"
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               style={{
+//                 display: 'inline-flex', alignItems: 'center',
+//                 justifyContent: 'center', gap: 8,
+//                 width: '100%', padding: '14px 22px',
+//                 background: 'rgba(184,115,51,0.15)', color: '#B87333',
+//                 borderRadius: 12, fontSize: 13, fontWeight: 700,
+//                 textDecoration: 'none', letterSpacing: '0.02em',
+//                 border: '1px solid #B87333',
+//                 marginTop: 10,
+//               }}
+//             >
+//               GET PROPERTY VALUATION NOW
+//             </a>
+//           </div>
+//         )}
+          
+
+
+//       </div>
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useEvents } from '../context/EventsContext'
 import { useState } from 'react'
 
@@ -731,14 +981,30 @@ export default function EventDetail({ hidden = false, onClose }) {
           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
         </div>
 
-        {/* ── STEP 8: Summary ── */}
-        {event.summary && (
-          <p style={{
+      {/* ── STEP 8: Summary ── */}
+        {(event.summary || (event.signals && event.signals.length > 0)) && (
+          <div style={{
             fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
-            marginBottom: 20, whiteSpace: 'pre-wrap',
+            marginBottom: 20,
           }}>
-            {event.summary}
-          </p>
+            {/* Full summary text */}
+            {event.summary && (
+              <p style={{ whiteSpace: 'pre-wrap', marginBottom: 0 }}>
+                {event.summary}
+              </p>
+            )}
+            {/* Full signal body text if available */}
+            {event.signals && event.signals.map((sig, i) => (
+              sig.body || sig.text || sig.full_text ? (
+                <p key={i} style={{
+                  whiteSpace: 'pre-wrap', marginTop: 12,
+                  paddingTop: 12, borderTop: '1px solid #0F3460',
+                }}>
+                  {sig.body || sig.text || sig.full_text}
+                </p>
+              ) : null
+            ))}
+          </div>
         )}
 
         {/* ── STEP 9: Key stats grid ── */}
