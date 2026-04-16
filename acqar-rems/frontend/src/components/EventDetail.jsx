@@ -1017,31 +1017,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
         </div>
 
-      {/* ── STEP 8: Summary ── */}
-        {(event.summary || (event.signals && event.signals.length > 0)) && (
-          <div style={{
-            fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
-            marginBottom: 20,
-          }}>
-            {/* Full summary text */}
-            {event.summary && (
-              <p style={{ whiteSpace: 'pre-wrap', marginBottom: 0 }}>
-                {event.summary}
-              </p>
-            )}
-            {/* Full signal body text if available */}
-            {event.signals && event.signals.map((sig, i) => (
-              sig.body || sig.text || sig.full_text ? (
-                <p key={i} style={{
-                  whiteSpace: 'pre-wrap', marginTop: 12,
-                  paddingTop: 12, borderTop: '1px solid #0F3460',
-                }}>
-                  {sig.body || sig.text || sig.full_text}
-                </p>
-              ) : null
-            ))}
-          </div>
-        )}
+     
 
         {/* ── STEP 9: Key stats grid ── */}
         <div style={{
@@ -1076,53 +1052,90 @@ export default function EventDetail({ hidden = false, onClose }) {
       Signal Sources
     </div>
     {event.signals.map((sig, i) => {
-      const isTitle = (sig.snippet || '').trim() === (event.title || '').trim()
-const fullText = fetchedContent[i] || sig.body || sig.text || sig.full_text || (isTitle ? event.summary : sig.snippet) || event.summary || sig.snippet || ''
       const isExpanded = expandedSignal === i
-      const preview = sig.source || 'Click to load full article'
+      const fullText = fetchedContent[i]
+        || sig.body || sig.text || sig.full_text
+        || event.summary || sig.snippet || ''
 
       return (
-        <div
-          key={i}
-          onClick={() => handleSignalClick(sig, i)}
-          style={{
-            display: 'flex', alignItems: 'flex-start', gap: 8,
-            padding: '8px 0', borderBottom: '1px solid #0F3460',
-            cursor: 'pointer',
-          }}
-        >
-          <span style={{
-            fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
-            background: 'rgba(184,115,51,0.15)', color: '#B87333',
-            flexShrink: 0, marginTop: 1,
-          }}>{sig.source}</span>
+        <div key={i}>
+          {/* ── Clickable source row ── */}
+          <div
+            onClick={() => setExpandedSignal(isExpanded ? null : i)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 0', borderBottom: isExpanded ? 'none' : '1px solid #0F3460',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{
+              fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+              background: 'rgba(184,115,51,0.15)', color: '#B87333',
+              flexShrink: 0,
+            }}>{sig.source}</span>
 
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-              {isExpanded
-  ? loadingSignal === i
-    ? '⏳ Fetching article from source...'
-    : fullText || '⚠️ Could not load article. Click "View source" below.'
-  : '🔗 Click to load full article text'}
+            <div style={{ flex: 1, fontSize: 11, color: '#B3B3B3', lineHeight: 1.4 }}>
+              {sig.snippet?.slice(0, 60)}…
             </div>
-            {sig.url && (
-              <a
-                href={sig.url} target="_blank" rel="noopener noreferrer"
-                onClick={e => e.stopPropagation()}
-                style={{
-                  fontSize: 10, color: '#B87333',
-                  textDecoration: 'none', borderBottom: '1px dotted #B87333',
-                  display: 'inline-block', marginTop: 4,
-                }}
-              >
-                ↗ View source
-              </a>
-            )}
+
+            <span style={{ fontSize: 9, color: '#555', flexShrink: 0 }}>
+              {isExpanded ? '▲' : '▼'}
+            </span>
           </div>
 
-          <span style={{ fontSize: 9, color: '#555', flexShrink: 0, marginTop: 3 }}>
-            {isExpanded ? '▲' : '▼'}
-          </span>
+          {/* ── Expanded full text panel (like distress deal detail popup) ── */}
+          {isExpanded && (
+            <div style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid #0F3460',
+              borderTop: 'none',
+              borderRadius: '0 0 8px 8px',
+              padding: '14px',
+              marginBottom: 8,
+            }}>
+              {/* Source label */}
+              <div style={{
+                fontSize: 9, fontWeight: 900, color: '#B87333',
+                letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
+              }}>
+                {sig.source}
+              </div>
+
+              {/* Full text — same as distress deal body */}
+              {loadingSignal === i ? (
+                <div style={{ fontSize: 12, color: '#666', padding: '8px 0' }}>
+                  ⏳ Fetching article from source...
+                </div>
+              ) : (
+                <p style={{
+                  fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
+                  whiteSpace: 'pre-wrap', marginBottom: 16,
+                }}>
+                  {fullText || 'No content available. Click "View source" to read the full article.'}
+                </p>
+              )}
+
+              {/* View source link */}
+              {sig.url && (
+                <a
+                  href={sig.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center',
+                    justifyContent: 'center', gap: 8,
+                    width: '100%', padding: '12px 18px',
+                    background: '#B87333', color: '#fff',
+                    borderRadius: 10, fontSize: 12, fontWeight: 700,
+                    textDecoration: 'none', letterSpacing: '0.02em',
+                    boxShadow: '0 8px 24px rgba(184,115,51,0.25)',
+                  }}
+                >
+                  VIEW FULL ARTICLE — {(sig.source || 'SOURCE').toUpperCase()} →
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )
     })}
