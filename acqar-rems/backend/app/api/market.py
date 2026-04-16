@@ -1792,7 +1792,7 @@ async def _get_pred_lock():
     return _pred_lock
 
 
-async def _fetch_manifold(client) -> list:
+async def _fetch_manifold(client=None) -> list:
     """
     Fetch live UAE real estate developer stock prices via Yahoo Finance.
     Replaces Manifold Markets predictions with actual DFM/ADX stock data.
@@ -1951,16 +1951,12 @@ async def get_predictions(request: Request):
         all_results = []
         is_real = False
         try:
-            async with httpx.AsyncClient(follow_redirects=True, trust_env=False, timeout=10) as client:
-                manifold_task = asyncio.create_task(_fetch_manifold(client))
-                poly_task     = asyncio.create_task(_fetch_polymarket_events(client))
-                manifold, poly = await asyncio.gather(manifold_task, poly_task, return_exceptions=True)
-
-            if isinstance(manifold, list):
-                all_results.extend(manifold)
-            if isinstance(poly, list):
-                all_results.extend(poly)
+                # UAE RE stocks via yfinance (no httpx client needed)
+            stocks = await _fetch_manifold(None)
+            if isinstance(stocks, list):
+                all_results.extend(stocks)
             is_real = len(all_results) > 0
+
         except Exception as e:
             logger.warning(f"External prediction APIs unavailable: {e}")
 
@@ -1978,8 +1974,9 @@ async def get_predictions(request: Request):
             if q and q not in seen:
                 seen.add(q)
                 unique.append(r)
-        unique.sort(key=lambda x: x.get("volume", 0), reverse=True)
-        top = unique[:12]
+       # For stocks, sort by symbol name (stable order), not volume
+            unique.sort(key=lambda x: x.get("id", ""))
+            top = unique[:12]
 
         # Update cache
         _pred_cache["predictions"] = top
