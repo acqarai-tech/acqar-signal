@@ -929,7 +929,7 @@ export default function EventDetail({ hidden = false, onClose }) {
     if (sig.url) {
       setLoadingSignal(i)
       try {
-        const res = await fetch(`${API}/api/fetch-article?url=${encodeURIComponent(sig.url)}`)
+        const res = await fetch(`${API}/api/events/fetch-article?url=${encodeURIComponent(sig.url)}`)
         if (res.ok) {
           const data = await res.json()
           if (data.text) {
@@ -1079,7 +1079,7 @@ export default function EventDetail({ hidden = false, onClose }) {
       const isTitle = (sig.snippet || '').trim() === (event.title || '').trim()
 const fullText = fetchedContent[i] || sig.body || sig.text || sig.full_text || (isTitle ? event.summary : sig.snippet) || event.summary || sig.snippet || ''
       const isExpanded = expandedSignal === i
-      const preview = fullText.length > 80 ? fullText.slice(0, 80) + '…' : fullText
+      const preview = sig.source || 'Click to load full article'
 
       return (
         <div
@@ -1100,10 +1100,10 @@ const fullText = fetchedContent[i] || sig.body || sig.text || sig.full_text || (
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {isExpanded
-                ? loadingSignal === i
-                  ? '⏳ Loading full article...'
-                  : fullText
-                : preview}
+  ? loadingSignal === i
+    ? '⏳ Fetching article from source...'
+    : fullText || '⚠️ Could not load article. Click "View source" below.'
+  : '🔗 Click to load full article text'}
             </div>
             {sig.url && (
               <a
