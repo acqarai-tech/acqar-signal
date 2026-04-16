@@ -835,7 +835,7 @@ export default function EventDetail({ hidden = false, onClose }) {
 
 <a
             
-              href="https://www.acqar.com/truvalu"
+              href="https://www.acqar.com/valuation"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -849,7 +849,7 @@ export default function EventDetail({ hidden = false, onClose }) {
                 marginTop: 10,
               }}
             >
-              ACQAR Intelligence
+              GET PROPERTY VALUATION NOW
             </a>
           </div>
         )}
