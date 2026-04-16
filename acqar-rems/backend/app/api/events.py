@@ -248,22 +248,42 @@ async def get_stats(request: Request):
 
 @router.get("/fetch-article")
 async def fetch_article(url: str):
-    """Proxy fetch article text from a URL"""
+    """Proxy fetch and extract article body text from a source URL"""
     import httpx
-    from bs4 import BeautifulSoup
+    import re
     try:
-        async with httpx.AsyncClient(timeout=10, follow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0"}) as client:
+        async with httpx.AsyncClient(
+            timeout=15,
+            follow_redirects=True,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        ) as client:
             resp = await client.get(url)
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            # Remove scripts/styles
-            for tag in soup(['script','style','nav','footer','header']):
-                tag.decompose()
-            # Get main text
-            text = soup.get_text(separator='\n', strip=True)
-            # Clean blank lines
-            lines = [l.strip() for l in text.splitlines() if l.strip()]
-            return {"text": '\n'.join(lines[:80]), "url": url}
+            if resp.status_code != 200:
+                return {"text": "", "url": url}
+
+        html = resp.text
+
+        # Remove script, style, nav, footer, header blocks
+        html = re.sub(r'<(script|style|nav|footer|header|aside)[^>]*>.*?</\1>', '', html, flags=re.S|re.I)
+
+        # Extract all <p> tag contents
+        paragraphs = re.findall(r'<p[^>]*>(.*?)</p>', html, flags=re.S|re.I)
+
+        # Strip all remaining HTML tags
+        def strip_tags(text):
+            text = re.sub(r'<[^>]+>', '', text)
+            text = text.replace('&nbsp;', ' ').replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&#39;', "'").replace('&quot;', '"')
+            return text.strip()
+
+        clean = [strip_tags(p) for p in paragraphs]
+
+        # Keep only meaningful paragraphs (more than 60 chars)
+        clean = [p for p in clean if len(p) > 60]
+
+        full_text = '\n\n'.join(clean[:20])  # max 20 paragraphs
+
+        return {"text": full_text, "url": url}
+
     except Exception as e:
         return {"text": "", "error": str(e), "url": url}
         
