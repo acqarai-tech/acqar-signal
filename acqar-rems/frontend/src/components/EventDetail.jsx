@@ -1031,45 +1031,62 @@ export default function EventDetail({ hidden = false, onClose }) {
         </div>
 
         {/* ── STEP 10: Signal sources ── */}
-        {event.signals && event.signals.length > 0 && (
-          <div style={{ marginBottom: 20 }}>
-            <div style={{
-              fontSize: 10, color: '#B87333', fontWeight: 700,
-              marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
-            }}>
-              Signal Sources
-            </div>
-            {event.signals.map((sig, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 8,
-                padding: '8px 0', borderBottom: '1px solid #0F3460',
-              }}>
-                <span style={{
-                  fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
-                  background: 'rgba(184,115,51,0.15)', color: '#B87333',
-                  flexShrink: 0, marginTop: 1,
-                }}>{sig.source}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.4 }}>
-                    {sig.snippet}
-                  </div>
-                  {sig.url && (
-                    <a
-                      href={sig.url} target="_blank" rel="noopener noreferrer"
-                      style={{
-                        fontSize: 10, color: '#B87333',
-                        textDecoration: 'none', borderBottom: '1px dotted #B87333',
-                      }}
-                    >
-                      ↗ View source
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+{event.signals && event.signals.length > 0 && (
+  <div style={{ marginBottom: 20 }}>
+    <div style={{
+      fontSize: 10, color: '#B87333', fontWeight: 700,
+      marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
+    }}>
+      Signal Sources
+    </div>
+    {event.signals.map((sig, i) => {
+      const fullText = sig.body || sig.text || sig.full_text || event.summary || sig.snippet || ''
+      const isExpanded = expandedSignal === i
+      const preview = fullText.length > 80 ? fullText.slice(0, 80) + '…' : fullText
 
+      return (
+        <div
+          key={i}
+          onClick={() => setExpandedSignal(isExpanded ? null : i)}
+          style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            padding: '8px 0', borderBottom: '1px solid #0F3460',
+            cursor: 'pointer',
+          }}
+        >
+          <span style={{
+            fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+            background: 'rgba(184,115,51,0.15)', color: '#B87333',
+            flexShrink: 0, marginTop: 1,
+          }}>{sig.source}</span>
+
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, color: '#FAFAFA', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {isExpanded ? fullText : preview}
+            </div>
+            {sig.url && (
+              <a
+                href={sig.url} target="_blank" rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  fontSize: 10, color: '#B87333',
+                  textDecoration: 'none', borderBottom: '1px dotted #B87333',
+                  display: 'inline-block', marginTop: 4,
+                }}
+              >
+                ↗ View source
+              </a>
+            )}
+          </div>
+
+          <span style={{ fontSize: 9, color: '#555', flexShrink: 0, marginTop: 3 }}>
+            {isExpanded ? '▲' : '▼'}
+          </span>
+        </div>
+      )
+    })}
+  </div>
+)}
         {/* ── STEP 11: Source button at the bottom ── */}
         {event.url && (
           <div style={{
