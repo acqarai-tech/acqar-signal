@@ -246,7 +246,27 @@ async def get_stats(request: Request):
         "pipeline_status": request.app.state.pipeline_status
     }
 
-
+@router.get("/fetch-article")
+async def fetch_article(url: str):
+    """Proxy fetch article text from a URL"""
+    import httpx
+    from bs4 import BeautifulSoup
+    try:
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True,
+            headers={"User-Agent": "Mozilla/5.0"}) as client:
+            resp = await client.get(url)
+            soup = BeautifulSoup(resp.text, 'html.parser')
+            # Remove scripts/styles
+            for tag in soup(['script','style','nav','footer','header']):
+                tag.decompose()
+            # Get main text
+            text = soup.get_text(separator='\n', strip=True)
+            # Clean blank lines
+            lines = [l.strip() for l in text.splitlines() if l.strip()]
+            return {"text": '\n'.join(lines[:80]), "url": url}
+    except Exception as e:
+        return {"text": "", "error": str(e), "url": url}
+        
 @router.get("/area-momentum")
 async def get_area_momentum(request: Request):
     """Areas with 3+ S3+ events = momentum areas"""
