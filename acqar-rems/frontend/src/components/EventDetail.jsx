@@ -788,7 +788,7 @@ export default function EventDetail({ hidden = false, onClose }) {
                     {sig.snippet}
                   </div>
                   {sig.url && (
-                    
+                    <a
                       href={sig.url} target="_blank" rel="noopener noreferrer"
                       style={{
                         fontSize: 10, color: '#B87333',
@@ -816,7 +816,7 @@ export default function EventDetail({ hidden = false, onClose }) {
             }}>
               PRIMARY SOURCE
             </div>
-            
+            <a
               href={event.url}
               target="_blank"
               rel="noopener noreferrer"
