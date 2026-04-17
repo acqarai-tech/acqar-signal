@@ -874,7 +874,7 @@
 
 
 import { useEvents } from '../context/EventsContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 function confidenceLabel(score) {
@@ -898,146 +898,164 @@ const CATEGORY_LABELS = {
 }
 
 // ── Mini Browser Component ──
+// ── Mini Browser Component — NO iframe, uses backend article fetch ──
 function MiniBrowser({ url, label, onClose }) {
-  const [currentUrl, setCurrentUrl] = useState(url)
+  const [status, setStatus] = useState('loading')
+  const [article, setArticle] = useState(null)
   const [inputUrl, setInputUrl] = useState(url)
-  const [iframeKey, setIframeKey] = useState(0)
-  const [iframeError, setIframeError] = useState(false)
+  const [currentUrl, setCurrentUrl] = useState(url)
 
-  function navigate() {
-    setCurrentUrl(inputUrl)
-    setIframeKey(k => k + 1)
-    setIframeError(false)
+  useEffect(() => {
+    fetchArticle(currentUrl)
+  }, [currentUrl])
+
+  async function fetchArticle(targetUrl) {
+    setStatus('loading')
+    setArticle(null)
+    try {
+      const res = await fetch(`${API_URL}/api/article/fetch?url=${encodeURIComponent(targetUrl)}`)
+      const data = await res.json()
+      if (data.success && data.content) {
+        setArticle(data)
+        setStatus('loaded')
+      } else {
+        setStatus('error')
+      }
+    } catch {
+      setStatus('error')
+    }
   }
 
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') navigate()
-  }
+  function navigate() { setCurrentUrl(inputUrl) }
+  function handleKeyDown(e) { if (e.key === 'Enter') navigate() }
 
   return (
     <div style={{
-      marginTop: 12,
-      border: '1px solid #B87333',
-      borderRadius: 10,
-      overflow: 'hidden',
-      background: '#0a1520',
+      marginTop: 12, border: '1px solid #B87333',
+      borderRadius: 10, overflow: 'hidden', background: '#0a1520',
     }}>
 
-      {/* ── Browser Top Bar ── */}
+      {/* Top Bar */}
       <div style={{
-        background: '#0F2030',
-        borderBottom: '1px solid #B87333',
-        padding: '7px 10px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
+        background: '#0F2030', borderBottom: '1px solid #B87333',
+        padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        {/* Traffic light dots */}
         <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E74C3C' }} />
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#F39C12' }} />
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#27AE60' }} />
         </div>
-
-        {/* Address bar */}
         <input
           value={inputUrl}
           onChange={e => setInputUrl(e.target.value)}
           onKeyDown={handleKeyDown}
           style={{
-            flex: 1,
-            background: '#081525',
-            border: '1px solid #1a3a5c',
-            borderRadius: 5,
-            padding: '3px 8px',
-            fontSize: 10,
-            color: '#B3B3B3',
-            outline: 'none',
-            fontFamily: 'monospace',
+            flex: 1, background: '#081525', border: '1px solid #1a3a5c',
+            borderRadius: 5, padding: '3px 8px', fontSize: 10,
+            color: '#B3B3B3', outline: 'none', fontFamily: 'monospace',
           }}
         />
-
-        {/* Go button */}
-        <button
-          onClick={navigate}
-          style={{
-            background: '#B87333', border: 'none', borderRadius: 4,
-            color: '#fff', fontSize: 10, fontWeight: 700,
-            padding: '3px 8px', cursor: 'pointer', flexShrink: 0,
-          }}
-        >Go</button>
-
-        {/* Open original */}
-        <a
-          href={currentUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 10, color: '#B87333', textDecoration: 'none', flexShrink: 0 }}
-        >↗</a>
-
-        {/* Close */}
-        <button
-          onClick={onClose}
-          style={{
-            background: 'none', border: 'none', color: '#666',
-            fontSize: 13, cursor: 'pointer', flexShrink: 0, lineHeight: 1,
-          }}
-        >✕</button>
+        <button onClick={navigate} style={{
+          background: '#B87333', border: 'none', borderRadius: 4,
+          color: '#fff', fontSize: 10, fontWeight: 700,
+          padding: '3px 8px', cursor: 'pointer', flexShrink: 0,
+        }}>Go</button>
+        <a href={currentUrl} target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 12, color: '#B87333', textDecoration: 'none', flexShrink: 0 }}>↗</a>
+        <button onClick={onClose} style={{
+          background: 'none', border: 'none', color: '#666',
+          fontSize: 13, cursor: 'pointer', flexShrink: 0,
+        }}>✕</button>
       </div>
 
-      {/* ── iframe Window ── */}
-      <div style={{ position: 'relative', height: 420 }}>
-        {iframeError ? (
-          // Fallback when iframe is blocked
+      {/* Content */}
+      <div style={{ height: 420, overflowY: 'auto', background: '#081525' }}>
+
+        {status === 'loading' && (
           <div style={{
             height: '100%', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            background: '#081525', gap: 12,
+            alignItems: 'center', justifyContent: 'center', gap: 10,
+          }}>
+            <div style={{ fontSize: 22 }}>⏳</div>
+            <div style={{ fontSize: 11, color: '#666' }}>Fetching article...</div>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div style={{
+            height: '100%', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 12,
           }}>
             <div style={{ fontSize: 28 }}>🔒</div>
             <div style={{ fontSize: 12, color: '#666', textAlign: 'center', lineHeight: 1.6 }}>
-              <strong style={{ color: '#B3B3B3' }}>{label}</strong> blocks embedded preview.<br />
-              Open it directly instead:
+              Could not fetch article.<br />
+              <span style={{ color: '#B3B3B3' }}>{label}</span> may require a login.
             </div>
-            <a
-              href={currentUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <a href={currentUrl} target="_blank" rel="noopener noreferrer"
               style={{
                 fontSize: 12, color: '#B87333', fontWeight: 700,
                 textDecoration: 'none', border: '1px solid #B87333',
                 borderRadius: 6, padding: '6px 16px',
-              }}
-            >
+              }}>
               ↗ Open {label} in new tab
             </a>
           </div>
-        ) : (
-          <iframe
-            key={iframeKey}
-            src={currentUrl}
-            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-            title={`Preview: ${label}`}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-            onError={() => setIframeError(true)}
-          />
+        )}
+
+        {status === 'loaded' && article && (
+          <div style={{ padding: '16px 18px' }}>
+            <div style={{
+              display: 'inline-block', fontSize: 9, fontWeight: 700,
+              color: '#B87333', background: 'rgba(184,115,51,0.12)',
+              border: '1px solid rgba(184,115,51,0.3)', borderRadius: 4,
+              padding: '2px 7px', marginBottom: 10,
+              textTransform: 'uppercase', letterSpacing: '0.5px',
+            }}>{label}</div>
+
+            {article.title && (
+              <h2 style={{
+                fontSize: 15, fontWeight: 800, color: '#FAFAFA',
+                lineHeight: 1.4, marginBottom: 14, marginTop: 0,
+              }}>{article.title}</h2>
+            )}
+
+            <div style={{ borderTop: '1px solid #1a3a5c', marginBottom: 14 }} />
+
+            {article.content.split('\n\n').map((para, i) => (
+              para.trim() && (
+                <p key={i} style={{
+                  fontSize: 12, color: '#B3B3B3',
+                  lineHeight: 1.85, marginBottom: 12, marginTop: 0,
+                }}>{para.trim()}</p>
+              )
+            ))}
+
+            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #1a3a5c' }}>
+              <a href={currentUrl} target="_blank" rel="noopener noreferrer"
+                style={{
+                  fontSize: 11, color: '#B87333', fontWeight: 700,
+                  textDecoration: 'none', borderBottom: '1px dotted #B87333',
+                }}>
+                ↗ Read full article on {label}
+              </a>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* ── Bottom bar ── */}
+      {/* Bottom bar */}
       <div style={{
-        background: '#0F2030',
-        borderTop: '1px solid #1a3a5c',
-        padding: '4px 10px',
-        fontSize: 9,
-        color: '#444',
-        display: 'flex',
-        justifyContent: 'space-between',
+        background: '#0F2030', borderTop: '1px solid #1a3a5c',
+        padding: '4px 10px', fontSize: 9, color: '#444',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
-        <span>🌐 {label}</span>
-        <span style={{ fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '70%', whiteSpace: 'nowrap' }}>
-          {currentUrl}
+        <span style={{ color: status === 'loaded' ? '#27AE60' : status === 'error' ? '#E74C3C' : '#B87333' }}>
+          {status === 'loading' ? '⏳ Fetching...' : status === 'loaded' ? '✅ Article loaded' : '🔒 Could not load'}
         </span>
+        <span style={{
+          fontFamily: 'monospace', overflow: 'hidden',
+          textOverflow: 'ellipsis', maxWidth: '70%', whiteSpace: 'nowrap',
+        }}>{currentUrl}</span>
       </div>
     </div>
   )
