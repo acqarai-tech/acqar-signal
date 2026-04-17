@@ -246,64 +246,7 @@ async def get_stats(request: Request):
         "pipeline_status": request.app.state.pipeline_status
     }
 
-@router.get("/fetch-article")
-async def fetch_article(url: str):
-    """Proxy fetch and extract article body text from a source URL"""
-    import httpx
-    import re
 
-    try:
-        async with httpx.AsyncClient(
-            timeout=15,
-            follow_redirects=True,  # ← this already follows redirects ✅
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.5",
-            }
-        ) as client:
-            resp = await client.get(url)
-            final_url = str(resp.url)  # ← real URL after redirect
-
-            if resp.status_code != 200:
-                return {"success": False, "content": "", "url": final_url}
-
-        html = resp.text
-
-        # Extract title
-        title_match = re.search(r'<title[^>]*>(.*?)</title>', html, re.S | re.I)
-        title = title_match.group(1).strip() if title_match else ""
-        title = re.sub(r'<[^>]+>', '', title)
-
-        # Remove noise blocks
-        html = re.sub(r'<(script|style|nav|footer|header|aside|noscript)[^>]*>.*?</\1>', '', html, flags=re.S | re.I)
-
-        # Extract <p> tags
-        paragraphs = re.findall(r'<p[^>]*>(.*?)</p>', html, flags=re.S | re.I)
-
-        def strip_tags(text):
-            text = re.sub(r'<[^>]+>', '', text)
-            text = text.replace('&nbsp;', ' ').replace('&amp;', '&') \
-                       .replace('&lt;', '<').replace('&gt;', '>') \
-                       .replace('&#39;', "'").replace('&quot;', '"')
-            return text.strip()
-
-        clean = [strip_tags(p) for p in paragraphs]
-        clean = [p for p in clean if len(p) > 60]
-        full_text = '\n\n'.join(clean[:20])
-
-        if not full_text:
-            return {"success": False, "content": "", "title": title, "url": final_url}
-
-        return {
-            "success": True,        # ← frontend checks this ✅
-            "content": full_text,   # ← frontend reads this ✅
-            "title": title,
-            "url": final_url,       # ← real URL after Google News redirect ✅
-        }
-
-    except Exception as e:
-        return {"success": False, "content": "", "error": str(e), "url": url}
         
 @router.get("/area-momentum")
 async def get_area_momentum(request: Request):
