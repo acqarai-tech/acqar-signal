@@ -251,7 +251,54 @@ async def fetch_article(url: str):
     """Proxy fetch and extract article body text from a source URL"""
     import httpx
     import re
+    import base64
+
+    def decode_google_news_url(google_url: str) -> str:
+        """Extract real URL from Google News RSS link"""
+        try:
+            # Google News URLs contain the real URL encoded in the path
+            # Format: /rss/articles/BASE64_ENCODED_DATA
+            match = re.search(r'/articles/([^?]+)', google_url)
+            if not match:
+                return google_url
+            
+            encoded = match.group(1)
+            # Add padding if needed
+            padding = 4 - len(encoded) % 4
+            if padding != 4:
+                encoded += '=' * padding
+            
+            # Try to decode — Google encodes the URL in base64
+            try:
+                decoded = base64.b64decode(encoded.replace('-', '+').replace('_', '/'))
+                # Find URL pattern inside decoded bytes
+                url_match = re.search(rb'https?://[^\x00-\x1f\x7f]+', decoded)
+                if url_match:
+                    return url_match.group(0).decode('utf-8', errors='ignore').rstrip('\\')
+            except Exception:
+                pass
+            
+            return google_url
+        except Exception:
+            return google_url
+
     try:
+        # ── Step 1: Resolve Google News URLs to real URL ──
+        real_url = url
+        if 'news.google.com' in url:
+            real_url = decode_google_news_url(url)
+            # If decode failed, try HTTP HEAD to follow redirect
+            if real_url == url:
+                try:
+                    async with httpx.AsyncClient(timeout=10, follow_redirects=True,
+                        headers={"User-Agent": "Mozilla/5.0"}) as client:
+                        resp = await client.head(url)
+                        real_url = str(resp.url)
+                except Exception:
+                    real_url = url
+
+        # ── Step 2: Fetch the real article ──
+        import re
         async with httpx.AsyncClient(
             timeout=15,
             follow_redirects=True,
@@ -261,28 +308,40 @@ async def fetch_article(url: str):
                 "Accept-Language": "en-US,en;q=0.5",
             }
         ) as client:
-            resp = await client.get(url)
+            resp = await client.get(real_url)
             final_url = str(resp.url)
             if resp.status_code != 200:
                 return {"success": False, "content": "", "url": final_url}
+
         html = resp.text
+
+        # Extract title
         title_match = re.search(r'<title[^>]*>(.*?)</title>', html, re.S | re.I)
         title = title_match.group(1).strip() if title_match else ""
         title = re.sub(r'<[^>]+>', '', title)
+
+        # Remove noise
         html = re.sub(r'<(script|style|nav|footer|header|aside|noscript)[^>]*>.*?</\1>', '', html, flags=re.S | re.I)
+
+        # Extract paragraphs
         paragraphs = re.findall(r'<p[^>]*>(.*?)</p>', html, flags=re.S | re.I)
+
         def strip_tags(text):
             text = re.sub(r'<[^>]+>', '', text)
             text = text.replace('&nbsp;', ' ').replace('&amp;', '&') \
                        .replace('&lt;', '<').replace('&gt;', '>') \
                        .replace('&#39;', "'").replace('&quot;', '"')
             return text.strip()
+
         clean = [strip_tags(p) for p in paragraphs]
         clean = [p for p in clean if len(p) > 60]
         full_text = '\n\n'.join(clean[:20])
+
         if not full_text:
             return {"success": False, "content": "", "title": title, "url": final_url}
+
         return {"success": True, "content": full_text, "title": title, "url": final_url}
+
     except Exception as e:
         return {"success": False, "content": "", "error": str(e), "url": url}
         
