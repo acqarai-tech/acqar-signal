@@ -5,129 +5,176 @@ import re
 
 router = APIRouter(prefix="/api/article", tags=["article"])
 
-# Try multiple User-Agent strings to bypass blocks
 USER_AGENTS = [
-    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15",
 ]
 
-# Sites that always block — use Google Cache instead
-BLOCKED_DOMAINS = ["bloomberg.com", "ft.com", "wsj.com", "economist.com"]
+PAYWALLED = ["bloomberg.com", "ft.com", "wsj.com", "economist.com", "thetimes.co.uk"]
+
+# Google News URL patterns — need to follow redirect to real article
+REDIRECT_DOMAINS = ["news.google.com", "linkedin.com", "t.co", "bit.ly", "google.com/url"]
+
+
+def is_redirect_domain(url: str) -> bool:
+    return any(d in url for d in REDIRECT_DOMAINS)
+
+
+def is_paywalled(url: str) -> bool:
+    return any(d in url for d in PAYWALLED)
+
 
 def get_google_cache_url(url: str) -> str:
     return f"https://webcache.googleusercontent.com/search?q=cache:{url}&hl=en"
 
-def get_archive_url(url: str) -> str:
-    return f"https://archive.ph/{url}"
 
-async def try_fetch(client: httpx.AsyncClient, url: str, ua: str) -> httpx.Response | None:
-    try:
-        resp = await client.get(url, headers={
-            "User-Agent": ua,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-        }, timeout=12)
-        if resp.status_code == 200 and len(resp.text) > 500:
-            return resp
-    except Exception:
-        pass
-    return None
-
-def extract_content(html: str) -> dict:
+def extract_content(html: str, base_url: str = "") -> dict:
     soup = BeautifulSoup(html, "lxml")
 
-    # Remove junk tags
     for tag in soup(["script", "style", "nav", "footer", "header",
-                     "aside", "iframe", "noscript", "ads", "form",
-                     "[class*='ad-']", "[class*='cookie']", "[class*='popup']"]):
+                     "aside", "iframe", "noscript", "form", "button"]):
         tag.decompose()
 
-    # Get title
+    # Title
     title = ""
-    for t in [soup.find("h1"), soup.find("meta", property="og:title"), soup.title]:
-        if t:
-            title = t.get("content", "") or t.get_text(strip=True)
-            if title:
-                break
+    og_title = soup.find("meta", property="og:title")
+    if og_title:
+        title = og_title.get("content", "")
+    if not title and soup.find("h1"):
+        title = soup.find("h1").get_text(strip=True)
+    if not title and soup.title:
+        title = soup.title.get_text(strip=True)
 
-    # Get meta description as fallback summary
+    # Meta description
     meta_desc = ""
-    meta = soup.find("meta", attrs={"name": "description"}) or soup.find("meta", property="og:description")
-    if meta:
-        meta_desc = meta.get("content", "")
+    for m in [
+        soup.find("meta", property="og:description"),
+        soup.find("meta", attrs={"name": "description"}),
+    ]:
+        if m:
+            meta_desc = m.get("content", "")
+            break
 
-    # Try known article selectors in priority order
+    # Extract article body
     content = ""
     selectors = [
-        "article", "[class*='article-body']", "[class*='article__body']",
-        "[class*='story-body']", "[class*='post-content']", "[class*='entry-content']",
-        "[class*='article-content']", "[itemprop='articleBody']",
-        "main", "[role='main']", "[class*='content']",
+        "article",
+        "[class*='article-body']", "[class*='article__body']",
+        "[class*='story-body']", "[class*='story__body']",
+        "[class*='post-content']", "[class*='entry-content']",
+        "[class*='article-content']", "[class*='ArticleBody']",
+        "[itemprop='articleBody']", "[class*='body-text']",
+        "[class*='page-content']", "main", "[role='main']",
     ]
-    for selector in selectors:
-        el = soup.select_one(selector)
+    for sel in selectors:
+        el = soup.select_one(sel)
         if el:
-            paragraphs = el.find_all("p")
+            paras = el.find_all("p")
             text = "\n\n".join(
-                p.get_text(strip=True) for p in paragraphs
-                if len(p.get_text(strip=True)) > 40
+                p.get_text(strip=True) for p in paras
+                if len(p.get_text(strip=True)) > 50
             )
             if len(text) > 300:
                 content = text
                 break
 
-    # Fallback: all paragraphs
+    # Fallback: all <p> tags
     if not content:
-        paragraphs = soup.find_all("p")
+        paras = soup.find_all("p")
         content = "\n\n".join(
-            p.get_text(strip=True) for p in paragraphs
-            if len(p.get_text(strip=True)) > 40
+            p.get_text(strip=True) for p in paras
+            if len(p.get_text(strip=True)) > 50
         )
 
-    # If still nothing, use meta description
-    if not content and meta_desc:
-        content = meta_desc
+    # Detect if we got a useless generic page (like Google News homepage)
+    generic_phrases = [
+        "comprehensive up-to-date news coverage",
+        "aggregated from sources all over the world",
+        "sign in to access",
+        "javascript is required",
+        "please enable javascript",
+        "subscribe to read",
+    ]
+    content_lower = (content + meta_desc).lower()
+    is_generic = any(phrase in content_lower for phrase in generic_phrases)
 
-    return {"title": title, "content": content[:6000], "meta_desc": meta_desc}
+    return {
+        "title": title,
+        "content": content[:6000] if not is_generic else "",
+        "meta_desc": meta_desc if not is_generic else "",
+        "is_generic": is_generic,
+    }
+
+
+async def fetch_url(client: httpx.AsyncClient, url: str) -> tuple[str, str]:
+    """Fetch URL, follow all redirects, return (final_url, html)"""
+    for ua in USER_AGENTS:
+        try:
+            resp = await client.get(url, headers={
+                "User-Agent": ua,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+            }, timeout=15, follow_redirects=True)
+
+            final_url = str(resp.url)
+            if resp.status_code == 200 and len(resp.text) > 300:
+                return final_url, resp.text
+        except Exception:
+            continue
+    return url, ""
 
 
 @router.get("/fetch")
 async def fetch_article(url: str):
-    domain = re.sub(r"https?://(www\.)?", "", url).split("/")[0]
-    is_blocked = any(d in domain for d in BLOCKED_DOMAINS)
+    async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=12) as client:
+        # Step 1: Follow redirects to get the REAL URL
+        final_url, html = await fetch_url(client, url)
 
-        # For known blocked domains, try Google Cache first
-        if is_blocked:
+        # If redirect domain gave us nothing useful, we have the final URL now
+        if not html:
+            return {"success": False, "error": "Could not load this page", "url": url}
+
+        # Step 2: Extract content
+        data = extract_content(html, final_url)
+
+        # Step 3: If the page was generic/redirect page, try fetching final_url directly
+        if data["is_generic"] and final_url != url:
+            final_url2, html2 = await fetch_url(client, final_url)
+            if html2:
+                data = extract_content(html2, final_url2)
+
+        # Step 4: If paywalled domain, try Google Cache
+        if (not data["content"] or data["is_generic"]) and is_paywalled(final_url):
+            cache_url = get_google_cache_url(final_url)
+            _, cache_html = await fetch_url(client, cache_url)
+            if cache_html:
+                data = extract_content(cache_html, final_url)
+
+        # Step 5: Last resort Google Cache on original URL
+        if not data["content"] or data["is_generic"]:
             cache_url = get_google_cache_url(url)
-            for ua in USER_AGENTS:
-                resp = await try_fetch(client, cache_url, ua)
-                if resp:
-                    data = extract_content(resp.text)
-                    if data["content"]:
-                        return {"success": True, **data, "url": url, "via": "cache"}
+            _, cache_html = await fetch_url(client, cache_url)
+            if cache_html:
+                data = extract_content(cache_html, url)
 
-        # Normal fetch — try multiple user agents
-        for ua in USER_AGENTS:
-            resp = await try_fetch(client, url, ua)
-            if resp:
-                data = extract_content(resp.text)
-                if data["content"]:
-                    return {"success": True, **data, "url": url, "via": "direct"}
+        if not data["content"]:
+            return {
+                "success": False,
+                "error": "Article content blocked or behind paywall",
+                "url": final_url or url
+            }
 
-        # Last resort: try Google Cache for any domain
-        if not is_blocked:
-            cache_url = get_google_cache_url(url)
-            for ua in USER_AGENTS[:1]:
-                resp = await try_fetch(client, cache_url, ua)
-                if resp:
-                    data = extract_content(resp.text)
-                    if data["content"]:
-                        return {"success": True, **data, "url": url, "via": "cache"}
-
-    return {"success": False, "error": "This source blocks automated access", "url": url}
+        return {
+            "success": True,
+            "title": data["title"],
+            "content": data["content"],
+            "meta_desc": data["meta_desc"],
+            "url": final_url or url,
+        }
