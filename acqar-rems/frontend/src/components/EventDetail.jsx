@@ -1064,16 +1064,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
         </div>
 
-        {/* ── STEP 8: Summary ── */}
-        {event.summary && (
-          <p style={{
-            fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
-            marginBottom: 20, whiteSpace: 'pre-wrap',
-          }}>
-            {event.summary}
-          </p>
-        )}
-
+      
        
 
         {/* ── STEP 10: Signal sources ── */}
