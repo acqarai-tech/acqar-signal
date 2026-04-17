@@ -6285,7 +6285,49 @@ const sendMessage = async (e) => {
         { agent: 'Khalid Al Mansouri', msg: 'The golden visa has driven a whole segment of demand — buyers specifically targeting AED 2M+ ready stock just for the visa. It has a floor effect on that price point.' },
       ]
     },
+    // ── PROPERTY TYPES ──
+    {
+      keywords: ['studio', 'bedroom', '1br', '2br', '3br', 'villa', 'apartment', 'flat', 'penthouse', 'townhouse', 'duplex', 'unit', 'floor', 'view', 'furnished', 'unfurnished'],
+      replies: [
+        { agent: 'James Crawford', msg: '1BR in Business Bay or JVC is the sweet spot for yield right now. AED 750k–1.1M range, tenants are easy to find, liquidity is high.' },
+        { agent: 'Sara Al Hashimi', msg: 'Furnished units command 20–25% premium on rent vs unfurnished in the same building. The fit-out cost is AED 30–50k and you earn it back in year one.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Studios are the highest-yield asset class in Dubai but hardest to resell. 1BR is the balance — easier exit, slightly lower yield, much bigger buyer pool.' },
+        { agent: 'Marco Ferretti', msg: 'Villas in Dubai Hills and Arabian Ranches have waiting lists of buyers. If one comes to market priced correctly it is gone in 48 hours.' },
+        { agent: 'James Crawford', msg: 'High floor with Burj or sea view adds 15–25% to value and makes the unit significantly easier to resell. Always worth paying the premium on entry.' },
+      ]
+    },
+    // ── SERVICE CHARGE / FEES ──
+    {
+      keywords: ['service charge', 'maintenance', 'chiller', 'dewa', 'fees', 'charges', 'cost of ownership', 'running cost'],
+      replies: [
+        { agent: 'Sara Al Hashimi', msg: 'Always check the service charge before buying. Some buildings in JLT and Downtown charge AED 25–35 psf — that is AED 25k/year on a 1,000 sqft unit.' },
+        { agent: 'James Crawford', msg: 'Chiller-free buildings are significantly more attractive to tenants and buyers. Worth paying a small premium on entry — lower running costs win long term.' },
+        { agent: 'Khalid Al Mansouri', msg: 'DEWA costs in Dubai average AED 500–800/month for a 1BR. Factor that into your tenant affordability calculation when setting rent.' },
+        { agent: 'Marco Ferretti', msg: 'I nearly bought a unit before I checked the service charge arrears on the building. AED 2.3M in unpaid charges. Always pull the RERA service charge index first.' },
+      ]
+    },
+    // ── SHORT TERM RENTAL / AIRBNB ──
+    {
+      keywords: ['airbnb', 'short term', 'holiday home', 'dtcm', 'vacation rental', 'short-term', 'nightly'],
+      replies: [
+        { agent: 'Sara Al Hashimi', msg: 'Holiday home licence from DTCM costs AED 1,520 per year. You need it before listing on Airbnb — inspections happen and fines are AED 10k+.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Marina, JBR, Palm, and Downtown are the top short-term rental areas. Occupancy above 80% in peak season (Oct–Apr). Summer drops to 50–60%.' },
+        { agent: 'James Crawford', msg: 'Short-term management companies charge 20–25% of revenue. Factor that in — net yield after fees and DEWA is usually 8–10% on a well-located unit.' },
+        { agent: 'Marco Ferretti', msg: 'I use a management company for my Marina unit. Gross AED 120k last year, net after all fees AED 87k. Hands-off investment — worth every dirham.' },
+      ]
+    },
+    // ── CREEK HARBOUR / NEW AREAS ──
+    {
+      keywords: ['creek harbour', 'creek', 'meydan', 'dubai south', 'al furjan', 'motor city', 'sports city', 'arjan', 'mbr', 'mohammad bin rashid'],
+      replies: [
+        { agent: 'Khalid Al Mansouri', msg: 'Creek Harbour is my top pick for 3–5 year hold. Still 30% below Downtown pricing with the same Emaar quality. The creek tower will change everything when it completes.' },
+        { agent: 'James Crawford', msg: 'Dubai South is the long-term infrastructure play. Al Maktoum Airport will be the world\'s largest when done. Property prices there now look cheap in that context.' },
+        { agent: 'Sara Al Hashimi', msg: 'Meydan is underrated. Racecourse views, Sobha quality, and prices per sqft that are 25% below comparable Downtown units. Getting attention from smart money.' },
+        { agent: 'Marco Ferretti', msg: 'Al Furjan surprised me — community feel, good schools, metro access. Families are moving there and that stabilises rental demand significantly.' },
+      ]
+    },
     // ── GREETING / GENERAL ──
+   
     {
       keywords: ['hello', 'hi', 'hey', 'good morning', 'good evening', 'salam', 'anyone', 'thoughts', 'opinion', 'advice', 'help', 'suggest'],
       replies: [
@@ -6306,19 +6348,27 @@ const sendMessage = async (e) => {
     )
 
     if (matches.length === 0) {
-      // No keyword match — use a generic Dubai RE reply
       const generic = [
-        { agent: 'James Crawford', msg: 'Interesting point — Dubai market is moving fast right now. What area are you focused on?' },
-        { agent: 'Khalid Al Mansouri', msg: 'Good question. The answer really depends on your timeline and whether you are buying for yield or capital appreciation.' },
-        { agent: 'Sara Al Hashimi', msg: 'That is something a lot of people are asking right now. The market has shifted a lot in the past 12 months.' },
-        { agent: 'Marco Ferretti', msg: 'I had the same question when I started looking. DM me and I can share what I found out — saved me a lot of time.' },
-        { agent: 'James Crawford', msg: 'Worth getting a proper market report before deciding. Happy to pull recent comparables for whatever area you are looking at.' },
+        { agent: 'James Crawford', msg: 'Dubai transactions are up 30% year-on-year. Whatever you are considering, the window to enter at current prices is narrowing fast.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Rule I follow: buy within 10 mins of a metro station, sea, or major mall. Everything else in Dubai is secondary to those three anchors.' },
+        { agent: 'Sara Al Hashimi', msg: 'Service charges are the hidden cost people forget. Budget AED 12–18 per sqft per year depending on the building. That eats into yield significantly.' },
+        { agent: 'Marco Ferretti', msg: 'Three things I wish I knew before buying in Dubai: check the service charge history, check if the building has a pool and gym (resale value), and always verify DLD registration.' },
+        { agent: 'James Crawford', msg: 'Handover delays are real — add 6 months to whatever the developer promises on off-plan. Factor that into your cashflow planning.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Foreign ownership is 100% freehold in designated zones — Downtown, Marina, Palm, JVC, Business Bay, Dubai Hills. Outside those zones you need a local partner.' },
+        { agent: 'Sara Al Hashimi', msg: 'RERA regulates everything here. If your agent is not RERA-registered, walk away. Check their license number on the Dubai REST app.' },
+        { agent: 'Marco Ferretti', msg: 'I track DLD transaction data every week. Volume and price per sqft by area — that tells you more than any agent will.' },
+        { agent: 'James Crawford', msg: 'Resale value in Dubai is heavily driven by view and floor. Same unit, different floor — 15% price difference. Always go as high as budget allows.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Property management fee in Dubai runs 5–8% of annual rent. Factor that into your net yield calculation before committing.' },
       ]
       return generic[Math.floor(Math.random() * generic.length)]
     }
-
-    // Pick the best matching group (first match) and random reply from it
-    const bestMatch = matches[0]
+    // Pick the most specific match (most keyword hits) for best accuracy
+    const scored = matches.map(group => ({
+      group,
+      score: group.keywords.filter(kw => msg.includes(kw)).length
+    }))
+    scored.sort((a, b) => b.score - a.score)
+    const bestMatch = scored[0].group
     return bestMatch.replies[Math.floor(Math.random() * bestMatch.replies.length)]
   }
 
