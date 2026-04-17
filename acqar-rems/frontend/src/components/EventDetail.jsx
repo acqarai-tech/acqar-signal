@@ -1036,42 +1036,8 @@ export default function EventDetail({ hidden = false, onClose }) {
           }}
         >✕</button>
 
-        {/* ── STEP 5: Top label ── */}
-        <div style={{
-          fontSize: 9, fontWeight: 900, color: '#B87333',
-          letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10,
-        }}>
-          MARKET SIGNAL
-        </div>
-
-        {/* ── STEP 6: Title ── */}
-        <h3 style={{
-          fontSize: 16, fontWeight: 900, color: '#FAFAFA',
-          marginBottom: 10, lineHeight: 1.4, paddingRight: 32,
-        }}>
-          {event.title}
-        </h3>
-
-        {/* ── STEP 7: Meta row ── */}
-        <div style={{
-          display: 'flex', gap: 8, marginBottom: 20,
-          fontSize: 10, color: '#666', fontWeight: 600,
-          flexWrap: 'wrap', alignItems: 'center',
-        }}>
-          <span style={{
-            padding: '2px 8px', borderRadius: 4,
-            background: catColor + '22', color: catColor,
-            fontWeight: 700, fontSize: 9, letterSpacing: '0.5px',
-          }}>
-            {CATEGORY_LABELS[event.category] || event.category}
-          </span>
-          <span>·</span>
-          <span style={{ color: '#999' }}>{event.location_name}</span>
-          <span>·</span>
-          <span style={{ color: '#999' }}>Severity {event.severity}</span>
-          <span>·</span>
-          <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
-        </div>
+       
+        
 
         {/* ── STEP 8: Summary ── */}
         {event.summary && (
