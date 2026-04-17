@@ -2,6 +2,7 @@ from fastapi import APIRouter
 import httpx
 from bs4 import BeautifulSoup
 import re
+import xml.etree.ElementTree as ET
 
 router = APIRouter(prefix="/api/article", tags=["article"])
 
@@ -14,66 +15,139 @@ USER_AGENTS = [
 PAYWALLED = ["bloomberg.com", "ft.com", "wsj.com", "economist.com"]
 
 
-async def resolve_google_news_url(client: httpx.AsyncClient, url: str) -> str:
+async def get_real_url_from_google_news(client: httpx.AsyncClient, url: str) -> str:
     """
-    Google News RSS URLs need special handling.
-    Fetch the Google News page and extract the real article URL from the HTML.
+    Multiple strategies to extract real URL from Google News links.
     """
+    # Strategy 1: Use Google News RSS to find source URL
+    # The encoded ID in the URL can be used to fetch the RSS item
     try:
-        # Convert RSS url to readable URL if needed
-        readable_url = url.replace("/rss/articles/", "/articles/")
-
-        for ua in USER_AGENTS:
-            try:
-                resp = await client.get(readable_url, headers={
-                    "User-Agent": ua,
-                    "Accept": "text/html,application/xhtml+xml",
-                    "Accept-Language": "en-US,en;q=0.9",
-                }, timeout=15, follow_redirects=True)
-
-                final = str(resp.url)
-
-                # If we ended up somewhere other than google.com, that's our URL
-                if "google.com" not in final:
-                    return final
-
-                # Parse the HTML to find the real article link
-                soup = BeautifulSoup(resp.text, "lxml")
-
-                # Look for canonical link
-                canonical = soup.find("link", rel="canonical")
-                if canonical and canonical.get("href") and "google.com" not in canonical["href"]:
-                    return canonical["href"]
-
-                # Look for og:url
-                og_url = soup.find("meta", property="og:url")
-                if og_url and og_url.get("content") and "google.com" not in og_url["content"]:
-                    return og_url["content"]
-
-                # Look for the first external link in the page
-                for a in soup.find_all("a", href=True):
-                    href = a["href"]
-                    if href.startswith("http") and "google.com" not in href and "gstatic.com" not in href:
-                        return href
-
-            except Exception:
-                continue
-
-        # Last resort: try direct RSS url with follow redirects
-        try:
-            resp = await client.get(url, headers={
+        # Extract article ID
+        match = re.search(r'/articles/([^?&/]+)', url)
+        if match:
+            article_id = match.group(1)
+            
+            # Fetch single article RSS
+            rss_url = f"https://news.google.com/rss/articles/{article_id}"
+            resp = await client.get(rss_url, headers={
                 "User-Agent": USER_AGENTS[0],
-            }, timeout=15, follow_redirects=True)
+                "Accept": "application/rss+xml, application/xml, text/xml",
+            }, timeout=10, follow_redirects=True)
+            
+            if resp.status_code == 200:
+                # Parse RSS XML to get source URL
+                try:
+                    root = ET.fromstring(resp.text)
+                    # Look for link in RSS
+                    for item in root.iter('item'):
+                        link = item.find('link')
+                        source = item.find('source')
+                        if link is not None and link.text:
+                            real = link.text.strip()
+                            if "google.com" not in real and real.startswith("http"):
+                                return real
+                        # Check guid
+                        guid = item.find('guid')
+                        if guid is not None and guid.text:
+                            real = guid.text.strip()
+                            if "google.com" not in real and real.startswith("http"):
+                                return real
+                except Exception:
+                    pass
+                
+                # Parse as HTML/XML with BeautifulSoup
+                soup = BeautifulSoup(resp.text, "lxml")
+                for tag in ['link', 'guid', 'url']:
+                    el = soup.find(tag)
+                    if el and el.get_text() and "google.com" not in el.get_text():
+                        text = el.get_text().strip()
+                        if text.startswith("http"):
+                            return text
+    except Exception:
+        pass
+
+    # Strategy 2: Use Google AMP/reader URL format
+    try:
+        match = re.search(r'/articles/([^?&/]+)', url)
+        if match:
+            article_id = match.group(1)
+            amp_url = f"https://news.google.com/articles/{article_id}?hl=en-US&gl=US&ceid=US:en"
+            
+            resp = await client.get(amp_url, headers={
+                "User-Agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+                "Accept": "text/html",
+            }, timeout=10, follow_redirects=True)
+            
             final = str(resp.url)
             if "google.com" not in final:
                 return final
-        except Exception:
-            pass
+                
+            # Scrape the page for article link
+            soup = BeautifulSoup(resp.text, "lxml")
+            
+            # Look for JSON-LD structured data
+            for script in soup.find_all("script", type="application/ld+json"):
+                try:
+                    import json
+                    data = json.loads(script.string)
+                    if isinstance(data, dict):
+                        for key in ["url", "mainEntityOfPage", "@id"]:
+                            val = data.get(key, "")
+                            if isinstance(val, str) and val.startswith("http") and "google.com" not in val:
+                                return val
+                except Exception:
+                    pass
+            
+            # Look for meta refresh redirect
+            meta_refresh = soup.find("meta", attrs={"http-equiv": "refresh"})
+            if meta_refresh:
+                content = meta_refresh.get("content", "")
+                url_match = re.search(r'url=(.+)', content, re.IGNORECASE)
+                if url_match:
+                    redirect_url = url_match.group(1).strip().strip("'\"")
+                    if "google.com" not in redirect_url:
+                        return redirect_url
+            
+            # Find any external link
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                if (href.startswith("http") and 
+                    "google.com" not in href and 
+                    "gstatic.com" not in href and
+                    "googleapis.com" not in href):
+                    return href
 
     except Exception:
         pass
 
-    return url  # Return original if all fails
+    # Strategy 3: Try with requests that simulate a browser click
+    try:
+        match = re.search(r'/articles/([^?&/]+)', url)
+        if match:
+            article_id = match.group(1)
+            for ua in USER_AGENTS:
+                try:
+                    resp = await client.get(
+                        f"https://news.google.com/articles/{article_id}",
+                        headers={
+                            "User-Agent": ua,
+                            "Referer": "https://news.google.com/",
+                            "Accept": "text/html,application/xhtml+xml",
+                            "Accept-Language": "en-US,en;q=0.9",
+                            "Cache-Control": "no-cache",
+                        },
+                        timeout=12,
+                        follow_redirects=True
+                    )
+                    final = str(resp.url)
+                    if "google.com" not in final:
+                        return final
+                except Exception:
+                    continue
+    except Exception:
+        pass
+
+    return url  # All strategies failed
 
 
 def extract_content(html: str) -> dict:
@@ -85,16 +159,13 @@ def extract_content(html: str) -> dict:
 
     # Title
     title = ""
-    for selector in [
-        lambda s: s.find("meta", property="og:title"),
-        lambda s: s.find("h1"),
-        lambda s: s.title,
-    ]:
-        el = selector(soup)
-        if el:
-            title = el.get("content", "") if el.name == "meta" else el.get_text(strip=True)
-            if title:
-                break
+    og_title = soup.find("meta", property="og:title")
+    if og_title:
+        title = og_title.get("content", "")
+    if not title and soup.find("h1"):
+        title = soup.find("h1").get_text(strip=True)
+    if not title and soup.title:
+        title = soup.title.get_text(strip=True)
 
     # Meta description
     meta_desc = ""
@@ -129,7 +200,6 @@ def extract_content(html: str) -> dict:
                 content = text
                 break
 
-    # Fallback
     if not content:
         paras = soup.find_all("p")
         content = "\n\n".join(
@@ -137,14 +207,13 @@ def extract_content(html: str) -> dict:
             if len(p.get_text(strip=True)) > 50
         )
 
-    # Detect generic/useless pages
     generic_phrases = [
         "comprehensive up-to-date news coverage",
         "aggregated from sources all over the world",
         "sign in to access", "javascript is required",
         "please enable javascript", "subscribe to read",
-        "enable javascript and cookies",
-        "google news", "before you continue",
+        "enable javascript and cookies", "before you continue",
+        "google llc", "privacy policy",
     ]
     is_generic = any(p in (content + meta_desc + title).lower() for p in generic_phrases)
 
@@ -184,27 +253,29 @@ async def fetch_and_parse(client: httpx.AsyncClient, url: str) -> dict | None:
 @router.get("/fetch")
 @router.get("/fetch-article")
 async def fetch_article(url: str):
-    async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
+    async with httpx.AsyncClient(follow_redirects=True, timeout=20) as client:
 
-        # ── STEP 1: Resolve Google News URL to real article URL ──
         real_url = url
-        if "news.google.com" in url or "linkedin.com" in url:
-            real_url = await resolve_google_news_url(client, url)
 
-        # ── STEP 2: Fetch the real article ──
+        # ── Resolve Google News URLs ──
+        if "news.google.com" in url:
+            real_url = await get_real_url_from_google_news(client, url)
+
+        # ── Fetch real article ──
         if real_url != url and "google.com" not in real_url:
             data = await fetch_and_parse(client, real_url)
             if data:
                 return {"success": True, **data, "url": real_url}
 
-        # ── STEP 3: Try original URL ──
-        data = await fetch_and_parse(client, url)
-        if data:
-            return {"success": True, **data, "url": url}
+        # ── Try original URL ──
+        if "google.com" not in url:
+            data = await fetch_and_parse(client, url)
+            if data:
+                return {"success": True, **data, "url": url}
 
-        # ── STEP 4: Google Cache for paywalled sites ──
+        # ── Google Cache fallback for paywalled ──
         target = real_url if "google.com" not in real_url else url
-        if any(d in target for d in PAYWALLED):
+        if any(d in target for d in PAYWALLED) and "google.com" not in target:
             cache_url = f"https://webcache.googleusercontent.com/search?q=cache:{target}&hl=en"
             data = await fetch_and_parse(client, cache_url)
             if data:
@@ -212,7 +283,7 @@ async def fetch_article(url: str):
 
         return {
             "success": False,
-            "error": "Article blocked or behind paywall",
+            "error": "Could not resolve article URL",
             "real_url": real_url,
             "original_url": url,
         }
