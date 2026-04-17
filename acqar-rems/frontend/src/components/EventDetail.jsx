@@ -913,7 +913,7 @@ function MiniBrowser({ url, label, onClose }) {
     setStatus('loading')
     setArticle(null)
     try {
-      const res = await fetch(`${API_URL}/api/article/fetch?url=${encodeURIComponent(targetUrl)}`)
+      const res = await fetch(`${API_URL}/api/article/fetch-article?url=${encodeURIComponent(targetUrl)}`)
       const data = await res.json()
       if (data.success && data.content) {
         setArticle(data)
