@@ -847,6 +847,8 @@
 
 
 
+
+
 import { useEvents } from '../context/EventsContext'
 import { useState, useEffect } from 'react'
 
@@ -926,30 +928,47 @@ function SignalPreview({ url, label, snippet, title }) {
 
       {/* Bullet points */}
       <div style={{ padding: '12px 14px' }}>
-        {bullets.length > 0 ? (
-          <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-            {bullets.map((point, i) => (
-              <li key={i} style={{
-                display: 'flex', gap: 8, alignItems: 'flex-start',
-                marginBottom: 8,
-              }}>
-                <span style={{
-                  color: '#B87333', fontWeight: 900,
-                  fontSize: 12, flexShrink: 0, marginTop: 1,
-                }}>•</span>
-                <span style={{
-                  fontSize: 11, color: '#B3B3B3', lineHeight: 1.7,
-                }}>
-                  {point}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div style={{ fontSize: 11, color: '#666' }}>
-            {snippet || 'No content available.'}
-          </div>
-        )}
+        <div style={{ padding: '12px 14px' }}>
+  {/* Show snippet if it has real content, otherwise show message */}
+  {snippet && snippet.length > 60 ? (
+    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+      {toBullets(snippet).map((point, i) => (
+        <li key={i} style={{
+          display: 'flex', gap: 8,
+          alignItems: 'flex-start', marginBottom: 8,
+        }}>
+          <span style={{
+            color: '#B87333', fontWeight: 900,
+            fontSize: 12, flexShrink: 0,
+          }}>•</span>
+          <span style={{ fontSize: 11, color: '#B3B3B3', lineHeight: 1.7 }}>
+            {point}
+          </span>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <div style={{ fontSize: 11, color: '#666', lineHeight: 1.7 }}>
+      <div style={{ marginBottom: 8 }}>
+        📄 <span style={{ color: '#B3B3B3' }}>{snippet}</span>
+      </div>
+      <div style={{ fontSize: 10, color: '#555' }}>
+        Full content available on source website.
+      </div>
+      {url && (
+        <a href={url} target="_blank" rel="noopener noreferrer"
+          style={{
+            fontSize: 11, color: '#B87333', textDecoration: 'none',
+            borderBottom: '1px dotted #B87333', display: 'inline-block',
+            marginTop: 6, fontWeight: 600,
+          }}>
+          ↗ Read full article on {label}
+        </a>
+      )}
+    </div>
+  )}
+</div>
+          
       </div>
     </div>
   )
