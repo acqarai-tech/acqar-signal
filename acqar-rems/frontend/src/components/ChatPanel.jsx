@@ -4331,6 +4331,672 @@
 
 
 
+// import { useEffect, useRef, useState } from 'react'
+// import { supabase } from '../lib/supabase'
+
+// const nameColor = (name = '') => {
+//   const colors = [
+//     '#E8A838', '#E74C3C', '#3498DB', '#2ECC71',
+//     '#9B59B6', '#1ABC9C', '#E67E22', '#D4AC0D',
+//     '#F39C12', '#16A085', '#27AE60', '#8E44AD',
+//   ]
+//   let hash = 0
+//   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+//   return colors[Math.abs(hash) % colors.length]
+// }
+
+// function formatTime(ts) {
+//   const d = new Date(ts)
+//   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+// }
+
+
+// // ── Daily AI chat generator ──
+// const currentHour = new Date().toISOString().slice(0, 13) // "2025-01-15T14"
+// const TODAY_KEY = `acqar_chat_v4_${currentHour}`
+
+// // Clean up yesterday's cache
+// Object.keys(localStorage)
+//   .filter(k => k.startsWith('acqar_chat_') && k !== TODAY_KEY)
+//   .forEach(k => localStorage.removeItem(k))
+
+// const PERSONA_NAMES = {
+//   owner:    'Sara Al Hashimi',
+//   buyer:    'Marco Ferretti',
+//   investor: 'Khalid Al Mansouri',
+//   broker:   'James Crawford',
+// }
+
+// // ── Fallback messages (shows if backend is down) ──
+// const FALLBACK_MESSAGES = [
+//   { id: 'f1', user_name: 'Khalid Al Mansouri', content: 'Just closed on a 2BR in Business Bay — AED 1.85M, handover Q3 2026. Developer offered 60/40 payment plan. Smooth process overall.', created_at: new Date(Date.now() - 25 * 60000).toISOString() },
+//   { id: 'f2', user_name: 'Sara Al Hashimi', content: 'Listed my JVC studio today — AED 620k, fully furnished, 7.8% yield currently tenanted. Had 3 enquiries within the hour.', created_at: new Date(Date.now() - 22 * 60000).toISOString() },
+//   { id: 'f3', user_name: 'Marco Ferretti', content: 'Looking to buy a 1BR in Dubai Hills or MBR City, budget AED 1.4–1.6M ready. Anyone sold recently in that range?', created_at: new Date(Date.now() - 18 * 60000).toISOString() },
+//   { id: 'f4', user_name: 'James Crawford', content: 'Marco — sold a 1BR in Dubai Hills Estate last week, AED 1.55M. Buyer got it in 9 days from listing. That area moves fast right now.', created_at: new Date(Date.now() - 15 * 60000).toISOString() },
+//   { id: 'f5', user_name: 'Sara Al Hashimi', content: 'Marco — also worth checking Sobha Hartland 2. My client bought a 1BR there for AED 1.48M off-plan last month, good ROI projection.', created_at: new Date(Date.now() - 12 * 60000).toISOString() },
+//   { id: 'f6', user_name: 'Khalid Al Mansouri', content: 'Anyone looking at Palm Jebel Ali plots? Saw a G+1 plot listed at AED 3.2M — prices have moved 18% since January.', created_at: new Date(Date.now() - 8 * 60000).toISOString() },
+//   { id: 'f7', user_name: 'James Crawford', content: 'Khalid — Palm Jebel Ali is very active. Had a client flip a plot in 6 weeks for AED 180k profit. Early movers are winning there.', created_at: new Date(Date.now() - 5 * 60000).toISOString() },
+//   { id: 'f8', user_name: 'Marco Ferretti', content: 'Thanks all — going to view 2 units in Dubai Hills this weekend. Will report back on asking vs actual closing price.', created_at: new Date(Date.now() - 2 * 60000).toISOString() },
+// ]
+
+// // ── Build chat messages from backend events ──
+// function buildMessagesFromEvents(events) {
+//   const top = events.slice(0, 5)
+//   const now = Date.now()
+//   const total = top.length
+
+//   // Each event generates a mini thread: opener → 1-2 replies → follow-up
+//   // Personas react differently based on their role
+//   const threads = [
+//   (e) => [
+//     { name: 'Khalid Al Mansouri', msg: `"${e.title}" — saw this at 6am. ${e.location_name || 'Business Bay'} enquiries already up this morning because of it.` },
+//     { name: 'James Crawford',     msg: `Three buyers texted me specifically about ${e.location_name || 'that area'} before 9. All reacting to the same news.` },
+//     { name: 'Marco Ferretti',     msg: `After "${e.title.slice(0, 50)}..." — is this a sentiment shift or do prices actually move within weeks?` },
+//     { name: 'Khalid Al Mansouri', msg: `In ${e.location_name || 'this market'} both happen fast. That headline is the kind that triggers real transactions, not just talk.` },
+//     { name: 'Sara Al Hashimi',    msg: `Two sellers already called me after reading "${e.title.slice(0, 45)}..." wanting to list before the next wave.` },
+//   ],
+//   (e) => [
+//     { name: 'Sara Al Hashimi',    msg: `Read "${e.title.slice(0, 50)}..." this morning and immediately bumped my ${e.location_name || 'JVC'} ask by AED 35k.` },
+//     { name: 'James Crawford',     msg: `Bold move — what has the reaction been since you repriced?` },
+//     { name: 'Sara Al Hashimi',    msg: `Two more enquiries today. People are clearly reading "${e.title.slice(0, 40)}..." and moving faster.` },
+//     { name: 'Marco Ferretti',     msg: `Does "${e.title.slice(0, 45)}..." actually change absorption in ${e.location_name || 'JVC'} or just create noise?` },
+//     { name: 'Khalid Al Mansouri', msg: `Real absorption. ${e.location_name || 'That area'} had 4 transactions above asking last month — before this headline dropped.` },
+//   ],
+//   (e) => [
+//     { name: 'Marco Ferretti',     msg: `"${e.title}" — does this bring more buyers into ${e.location_name || 'Dubai'} or just squeeze the same pool harder?` },
+//     { name: 'James Crawford',     msg: `New buyers, definitely. "${e.title.slice(0, 40)}..." is the kind of headline that reaches people outside our usual circle.` },
+//     { name: 'Sara Al Hashimi',    msg: `Window between "${e.title.slice(0, 35)}..." and the price reaction in ${e.location_name || 'this area'} is maybe 3 weeks. That is the window.` },
+//     { name: 'Khalid Al Mansouri', msg: `By the time the second wave reads that headline, the deals in ${e.location_name || 'core Dubai'} are already signed.` },
+//     { name: 'Marco Ferretti',     msg: `Given "${e.title.slice(0, 45)}..." where exactly would you deploy right now in ${e.location_name || 'Dubai'}?` },
+//     { name: 'James Crawford',     msg: `Ready stock in ${e.location_name || 'Creek Harbour'} — not yet fully priced in and that headline changes the calculus.` },
+//   ],
+//   (e) => [
+//     { name: 'James Crawford',     msg: `Buyer walked into my ${e.location_name || 'Downtown'} viewing with "${e.title.slice(0, 45)}..." on his phone. Asked if it changes the ask.` },
+//     { name: 'Khalid Al Mansouri', msg: `What did you tell him?` },
+//     { name: 'James Crawford',     msg: `That "${e.title.slice(0, 40)}..." confirms the price, it does not negotiate it. He paid full ask.` },
+//     { name: 'Sara Al Hashimi',    msg: `${e.location_name || 'That zone'} stopped being a buyers market the moment headlines like "${e.title.slice(0, 35)}..." started appearing.` },
+//     { name: 'Marco Ferretti',     msg: `So where is the value left for a buyer who missed ${e.location_name || 'this area'} before "${e.title.slice(0, 35)}..."?` },
+//     { name: 'Khalid Al Mansouri', msg: `Adjacent areas that have not yet priced in what "${e.title.slice(0, 40)}..." means for the wider ${e.location_name || 'Dubai'} market.` },
+//   ],
+//   (e) => [
+//     { name: 'Sara Al Hashimi',    msg: `My ${e.location_name || 'Business Bay'} tenant asked if I am selling after seeing "${e.title.slice(0, 45)}...". Wants first refusal.` },
+//     { name: 'Marco Ferretti',     msg: `Are you selling given what "${e.title.slice(0, 40)}..." suggests about where prices go from here?` },
+//     { name: 'Sara Al Hashimi',    msg: `Leaning yes. "${e.title.slice(0, 40)}..." makes me think capital gain now beats yield over the next 2 years in ${e.location_name || 'this area'}.` },
+//     { name: 'Khalid Al Mansouri', msg: `Only sell if you have a clear reinvestment into something that "${e.title.slice(0, 35)}..." has not already priced up.` },
+//     { name: 'James Crawford',     msg: `Three tenanted units sold this week in ${e.location_name || 'that area'}. Buyers specifically want income from day one after reading "${e.title.slice(0, 35)}...".` },
+//     { name: 'Marco Ferretti',     msg: `What are tenanted units actually yielding net in ${e.location_name || 'that area'} right now post "${e.title.slice(0, 35)}..."?` },
+//     { name: 'Khalid Al Mansouri', msg: `Net around 6% after fees — that number looks very different now that "${e.title.slice(0, 40)}..." has reset expectations in ${e.location_name || 'this market'}.` },
+//   ],
+// ]
+//   const chat = []
+//   top.forEach((event, i) => {
+//     const thread = threads[i % threads.length](event)
+//     thread.forEach((msg, j) => {
+//       // Space messages 2 minutes apart within each thread, 5 min between threads
+//      const threadOffset = i * 5 * 60000
+// const msgOffset = j * 2 * 60000
+// const baseTime = now - (total * 5 * 60000)
+// chat.push({
+//   id: `ev_${i}_${j}`,
+//   user_name: msg.name,
+//   content: msg.msg,
+//   created_at: new Date(baseTime + threadOffset + msgOffset).toISOString()
+// })
+//     })
+//   })
+
+//   return chat
+// }
+// // ── Daily chat generator — uses your own backend, no external API ──
+// async function generateDailyChat() {
+//   const cached = localStorage.getItem(TODAY_KEY)
+//   if (cached) {
+//     try { return JSON.parse(cached) } catch { localStorage.removeItem(TODAY_KEY) }
+//   }
+
+//   try {
+//     // ── Fetch from Reddit directly (same as DistressDealsModal) ──
+//     const subreddits = ['DubaiRealEstate', 'dubairealestate', 'dubai']
+//     const DUBAI_AREAS = [
+//       'Palm Jumeirah', 'Dubai Hills', 'Business Bay', 'Downtown Dubai',
+//       'Dubai Marina', 'JVC', 'Creek Harbour', 'Jumeirah', 'DIFC',
+//       'Dubai South', 'Meydan', 'JBR', 'Sobha', 'Damac', 'Emaar',
+//       'Al Furjan', 'Motor City', 'Sports City', 'Jumeirah Village',
+//     ]
+
+//     const RE_KEYWORDS = [
+//       'buy', 'sell', 'rent', 'invest', 'property', 'apartment', 'villa',
+//       'studio', 'bedroom', 'aed', 'price', 'market', 'off-plan', 'developer',
+//       'handover', 'mortgage', 'yield', 'roi', 'sqft', 'listing', 'agent',
+//       'broker', 'dld', 'rera', 'freehold', 'lease', 'tenancy', 'landlord',
+//     ]
+
+//     const weekAgo = Math.floor(Date.now() / 1000) - (7 * 86400)
+//     const allPosts = []
+//     const seen = new Set()
+
+//     for (const sub of subreddits) {
+//       try {
+//         const controller = new AbortController()
+//         const timeout = setTimeout(() => controller.abort(), 8000)
+//         const resp = await fetch(
+//           `https://www.reddit.com/r/${sub}/new.json?limit=100&raw_json=1`,
+//           { signal: controller.signal, headers: { 'Accept': 'application/json' } }
+//         )
+//         clearTimeout(timeout)
+//         if (!resp.ok) continue
+
+//         const data = await resp.json()
+//         const posts = data?.data?.children || []
+
+//         for (const { data: post } of posts) {
+//           if (!post || post.created_utc < weekAgo) continue
+//           if (post.selftext === '[removed]' || post.selftext === '[deleted]') continue
+//           if (seen.has(post.id)) continue
+
+//           const combined = (post.title + ' ' + (post.selftext || '')).toLowerCase()
+
+//           // Must contain at least one RE keyword
+//           if (!RE_KEYWORDS.some(kw => combined.includes(kw))) continue
+
+//           // Skip spam/noise
+//           if (post.title.length < 20) continue
+//           if (post.title.includes('|') && post.title.includes('Helping')) continue
+
+//           seen.add(post.id)
+
+//           // Extract Dubai location from title
+//           const location = DUBAI_AREAS.find(a =>
+//             (post.title + ' ' + (post.selftext || '')).includes(a)
+//           ) || ''
+
+//           allPosts.push({
+//             title: post.title.slice(0, 100),
+//             location_name: location,
+//             score: post.score || 0,
+//           })
+//         }
+//       } catch (e) {
+//         console.log(`Reddit r/${sub} error:`, e?.name === 'AbortError' ? 'timeout' : e)
+//       }
+//     }
+
+//     // Sort by score and take top 5
+//     allPosts.sort((a, b) => b.score - a.score)
+//     const events = allPosts.slice(0, 5)
+
+//     if (!events.length) throw new Error('no reddit posts found')
+
+//     console.log('✅ Reddit posts for chat:', events.length, events[0]?.title)
+
+//     const shaped = buildMessagesFromEvents(events)
+//     localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
+//     return shaped
+
+//   } catch (err) {
+//     console.warn('Reddit chat fetch failed:', err.message)
+
+//     // Fallback to your backend signals
+//     try {
+//       const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+//       const res = await fetch(`${API_BASE}/api/events/community-signals?limit=10`, {
+//         signal: AbortSignal.timeout(6000)
+//       })
+//       if (!res.ok) throw new Error(`HTTP ${res.status}`)
+//       const data = await res.json()
+//       const signals = data.signals || []
+//       if (!signals.length) throw new Error('no signals')
+
+//       const events = signals
+//         .filter(s => {
+//           const t = s.text || ''
+//           if (t.includes(' | ') && t.includes('Helping')) return false
+//           if (t.includes('Portfolio Manager')) return false
+//           if (t.toLowerCase().includes('searching')) return false
+//           if (t.length < 30) return false
+//           return true
+//         })
+//         .map(s => {
+//           let title = s.text
+//             .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}]\s*/gu, '')
+//             .replace(/\s*[-|]\s*(LinkedIn|Arabian Business|Gulf News|Zawya|The National|Bayut|Property Finder).*$/i, '')
+//             .replace(/\s{2,}/g, ' ')
+//             .trim()
+//           if (title.includes(': ')) {
+//             const beforeColon = title.split(': ')[0].trim()
+//             if (beforeColon.length > 20) title = beforeColon
+//           }
+//           if (title.length > 80) title = title.slice(0, 80).replace(/\s+\S*$/, '').trim()
+//           return { title, location_name: s.location || '' }
+//         })
+//         .filter(e => e.title.length > 20)
+//         .slice(0, 5)
+
+//       if (!events.length) throw new Error('no clean events')
+
+//       const shaped = buildMessagesFromEvents(events)
+//       localStorage.setItem(TODAY_KEY, JSON.stringify(shaped))
+//       return shaped
+
+//     } catch (err2) {
+//       console.warn('Backend fallback also failed:', err2.message, '— using static fallback')
+//       return FALLBACK_MESSAGES
+//     }
+//   }
+// }
+// // ── Helper: extract Dubai location from headline ──
+// function extractLocation(title = '') {
+//   const areas = ['Palm Jumeirah', 'Dubai Hills', 'Business Bay', 'Downtown Dubai',
+//     'Dubai Marina', 'JVC', 'Creek Harbour', 'Jumeirah', 'DIFC', 'Dubai South',
+//     'Abu Dhabi', 'Sharjah', 'RAK', 'Meydan', 'JBR']
+//   return areas.find(a => title.includes(a)) || ''
+// }
+
+// // ── Helper: detect category from headline ──
+// function extractCategory(title = '') {
+//   const t = title.toLowerCase()
+//   if (t.includes('regulation') || t.includes('law') || t.includes('rera') || t.includes('dld')) return 'regulatory'
+//   if (t.includes('price') || t.includes('aed') || t.includes('sqft') || t.includes('yield')) return 'price_signal'
+//   if (t.includes('launch') || t.includes('off-plan') || t.includes('offplan')) return 'offplan'
+//   return 'transaction'
+// }
+// export default function ChatPanel({ onClose, userPlan }) {
+
+//   // ── Real logged-in user from Supabase ──
+//   const params = new URLSearchParams(window.location.search)
+// const urlName = params.get('username') || 'User'
+// const urlUserId = params.get('userid') || ''
+// const [authUser, setAuthUser] = useState(urlUserId ? { id: urlUserId } : null)
+// const [myName, setMyName] = useState(urlName)
+
+// //   useEffect(() => {
+// //     // Get current session
+// //    const loadUser = async () => {
+// //   const { data } = await supabase.auth.getSession()
+// //   const user = data?.session?.user ?? null
+// //   if (user) {
+// //     setAuthUser(user)
+// //     const { data: userRow } = await supabase
+// //       .from('users')
+// //       .select('name')
+// //       .eq('id', user.id)
+// //       .maybeSingle()
+// //    const name =
+// //   user.user_metadata?.name ||
+// //   user.user_metadata?.full_name ||
+// //   user.email?.split('@')[0] ||
+// //   'User'
+// // setMyName(name)
+// //   } else {
+// //     const isAdmin = localStorage.getItem('admin_auth') === 'true'
+// //     if (isAdmin) {
+// //       setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
+// //       setMyName('Admin')
+// //     }
+// //   }
+// // }
+// // loadUser()
+
+// //     // Listen for auth changes
+// //    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+// //   const user = session?.user ?? null
+// //   if (user) {
+// //     setAuthUser(user)
+// //     supabase
+// //       .from('users')
+// //       .select('name')
+// //       .eq('id', user.id)
+// //       .maybeSingle()
+// //       .then(({ data: userRow }) => {
+// //         const name =
+// //   user.user_metadata?.name ||
+// //   user.user_metadata?.full_name ||
+// //   user.email?.split('@')[0] ||
+// //   'User'
+// // setMyName(name)
+// //       })
+// //   } else {
+// //     const isAdmin = localStorage.getItem('admin_auth') === 'true'
+// //     if (isAdmin) {
+// //       setAuthUser({ id: 'admin-001', email: 'admin@acqar.com' })
+// //       setMyName('Admin')
+// //     } else {
+// //       setAuthUser(null)
+// //       setMyName('User')
+// //     }
+// //   }
+// // })
+// //     return () => listener?.subscription?.unsubscribe()
+// //   }, [])
+
+//   // ── Chat state ──
+ 
+// const [messages, setMessages] = useState([])
+//   const [input, setInput] = useState('')
+//   const [loading, setLoading] = useState(false)
+//   const [error, setError] = useState(null)
+//   const [msgCount, setMsgCount] = useState(null)
+//   const canChat = userPlan !== 'free'
+
+//   const bottomRef = useRef(null)
+//   const inputRef = useRef(null)
+
+
+  
+// // ── Auto-refresh when hour changes ──
+// useEffect(() => {
+//   const msUntilNextHour = () => {
+//     const now = new Date()
+//     return (60 - now.getMinutes()) * 60000 - now.getSeconds() * 1000
+//   }
+
+//   const timeout = setTimeout(() => {
+//     // Clear old cache so generateDailyChat fetches fresh
+//     localStorage.removeItem(TODAY_KEY)
+//     window.location.reload()
+//   }, msUntilNextHour())
+
+//   return () => clearTimeout(timeout)
+// }, [])
+//   // ── Fetch messages ──
+  
+//   useEffect(() => {
+//   const fetchMessages = async () => {
+//     setLoading(true)
+//     setError(null)
+//     try {
+//       const dailyChat = await generateDailyChat()
+//       const { data, error } = await supabase
+//         .from('messages')
+//         .select('id, user_name, content, created_at')
+//         .order('created_at', { ascending: true })
+//         .limit(100)
+//       const realMessages = (!error && data) ? data : []
+//       setMessages([...dailyChat, ...realMessages])
+//     } catch (err) {
+//       console.error('fetchMessages error:', err)
+//       setMessages(FALLBACK_MESSAGES)
+//     } finally {
+//       setLoading(false)  // ← ALWAYS runs — no more infinite loading spinner
+//     }
+//   }
+//   fetchMessages()
+// }, [])
+
+//   // ── Message count ──
+//   useEffect(() => {
+//     const fetchCount = async () => {
+//       const { count } = await supabase
+//         .from('messages')
+//         .select('*', { count: 'exact', head: true })
+//       if (count !== null) setMsgCount(count)
+//     }
+//     fetchCount()
+//   }, [messages])
+
+//   // ── Realtime ──
+//   useEffect(() => {
+//     const channel = supabase
+//       .channel('chat-room-' + Math.random())
+//       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+//         setMessages(prev => {
+//           if (prev.find(m => m.id === payload.new.id)) return prev
+//           return [...prev, payload.new]
+//         })
+//       })
+//       .subscribe()
+//     return () => supabase.removeChannel(channel)
+//   }, [])
+
+//   // ── Auto scroll ──
+//   useEffect(() => {
+//     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+//   }, [messages])
+
+//   // ── Send ──
+//  const sendMessage = async (e) => {
+//   e?.preventDefault()
+//   if (!myName || !authUser || !canChat) return
+//     const text = input.trim()
+//     if (!text) return
+//     setInput('')
+//     const { error } = await supabase.from('messages').insert({
+//       user_id: authUser.id,
+//       user_name: myName,
+//       content: text,
+//     })
+//     if (error) setError('Failed to send: ' + error.message)
+//   }
+
+//   const handleKeyDown = (e) => {
+//     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e) }
+//   }
+
+//   return (
+//     <div style={{
+//       height: '100%',
+//       display: 'flex',
+//       flexDirection: 'column',
+//       background: '#111827',
+//       fontFamily: "'Inter', sans-serif",
+//       overflow: 'hidden',
+//       pointerEvents: 'auto',
+//     }}>
+
+//       {/* Header */}
+//       {onClose && (
+//         <div style={{
+//           display: 'flex', alignItems: 'center', gap: '7px',
+//           padding: '0 12px',
+//           background: '#0d1117',
+//           borderBottom: '1px solid #1f2937',
+//           flexShrink: 0,
+//           height: 44,
+//           position: 'sticky',
+//           top: 0,
+//           zIndex: 9999,
+//         }}>
+//           <div style={{
+//             width: 22, height: 22, borderRadius: '6px', background: '#1f2937',
+//             display: 'flex', alignItems: 'center', justifyContent: 'center',
+//             fontSize: '11px', flexShrink: 0,
+//           }}>💬</div>
+
+//           <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb', letterSpacing: '1px' }}>CHAT</span>
+
+//           <span style={{ fontSize: '10px', color: '#4b5563' }}>as</span>
+//           <span style={{
+//             fontSize: '10px', fontWeight: 700,
+//             color: nameColor(myName),
+//             maxWidth: '140px', overflow: 'hidden',
+//             textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+//           }}>{myName}</span>
+
+//           <div style={{ flex: 1 }} />
+
+//           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+//             <span style={{ fontSize: '13px' }}>🟠</span>
+//             <span style={{ fontSize: '12px', fontWeight: 700, color: '#f9fafb' }}>
+//               {msgCount !== null ? msgCount.toLocaleString() : '—'}
+//             </span>
+//           </div>
+
+//           <button
+//             onClick={() => window.location.reload()}
+//             style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: '15px', padding: '4px' }}
+//           >↺</button>
+
+//           <button
+//             onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }}
+//             onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }}
+//             onClick={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }}
+//             style={{
+//               width: 36, height: 36, background: '#1f2937',
+//               border: '1px solid #374151', borderRadius: '6px',
+//               color: '#f9fafb', cursor: 'pointer', fontSize: '16px',
+//               display: 'flex', alignItems: 'center', justifyContent: 'center',
+//               touchAction: 'manipulation',
+//               WebkitTapHighlightColor: 'transparent',
+//               position: 'relative',
+//               zIndex: 999,
+//             }}
+//           >✕</button>
+//         </div>
+//       )}
+
+//       {/* Error */}
+//       {error && (
+//         <div style={{
+//           padding: '5px 12px', background: 'rgba(239,68,68,0.15)',
+//           borderBottom: '1px solid rgba(239,68,68,0.4)',
+//           fontSize: '10px', color: '#f87171',
+//           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
+//         }}>
+//           {error}
+//           <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer' }}>✕</button>
+//         </div>
+//       )}
+
+//       {/* Messages */}
+//       <div style={{
+//         flex: 1, overflowY: 'auto', padding: '4px 0 8px',
+//         scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent',
+//         WebkitOverflowScrolling: 'touch',
+//       }}>
+//         {loading && (
+//           <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
+//             Loading messages...
+//           </div>
+//         )}
+//         {!loading && messages.length === 0 && (
+//           <div style={{ fontSize: '11px', color: '#4b5563', textAlign: 'center', padding: '24px' }}>
+//             No messages yet. Say something!
+//           </div>
+//         )}
+//         {messages.map((msg, i) => {
+//           const isOwn = msg.user_name === myName
+//           const color = isOwn ? '#B87333' : nameColor(msg.user_name)
+//           const prevMsg = messages[i - 1]
+//           const sameUser = prevMsg && prevMsg.user_name === msg.user_name
+//           const timeDiff = prevMsg ? (new Date(msg.created_at) - new Date(prevMsg.created_at)) / 1000 : 999
+//           const showHeader = !sameUser || timeDiff > 120
+//           return (
+//             <div key={msg.id} style={{
+//               padding: showHeader ? '10px 14px 2px' : '1px 14px',
+//               background: isOwn ? 'rgba(184,115,51,0.05)' : 'transparent',
+//               borderLeft: isOwn ? '2px solid rgba(184,115,51,0.5)' : '2px solid transparent',
+//             }}>
+//               {showHeader && (
+//                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '2px' }}>
+//                   <span style={{ fontSize: '13px', fontWeight: 700, color }}>{msg.user_name}</span>
+//                   <span style={{ fontSize: '9px', color: '#374151' }}>{formatTime(msg.created_at)}</span>
+//                 </div>
+//               )}
+//               <div style={{ fontSize: '13px', color: '#d1d5db', lineHeight: 1.5, wordBreak: 'break-word' }}>
+//                 {msg.content}
+//               </div>
+//             </div>
+//           )
+//         })}
+//         <div ref={bottomRef} />
+//       </div>
+
+//       {/* Free plan — read-only banner */}
+//       {authUser && !canChat && (
+//         <div style={{
+//           padding: '10px 12px',
+//           background: '#0d1117',
+//           borderTop: '1px solid #1f2937',
+//           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+//           gap: '6px',
+//           flexShrink: 0,
+//         }}>
+//           <span style={{ fontSize: '10px', color: 'white', flexShrink: 1, minWidth: 0 }}>
+//             🔒 <strong>Read-only.</strong> Upgrade to ACQAR Pro to chat.
+//           </span>
+//         <a 
+//   href="https://www.acqar.com/pricing"
+//   target="_top"
+//   rel="noopener noreferrer"
+//  style={{
+//     fontSize: '11px', fontWeight: 700,
+//     background: '#B87333', color: 'white',
+//     padding: '5px 10px', borderRadius: '6px',
+//     textDecoration: 'none',
+//     whiteSpace: 'nowrap',
+//     flexShrink: 0,
+//   }}
+// >CLAIM YOUR SPOT → </a>
+//         </div>
+//       )}
+
+//       {/* Input — paid users only */}
+//       {canChat && (
+//         <div style={{
+//           padding: '10px 12px',
+//           paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
+//           borderTop: '1px solid #1f2937',
+//           background: '#0d1117', flexShrink: 0,
+//           display: 'flex', gap: '8px', alignItems: 'center',
+//         }}>
+//           <input
+//             ref={inputRef}
+//             value={input}
+//             onChange={e => setInput(e.target.value)}
+//             onKeyDown={handleKeyDown}
+//             placeholder={authUser ? `Message as ${myName}...` : 'Sign in to chat...'}
+//             maxLength={200}
+//             style={{
+//               flex: 1, padding: '10px 14px', fontSize: '16px',
+//               background: '#1f2937',
+//               border: '1px solid #374151',
+//               color: '#f9fafb',
+//               borderRadius: '8px', outline: 'none',
+//               transition: 'border-color 0.15s',
+//               WebkitAppearance: 'none',
+//               cursor: 'text',
+//             }}
+//             onFocus={e => e.target.style.borderColor = '#6366f1'}
+//             onBlur={e => e.target.style.borderColor = '#374151'}
+//           />
+//           <button
+//             type="button"
+//             onClick={sendMessage}
+//             disabled={!input.trim()}
+//             style={{
+//               width: 40, height: 40, borderRadius: '8px',
+//               background: input.trim() ? '#6366f1' : '#1f2937',
+//               border: 'none', color: 'white',
+//               cursor: input.trim() ? 'pointer' : 'default',
+//               display: 'flex', alignItems: 'center', justifyContent: 'center',
+//               fontSize: '16px', flexShrink: 0,
+//               transition: 'background 0.15s',
+//               touchAction: 'manipulation',
+//               WebkitTapHighlightColor: 'transparent',
+//             }}
+//           >↗</button>
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
@@ -4352,8 +5018,11 @@ function formatTime(ts) {
 
 
 // ── Daily AI chat generator ──
-const currentHour = new Date().toISOString().slice(0, 13) // "2025-01-15T14"
-const TODAY_KEY = `acqar_chat_v4_${currentHour}`
+function getTodayKey() {
+  const currentHour = new Date().toISOString().slice(0, 13)
+  return `acqar_chat_v4_${currentHour}`
+}
+const TODAY_KEY = getTodayKey()
 
 // Clean up yesterday's cache
 Object.keys(localStorage)
@@ -4463,12 +5132,14 @@ async function generateDailyChat() {
       'Dubai South', 'Meydan', 'JBR', 'Sobha', 'Damac', 'Emaar',
       'Al Furjan', 'Motor City', 'Sports City', 'Jumeirah Village',
     ]
-
-    const RE_KEYWORDS = [
-      'buy', 'sell', 'rent', 'invest', 'property', 'apartment', 'villa',
-      'studio', 'bedroom', 'aed', 'price', 'market', 'off-plan', 'developer',
-      'handover', 'mortgage', 'yield', 'roi', 'sqft', 'listing', 'agent',
-      'broker', 'dld', 'rera', 'freehold', 'lease', 'tenancy', 'landlord',
+const RE_KEYWORDS = [
+      'property', 'apartment', 'villa', 'studio', 'bedroom',
+      'aed', 'off-plan', 'offplan', 'developer', 'handover',
+      'mortgage', 'yield', 'roi', 'sqft', 'dld', 'rera',
+      'freehold', 'tenancy', 'landlord', 'real estate',
+      'palm jumeirah', 'dubai hills', 'business bay', 'downtown dubai',
+      'dubai marina', 'jvc', 'creek harbour', 'difc', 'emaar',
+      'damac', 'sobha', 'nakheel', 'meraas',
     ]
 
     const weekAgo = Math.floor(Date.now() / 1000) - (7 * 86400)
@@ -4496,12 +5167,24 @@ async function generateDailyChat() {
 
           const combined = (post.title + ' ' + (post.selftext || '')).toLowerCase()
 
-          // Must contain at least one RE keyword
-          if (!RE_KEYWORDS.some(kw => combined.includes(kw))) continue
+          // Must contain at least one STRONG RE keyword
+          const STRONG_KEYWORDS = [
+            'property', 'apartment', 'villa', 'aed', 'sqft',
+            'off-plan', 'offplan', 'developer', 'dld', 'rera',
+            'real estate', 'freehold', 'mortgage', 'handover',
+            'emaar', 'damac', 'sobha', 'nakheel', 'meraas',
+            'palm jumeirah', 'dubai hills', 'business bay',
+            'downtown dubai', 'dubai marina', 'jvc', 'creek harbour',
+          ]
+          if (!STRONG_KEYWORDS.some(kw => combined.includes(kw))) continue
 
-          // Skip spam/noise
+          // Skip spam/noise/non-RE posts
           if (post.title.length < 20) continue
           if (post.title.includes('|') && post.title.includes('Helping')) continue
+          if (combined.includes('visa') && !combined.includes('property')) continue
+          if (combined.includes('job') && !combined.includes('property')) continue
+          if (combined.includes('restaurant') || combined.includes('food')) continue
+          if (combined.includes('tourist') || combined.includes('vacation')) continue
 
           seen.add(post.id)
 
@@ -4691,8 +5374,9 @@ useEffect(() => {
   }
 
   const timeout = setTimeout(() => {
-    // Clear old cache so generateDailyChat fetches fresh
-    localStorage.removeItem(TODAY_KEY)
+    // Clear current cache key so new hour fetches fresh
+    const currentKey = getTodayKey()
+    localStorage.removeItem(currentKey)
     window.location.reload()
   }, msUntilNextHour())
 
