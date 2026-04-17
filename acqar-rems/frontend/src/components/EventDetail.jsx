@@ -1036,8 +1036,42 @@ export default function EventDetail({ hidden = false, onClose }) {
           }}
         >✕</button>
 
-       
-        
+        {/* ── STEP 5: Top label ── */}
+        <div style={{
+          fontSize: 9, fontWeight: 900, color: '#B87333',
+          letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10,
+        }}>
+          MARKET SIGNAL
+        </div>
+
+        {/* ── STEP 6: Title ── */}
+        <h3 style={{
+          fontSize: 16, fontWeight: 900, color: '#FAFAFA',
+          marginBottom: 10, lineHeight: 1.4, paddingRight: 32,
+        }}>
+          {event.title}
+        </h3>
+
+        {/* ── STEP 7: Meta row ── */}
+        <div style={{
+          display: 'flex', gap: 8, marginBottom: 20,
+          fontSize: 10, color: '#666', fontWeight: 600,
+          flexWrap: 'wrap', alignItems: 'center',
+        }}>
+          <span style={{
+            padding: '2px 8px', borderRadius: 4,
+            background: catColor + '22', color: catColor,
+            fontWeight: 700, fontSize: 9, letterSpacing: '0.5px',
+          }}>
+            {CATEGORY_LABELS[event.category] || event.category}
+          </span>
+          <span>·</span>
+          <span style={{ color: '#999' }}>{event.location_name}</span>
+          <span>·</span>
+          <span style={{ color: '#999' }}>Severity {event.severity}</span>
+          <span>·</span>
+          <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
+        </div>
 
         {/* ── STEP 8: Summary ── */}
         {event.summary && (
@@ -1049,28 +1083,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           </p>
         )}
 
-        {/* ── STEP 9: Key stats grid ── */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr',
-          gap: 8, marginBottom: 20,
-        }}>
-          {[
-            ['📍 Location', event.location_name],
-            ['📡 Signals', `${event.signal_count} sources`],
-            event.price_aed
-              ? ['💰 Price', `AED ${(event.price_aed / 1000000).toFixed(1)}M`]
-              : ['🔖 Category', CATEGORY_LABELS[event.category]],
-            ['📰 Source', event.source],
-          ].map(([label, val]) => (
-            <div key={label} style={{
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: 6, padding: 10,
-            }}>
-              <div style={{ fontSize: 9, color: '#555', marginBottom: 3 }}>{label}</div>
-              <div style={{ fontSize: 11, color: '#FAFAFA', fontWeight: 600 }}>{val}</div>
-            </div>
-          ))}
-        </div>
+       
 
         {/* ── STEP 10: Signal sources ── */}
         {event.signals && event.signals.length > 0 && (
