@@ -6140,6 +6140,7 @@ const sendMessage = async (e) => {
   }
 
   // ── AI Agent reply ──
+ // ── AI Agent reply — keyword matching, no API key needed ──
   const AI_AGENT_NAMES = [
     'Sara Al Hashimi',
     'Khalid Al Mansouri',
@@ -6147,66 +6148,215 @@ const sendMessage = async (e) => {
     'Marco Ferretti',
   ]
 
+  const AGENT_REPLIES = [
+    // ── PRICES ──
+    {
+      keywords: ['price', 'prices', 'pricing', 'expensive', 'cheap', 'cost', 'aed', 'million', 'psf', 'sqft'],
+      replies: [
+        { agent: 'James Crawford', msg: 'Prices in core Dubai are still holding firm. Sellers are not discounting right now — multiple offers on anything priced correctly.' },
+        { agent: 'Khalid Al Mansouri', msg: 'AED 1,800–2,200 psf in Business Bay ready stock. Off-plan is moving faster and at better entry points if you can wait for handover.' },
+        { agent: 'Sara Al Hashimi', msg: 'Compared to 18 months ago, prices are up 20–30% in most areas. The question is whether you are buying for yield or capital gain.' },
+        { agent: 'Marco Ferretti', msg: 'I was surprised how fast prices moved here. What budget range are you working with — that changes the options significantly.' },
+        { agent: 'James Crawford', msg: 'Dubai Hills and MBR City still offer value relative to Downtown. Prices per sqft are 15–20% lower for similar quality.' },
+      ]
+    },
+    // ── INVESTMENT / ROI / YIELD ──
+    {
+      keywords: ['invest', 'investment', 'roi', 'yield', 'return', 'rental', 'rent', 'income', 'profit', 'capital gain'],
+      replies: [
+        { agent: 'Khalid Al Mansouri', msg: 'Net yields in JVC and Sports City are still hitting 7–8%. If you want capital gain, go Downtown or Palm. You cannot have both at peak.' },
+        { agent: 'Sara Al Hashimi', msg: 'Tenanted properties are selling fast right now. Buyers want income from day one — furnish it and list it tenanted for a 15% premium.' },
+        { agent: 'James Crawford', msg: 'Best ROI entry right now is off-plan in Dubai South or Al Furjan. Lower entry price, strong rental demand when it completes.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Short-term rental in Marina or JBR is generating 10–12% gross. You need a holiday home licence — DTCM handles it, process takes 2 weeks.' },
+        { agent: 'Marco Ferretti', msg: 'I ran the numbers on three areas. Creek Harbour surprised me — yields are solid and capital appreciation is still early-stage.' },
+      ]
+    },
+    // ── OFF-PLAN ──
+    {
+      keywords: ['off-plan', 'offplan', 'off plan', 'launch', 'developer', 'handover', 'payment plan', 'emaar', 'damac', 'sobha', 'nakheel', 'meraas'],
+      replies: [
+        { agent: 'James Crawford', msg: 'Off-plan payment plans from Emaar and Sobha are 60/40 right now. You pay 60% during construction, 40% on handover. Protects your cashflow.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Sobha Hartland 2 and Dubai Hills phase 3 are selling out within days of launch. You need to be on the priority list before public launch.' },
+        { agent: 'Sara Al Hashimi', msg: 'DAMAC is offering post-handover payment plans on some units — 3 years after keys. That is the one to look at if cashflow is tight.' },
+        { agent: 'Marco Ferretti', msg: 'Which developer are you looking at? Some have better build quality track records than others — Emaar and Sobha are the benchmarks here.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Off-plan in Dubai South is the play right now. Al Maktoum Airport expansion makes that whole corridor interesting for 3–5 year hold.' },
+      ]
+    },
+    // ── AREAS — DUBAI HILLS ──
+    {
+      keywords: ['dubai hills', 'hills estate', 'hills'],
+      replies: [
+        { agent: 'James Crawford', msg: 'Dubai Hills is fully established now. Villas have appreciated 45% since 2021. Apartments around the golf course are the value play remaining.' },
+        { agent: 'Sara Al Hashimi', msg: 'Sold a 3BR villa in Dubai Hills last month — 14 viewings in 4 days, went above asking. That market has very strong demand.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Dubai Hills Mall has changed the dynamic completely. Foot traffic drives rental demand — 1BR apartments near the mall are yielding 6.5% net.' },
+      ]
+    },
+    // ── AREAS — BUSINESS BAY ──
+    {
+      keywords: ['business bay', 'bay'],
+      replies: [
+        { agent: 'James Crawford', msg: 'Business Bay is the most liquid market in Dubai right now. High transaction volume, lots of ready buyers and sellers.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Canal-facing units in Business Bay command a 20% premium. Non-canal is better value but slower to appreciate.' },
+        { agent: 'Sara Al Hashimi', msg: 'My Business Bay studio is generating AED 75k per year short-term. Running costs are around AED 15k including management — net is strong.' },
+      ]
+    },
+    // ── AREAS — JVC ──
+    {
+      keywords: ['jvc', 'jumeirah village circle', 'jumeirah village'],
+      replies: [
+        { agent: 'Sara Al Hashimi', msg: 'JVC is the highest transaction volume area in Dubai. Studios and 1BRs move in days if priced right — AED 550–750k range.' },
+        { agent: 'James Crawford', msg: 'JVC yields are holding at 7–8% net. The infrastructure has improved massively — Circle Mall changed the whole feel of the community.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Entry point in JVC is still accessible. For long-term hold it is solid — not glamorous but the numbers work better than most premium areas.' },
+      ]
+    },
+    // ── AREAS — PALM ──
+    {
+      keywords: ['palm', 'palm jumeirah', 'palm jebel ali', 'atlantis', 'frond'],
+      replies: [
+        { agent: 'Khalid Al Mansouri', msg: 'Palm Jebel Ali is where early movers are going. Plots have moved 20%+ since launch. Palm Jumeirah is fully priced — Jebel Ali is the opportunity.' },
+        { agent: 'James Crawford', msg: 'Palm Jumeirah villas are AED 15–35M range now. The rental yields are only 3–4% net but the capital preservation is exceptional.' },
+        { agent: 'Sara Al Hashimi', msg: 'The new monorail extension on Palm Jumeirah is driving another wave of interest. Connectivity was the one gap — that is closing.' },
+      ]
+    },
+    // ── AREAS — DOWNTOWN ──
+    {
+      keywords: ['downtown', 'burj khalifa', 'burj', 'opera', 'address'],
+      replies: [
+        { agent: 'James Crawford', msg: 'Downtown Dubai is a trophy asset — prices reflect that. AED 2,800–4,500 psf depending on floor and view. Yield is 3.5–4.5% net.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Downtown is for capital preservation, not yield. If you want income, go JVC or Business Bay. Downtown is a store of value play.' },
+        { agent: 'Marco Ferretti', msg: 'I looked at Downtown seriously — the Burj view premium is real but so is the price. Hard to justify on yield alone.' },
+      ]
+    },
+    // ── AREAS — MARINA ──
+    {
+      keywords: ['marina', 'dubai marina', 'jbr', 'jumeirah beach', 'bluewaters'],
+      replies: [
+        { agent: 'Sara Al Hashimi', msg: 'Marina is still one of the strongest short-term rental markets. Tourists want the address — you can hit 85% occupancy in peak season.' },
+        { agent: 'James Crawford', msg: 'Marina prices per sqft are AED 1,600–2,200 for ready stock. Older buildings offer better value — focus on floors 20+ for views.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Bluewaters and JBR have completely reset Marina pricing expectations. The entire waterfront corridor is repricing upward.' },
+      ]
+    },
+    // ── MORTGAGE / FINANCE ──
+    {
+      keywords: ['mortgage', 'finance', 'loan', 'bank', 'interest rate', 'ltv', 'down payment'],
+      replies: [
+        { agent: 'Marco Ferretti', msg: 'UAE mortgage rates are running 4.5–5.2% fixed for expats right now. ADCB and Emirates NBD have the most competitive packages I have seen.' },
+        { agent: 'James Crawford', msg: 'Non-residents can get 50% LTV — so AED 2M property needs AED 1M down. Residents get 80% LTV which changes the entry point significantly.' },
+        { agent: 'Khalid Al Mansouri', msg: 'I always buy cash for off-plan — no mortgage available anyway until handover. For ready stock, mortgage makes sense if your yield covers the rate.' },
+        { agent: 'Sara Al Hashimi', msg: 'Pre-approval takes 3–5 days with most UAE banks. Get it before you make an offer — sellers take you more seriously with a pre-approval letter.' },
+      ]
+    },
+    // ── BUYING PROCESS ──
+    {
+      keywords: ['buy', 'buying', 'purchase', 'how to buy', 'process', 'steps', 'mou', 'noc', 'dld', 'transfer', 'agent'],
+      replies: [
+        { agent: 'James Crawford', msg: 'Process is: agree price → sign MOU → pay 10% deposit → NOC from developer → DLD transfer. Usually 30 days from MOU to transfer.' },
+        { agent: 'Sara Al Hashimi', msg: 'DLD transfer fee is 4% of purchase price — budget for that on top. Plus AED 4,000–5,000 in admin fees. Factor it into your total cost.' },
+        { agent: 'Marco Ferretti', msg: 'I used a RERA-registered agent and it made a big difference. They know which buildings have service charge issues or structural problems to avoid.' },
+        { agent: 'James Crawford', msg: 'Always get a snagging inspection before transfer on any ready property. AED 1,500–2,000 for the service — saves you much more in surprises.' },
+      ]
+    },
+    // ── SELLING ──
+    {
+      keywords: ['sell', 'selling', 'list', 'listing', 'asking price', 'valuation', 'market value'],
+      replies: [
+        { agent: 'Sara Al Hashimi', msg: 'Properties priced within 5% of market value are selling in under 3 weeks right now. Overprice by 10% and it sits for months.' },
+        { agent: 'James Crawford', msg: 'Get a RERA valuation report before listing — gives you a defensible number when buyers negotiate. Costs AED 2,500 but worth it.' },
+        { agent: 'Khalid Al Mansouri', msg: 'Best time to list is September–November and February–April. Summer is slow — if you can wait, Q4 inventory is lower and buyers are more serious.' },
+        { agent: 'Sara Al Hashimi', msg: 'Stage the apartment before photos. I spent AED 8,000 on styling and furniture rental — sold AED 85,000 above what an unstyled unit went for in the same building.' },
+      ]
+    },
+    // ── MARKET CONDITIONS ──
+    {
+      keywords: ['market', 'bubble', 'crash', 'correction', 'slow', 'boom', 'growth', 'forecast', 'trend', '2025', '2026'],
+      replies: [
+        { agent: 'Khalid Al Mansouri', msg: 'Dubai is not in a bubble. Population growth is 100k+ per year and supply cannot keep up. Fundamentals are different from 2008.' },
+        { agent: 'James Crawford', msg: 'Transaction volumes are at record highs — 14,000+ deals per month in 2024. This is not speculative flipping, it is genuine end-user demand.' },
+        { agent: 'Marco Ferretti', msg: 'I was sceptical before I moved here. The demand is real — I know 40 colleagues who relocated to Dubai in the past two years alone.' },
+        { agent: 'Sara Al Hashimi', msg: 'Areas that still have upside: Dubai South, Al Furjan, Meydan. Core areas are fully priced. The growth story has moved to the second ring.' },
+      ]
+    },
+    // ── VISA / GOLDEN VISA ──
+    {
+      keywords: ['visa', 'golden visa', 'residency', 'resident', 'citizenship'],
+      replies: [
+        { agent: 'Marco Ferretti', msg: 'AED 2M property qualifies for a 10-year golden visa — that was the trigger for my purchase. The residency stability changes the calculus completely.' },
+        { agent: 'James Crawford', msg: 'Golden visa through property: AED 2M minimum, must be ready (not off-plan), and fully paid — no mortgage balance. DLD processes it in 2–3 weeks.' },
+        { agent: 'Khalid Al Mansouri', msg: 'The golden visa has driven a whole segment of demand — buyers specifically targeting AED 2M+ ready stock just for the visa. It has a floor effect on that price point.' },
+      ]
+    },
+    // ── GREETING / GENERAL ──
+    {
+      keywords: ['hello', 'hi', 'hey', 'good morning', 'good evening', 'salam', 'anyone', 'thoughts', 'opinion', 'advice', 'help', 'suggest'],
+      replies: [
+        { agent: 'James Crawford', msg: 'Morning — active day in the market. Two viewings already and it is not even 10am. What are you looking at?' },
+        { agent: 'Sara Al Hashimi', msg: 'Hey — what is your situation? Buying, selling, or just watching the market right now?' },
+        { agent: 'Khalid Al Mansouri', msg: 'Good to see new people in here. Dubai RE moves fast — what area or asset class are you focused on?' },
+        { agent: 'Marco Ferretti', msg: 'Just closed on something last week after 3 months of searching. Happy to share what I learned — what is your budget range?' },
+      ]
+    },
+  ]
+
+  const getSmartReply = (userMessage) => {
+    const msg = userMessage.toLowerCase()
+
+    // Find all matching topic groups
+    const matches = AGENT_REPLIES.filter(group =>
+      group.keywords.some(kw => msg.includes(kw))
+    )
+
+    if (matches.length === 0) {
+      // No keyword match — use a generic Dubai RE reply
+      const generic = [
+        { agent: 'James Crawford', msg: 'Interesting point — Dubai market is moving fast right now. What area are you focused on?' },
+        { agent: 'Khalid Al Mansouri', msg: 'Good question. The answer really depends on your timeline and whether you are buying for yield or capital appreciation.' },
+        { agent: 'Sara Al Hashimi', msg: 'That is something a lot of people are asking right now. The market has shifted a lot in the past 12 months.' },
+        { agent: 'Marco Ferretti', msg: 'I had the same question when I started looking. DM me and I can share what I found out — saved me a lot of time.' },
+        { agent: 'James Crawford', msg: 'Worth getting a proper market report before deciding. Happy to pull recent comparables for whatever area you are looking at.' },
+      ]
+      return generic[Math.floor(Math.random() * generic.length)]
+    }
+
+    // Pick the best matching group (first match) and random reply from it
+    const bestMatch = matches[0]
+    return bestMatch.replies[Math.floor(Math.random() * bestMatch.replies.length)]
+  }
+
   const triggerAgentReply = async (userMessage) => {
-    // 40% chance agent replies (not every message)
-    if (Math.random() > 0.4) return
+    // 55% chance agent replies
+    if (Math.random() > 0.55) return
 
-    // Pick a random persona that is NOT the sender
-    const availableAgents = AI_AGENT_NAMES.filter(n => n !== myName)
-    const agentName = availableAgents[Math.floor(Math.random() * availableAgents.length)]
+    // Get smart keyword-matched reply
+    const reply = getSmartReply(userMessage)
 
-    // Wait 3-8 seconds to feel natural
-    const delay = 3000 + Math.random() * 5000
+    // Skip if agent name matches the sender
+    if (reply.agent === myName) {
+      const others = AI_AGENT_NAMES.filter(n => n !== myName)
+      reply.agent = others[Math.floor(Math.random() * others.length)]
+    }
+
+    // Wait 2-6 seconds to feel natural
+    const delay = 2000 + Math.random() * 4000
     setAgentTyping(true)
-
     await new Promise(r => setTimeout(r, delay))
     setAgentTyping(false)
 
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: `You are ${agentName}, a Dubai real estate professional chatting in a live property intelligence platform called ACQAR.
+    // Save to Supabase so all users see it
+    const { error: insertError } = await supabase.from('messages').insert({
+      user_id: authUser?.id || null,
+      user_name: reply.agent,
+      content: reply.msg,
+    })
 
-Your persona:
-- Sara Al Hashimi: Property owner and seller, knows Dubai market deeply, practical and direct
-- Khalid Al Mansouri: Active investor, focuses on ROI, off-plan, and capital gains
-- James Crawford: Senior broker, transaction-focused, knows pricing and deal timelines
-- Marco Ferretti: Buyer/investor, asks smart questions, European perspective on Dubai market
-
-Rules:
-- Reply in 1-3 short sentences maximum. Be conversational, not formal.
-- Always relate your reply to Dubai real estate specifically.
-- Use AED for prices when mentioning amounts.
-- Reference real Dubai areas (Business Bay, Dubai Hills, JVC, Palm Jumeirah, etc.) when relevant.
-- Never use bullet points or long paragraphs — this is a chat, keep it brief.
-- Sound like a real person texting, not an AI writing an essay.
-- Do not start with "I" every time — vary your sentence starters.`,
-          messages: [
-            {
-              role: 'user',
-              content: `Someone in the Dubai real estate chat just said: "${userMessage}"\n\nReply naturally as ${agentName} in 1-3 sentences max.`,
-            },
-          ],
-        }),
-      })
-
-      const data = await response.json()
-      const replyText = data?.content?.[0]?.text?.trim()
-      if (!replyText) return
-
-      // Save agent reply to Supabase so everyone sees it
-      await supabase.from('messages').insert({
-        user_id: `agent-${agentName.toLowerCase().replace(/\s/g, '-')}`,
-        user_name: agentName,
-        content: replyText,
-      })
-
-    } catch (err) {
-      console.warn('Agent reply failed:', err.message)
+    // If Supabase insert fails, show locally anyway
+    if (insertError) {
+      console.error('Agent insert failed:', insertError)
+      setMessages(prev => [...prev, {
+        id: `agent-local-${Date.now()}`,
+        user_name: reply.agent,
+        content: reply.msg,
+        created_at: new Date().toISOString(),
+      }])
     }
   }
 
