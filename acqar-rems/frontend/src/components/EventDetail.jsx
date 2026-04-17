@@ -910,21 +910,48 @@ function MiniBrowser({ url, label, onClose }) {
   }, [currentUrl])
 
   async function fetchArticle(targetUrl) {
-    setStatus('loading')
-    setArticle(null)
-    try {
-      const res = await fetch(`${API_URL}/api/article/fetch?url=${encodeURIComponent(targetUrl)}`)
-      const data = await res.json()
-      if (data.success && data.content) {
-        setArticle(data)
-        setStatus('loaded')
-      } else {
-        setStatus('error')
+  setStatus('loading')
+  setArticle(null)
+
+  try {
+    let articleUrl = targetUrl
+
+    // ── If Google News URL, resolve the real URL first via frontend ──
+    if (targetUrl.includes('news.google.com') || targetUrl.includes('linkedin.com')) {
+      try {
+        // Use a CORS proxy to follow the redirect and get final URL
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+        const headResp = await fetch(proxyUrl, { method: 'GET', redirect: 'follow' })
+        const finalUrl = headResp.url
+
+        // corsproxy.io wraps it, extract the real URL
+        if (finalUrl && !finalUrl.includes('google.com') && !finalUrl.includes('corsproxy')) {
+          articleUrl = finalUrl
+        } else {
+          // Try to extract from response HTML
+          const html = await headResp.text()
+          const match = html.match(/href="(https?:\/\/(?!.*google\.com)[^"]+)"/)
+          if (match) articleUrl = match[1]
+        }
+      } catch {
+        // keep original URL
       }
-    } catch {
+    }
+
+    // ── Now send the real URL to backend ──
+    const res = await fetch(`${API_URL}/api/article/fetch?url=${encodeURIComponent(articleUrl)}`)
+    const data = await res.json()
+
+    if (data.success && data.content) {
+      setArticle(data)
+      setStatus('loaded')
+    } else {
       setStatus('error')
     }
+  } catch {
+    setStatus('error')
   }
+}
 
   function navigate() { setCurrentUrl(inputUrl) }
   function handleKeyDown(e) { if (e.key === 'Enter') navigate() }
@@ -1067,20 +1094,40 @@ function SourcePreview({ url, label }) {
   const [article, setArticle] = useState(null)
 
   async function loadArticle() {
-    setStatus('loading')
-    try {
-      const res = await fetch(`${API_URL}/api/article/fetch?url=${encodeURIComponent(url)}`)
-      const data = await res.json()
-      if (data.success) {
-        setArticle(data)
-        setStatus('loaded')
-      } else {
-        setStatus('error')
+  setStatus('loading')
+  try {
+    let articleUrl = url
+
+    // Resolve Google News URLs on frontend
+    if (url.includes('news.google.com') || url.includes('linkedin.com')) {
+      try {
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`
+        const resp = await fetch(proxyUrl, { redirect: 'follow' })
+        const finalUrl = resp.url
+        if (finalUrl && !finalUrl.includes('google.com') && !finalUrl.includes('corsproxy')) {
+          articleUrl = finalUrl
+        } else {
+          const html = await resp.text()
+          const match = html.match(/href="(https?:\/\/(?!.*google\.com)[^"]+)"/)
+          if (match) articleUrl = match[1]
+        }
+      } catch {
+        // keep original
       }
-    } catch {
+    }
+
+    const res = await fetch(`${API_URL}/api/article/fetch?url=${encodeURIComponent(articleUrl)}`)
+    const data = await res.json()
+    if (data.success) {
+      setArticle(data)
+      setStatus('loaded')
+    } else {
       setStatus('error')
     }
+  } catch {
+    setStatus('error')
   }
+}
 
   if (status === 'idle') return (
     <button onClick={loadArticle} style={{
