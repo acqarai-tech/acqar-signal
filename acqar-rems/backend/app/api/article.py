@@ -2,6 +2,7 @@ from fastapi import APIRouter
 import httpx
 from bs4 import BeautifulSoup
 import re
+import base64
 
 router = APIRouter(prefix="/api/article", tags=["article"])
 
@@ -13,23 +14,96 @@ USER_AGENTS = [
 
 PAYWALLED = ["bloomberg.com", "ft.com", "wsj.com", "economist.com", "thetimes.co.uk"]
 
-# Google News URL patterns — need to follow redirect to real article
-REDIRECT_DOMAINS = ["news.google.com", "linkedin.com", "t.co", "bit.ly", "google.com/url"]
-
-
-def is_redirect_domain(url: str) -> bool:
-    return any(d in url for d in REDIRECT_DOMAINS)
-
 
 def is_paywalled(url: str) -> bool:
     return any(d in url for d in PAYWALLED)
 
 
-def get_google_cache_url(url: str) -> str:
-    return f"https://webcache.googleusercontent.com/search?q=cache:{url}&hl=en"
+def decode_google_news_url(url: str) -> str:
+    """
+    Google News RSS URLs are base64-encoded. Decode to get the real article URL.
+    Format: https://news.google.com/rss/articles/CBMi...
+    """
+    try:
+        if "news.google.com" not in url:
+            return url
+
+        # Extract the encoded part after /articles/ or /read/
+        match = re.search(r'/(?:articles|read)/([A-Za-z0-9_\-]+)', url)
+        if not match:
+            return url
+
+        encoded = match.group(1)
+
+        # Add padding if needed
+        padding = 4 - len(encoded) % 4
+        if padding != 4:
+            encoded += '=' * padding
+
+        # Try standard base64 decode
+        try:
+            decoded = base64.urlsafe_b64decode(encoded).decode('utf-8', errors='ignore')
+        except Exception:
+            return url
+
+        # Find a real URL inside the decoded bytes
+        url_match = re.search(r'https?://[^\s\x00-\x1f"<>]+', decoded)
+        if url_match:
+            real_url = url_match.group(0).rstrip('.,;)')
+            # Make sure it's not Google itself
+            if "google.com" not in real_url:
+                return real_url
+
+        return url
+    except Exception:
+        return url
 
 
-def extract_content(html: str, base_url: str = "") -> dict:
+async def resolve_redirect(client: httpx.AsyncClient, url: str) -> str:
+    """Follow redirects and return the final URL."""
+    try:
+        resp = await client.head(url, headers={
+            "User-Agent": USER_AGENTS[0]
+        }, timeout=10, follow_redirects=True)
+        return str(resp.url)
+    except Exception:
+        try:
+            resp = await client.get(url, headers={
+                "User-Agent": USER_AGENTS[0]
+            }, timeout=10, follow_redirects=True)
+            return str(resp.url)
+        except Exception:
+            return url
+
+
+async def fetch_and_parse(client: httpx.AsyncClient, url: str) -> dict | None:
+    """Try fetching a URL with multiple user agents, return parsed content or None."""
+    for ua in USER_AGENTS:
+        try:
+            resp = await client.get(url, headers={
+                "User-Agent": ua,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+            }, timeout=15, follow_redirects=True)
+
+            final_url = str(resp.url)
+
+            if resp.status_code != 200 or len(resp.text) < 300:
+                continue
+
+            data = extract_content(resp.text)
+            if data["content"] and not data["is_generic"]:
+                data["final_url"] = final_url
+                return data
+
+        except Exception:
+            continue
+    return None
+
+
+def extract_content(html: str) -> dict:
     soup = BeautifulSoup(html, "lxml")
 
     for tag in soup(["script", "style", "nav", "footer", "header",
@@ -56,7 +130,7 @@ def extract_content(html: str, base_url: str = "") -> dict:
             meta_desc = m.get("content", "")
             break
 
-    # Extract article body
+    # Article body
     content = ""
     selectors = [
         "article",
@@ -65,7 +139,7 @@ def extract_content(html: str, base_url: str = "") -> dict:
         "[class*='post-content']", "[class*='entry-content']",
         "[class*='article-content']", "[class*='ArticleBody']",
         "[itemprop='articleBody']", "[class*='body-text']",
-        "[class*='page-content']", "main", "[role='main']",
+        "main", "[role='main']",
     ]
     for sel in selectors:
         el = soup.select_one(sel)
@@ -79,7 +153,6 @@ def extract_content(html: str, base_url: str = "") -> dict:
                 content = text
                 break
 
-    # Fallback: all <p> tags
     if not content:
         paras = soup.find_all("p")
         content = "\n\n".join(
@@ -87,94 +160,59 @@ def extract_content(html: str, base_url: str = "") -> dict:
             if len(p.get_text(strip=True)) > 50
         )
 
-    # Detect if we got a useless generic page (like Google News homepage)
+    # Detect useless/generic pages
     generic_phrases = [
         "comprehensive up-to-date news coverage",
         "aggregated from sources all over the world",
-        "sign in to access",
-        "javascript is required",
-        "please enable javascript",
-        "subscribe to read",
+        "sign in to access", "javascript is required",
+        "please enable javascript", "subscribe to read",
+        "google news", "enable javascript and cookies",
     ]
-    content_lower = (content + meta_desc).lower()
-    is_generic = any(phrase in content_lower for phrase in generic_phrases)
+    content_lower = (content + meta_desc + title).lower()
+    is_generic = any(p in content_lower for p in generic_phrases)
 
     return {
         "title": title,
         "content": content[:6000] if not is_generic else "",
-        "meta_desc": meta_desc if not is_generic else "",
+        "meta_desc": meta_desc,
         "is_generic": is_generic,
     }
 
 
-async def fetch_url(client: httpx.AsyncClient, url: str) -> tuple[str, str]:
-    """Fetch URL, follow all redirects, return (final_url, html)"""
-    for ua in USER_AGENTS:
-        try:
-            resp = await client.get(url, headers={
-                "User-Agent": ua,
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Connection": "keep-alive",
-                "Upgrade-Insecure-Requests": "1",
-                "Sec-Fetch-Dest": "document",
-                "Sec-Fetch-Mode": "navigate",
-            }, timeout=15, follow_redirects=True)
-
-            final_url = str(resp.url)
-            if resp.status_code == 200 and len(resp.text) > 300:
-                return final_url, resp.text
-        except Exception:
-            continue
-    return url, ""
-
-
 @router.get("/fetch")
+@router.get("/fetch-article")  # support both endpoint names
 async def fetch_article(url: str):
     async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
 
-        # Step 1: Follow redirects to get the REAL URL
-        final_url, html = await fetch_url(client, url)
+        # ── STEP 1: Decode Google News encoded URL ──
+        real_url = decode_google_news_url(url)
 
-        # If redirect domain gave us nothing useful, we have the final URL now
-        if not html:
-            return {"success": False, "error": "Could not load this page", "url": url}
+        # ── STEP 2: If still google.com, resolve via HEAD redirect ──
+        if "google.com" in real_url:
+            real_url = await resolve_redirect(client, url)
 
-        # Step 2: Extract content
-        data = extract_content(html, final_url)
+        # ── STEP 3: Try fetching the real article URL ──
+        if real_url and real_url != url and "google.com" not in real_url:
+            data = await fetch_and_parse(client, real_url)
+            if data:
+                return {"success": True, **data, "url": real_url}
 
-        # Step 3: If the page was generic/redirect page, try fetching final_url directly
-        if data["is_generic"] and final_url != url:
-            final_url2, html2 = await fetch_url(client, final_url)
-            if html2:
-                data = extract_content(html2, final_url2)
+        # ── STEP 4: Try original URL directly ──
+        data = await fetch_and_parse(client, url)
+        if data:
+            return {"success": True, **data, "url": url}
 
-        # Step 4: If paywalled domain, try Google Cache
-        if (not data["content"] or data["is_generic"]) and is_paywalled(final_url):
-            cache_url = get_google_cache_url(final_url)
-            _, cache_html = await fetch_url(client, cache_url)
-            if cache_html:
-                data = extract_content(cache_html, final_url)
-
-        # Step 5: Last resort Google Cache on original URL
-        if not data["content"] or data["is_generic"]:
-            cache_url = get_google_cache_url(url)
-            _, cache_html = await fetch_url(client, cache_url)
-            if cache_html:
-                data = extract_content(cache_html, url)
-
-        if not data["content"]:
-            return {
-                "success": False,
-                "error": "Article content blocked or behind paywall",
-                "url": final_url or url
-            }
+        # ── STEP 5: Try Google Cache as last resort ──
+        target = real_url if real_url and "google.com" not in real_url else url
+        if is_paywalled(target):
+            cache_url = f"https://webcache.googleusercontent.com/search?q=cache:{target}&hl=en"
+            data = await fetch_and_parse(client, cache_url)
+            if data:
+                return {"success": True, **data, "url": target, "via": "cache"}
 
         return {
-            "success": True,
-            "title": data["title"],
-            "content": data["content"],
-            "meta_desc": data["meta_desc"],
-            "url": final_url or url,
+            "success": False,
+            "error": "Article blocked or behind paywall",
+            "real_url": real_url,
+            "original_url": url,
         }
