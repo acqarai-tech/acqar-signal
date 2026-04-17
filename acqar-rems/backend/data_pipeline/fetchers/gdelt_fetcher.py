@@ -228,35 +228,45 @@ DUBAI_RE_FEEDS = {
         "source": "Bayut Blog",
         "weight": 0.88,
     },
-    "dld_google_news": {
-        "url": "https://news.google.com/rss/search?q=Dubai+Land+Department+DLD+RERA+2026&hl=en-AE&gl=AE&ceid=AE:en",
-        "source": "DLD/RERA News",
-        "weight": 0.90,
-    },
-    "emaar_damac_news": {
-        "url": "https://news.google.com/rss/search?q=Emaar+DAMAC+Nakheel+Dubai+property+launch+2026&hl=en-AE&gl=AE&ceid=AE:en",
-        "source": "Developer News",
-        "weight": 0.88,
-    },
-    "dubai_transaction_news": {
-        "url": "https://news.google.com/rss/search?q=Dubai+property+transaction+AED+villa+apartment+sold+2026&hl=en-AE&gl=AE&ceid=AE:en",
-        "source": "Dubai Transactions",
-        "weight": 0.87,
-    },
-    "palm_marina_downtown": {
-        "url": "https://news.google.com/rss/search?q=Palm+Jumeirah+Dubai+Marina+Downtown+Dubai+real+estate+2026&hl=en-AE&gl=AE&ceid=AE:en",
-        "source": "Prime Areas News",
-        "weight": 0.85,
-    },
-    "dubai_offplan": {
-        "url": "https://news.google.com/rss/search?q=Dubai+off-plan+launch+new+development+handover+2026&hl=en-AE&gl=AE&ceid=AE:en",
-        "source": "Off-Plan News",
+    "khaleej_times_re": {
+        "url": "https://www.khaleejtimes.com/rss/business/real-estate",
+        "source": "Khaleej Times",
         "weight": 0.86,
     },
-    "dubai_rental_investment": {
-        "url": "https://news.google.com/rss/search?q=Dubai+rental+yield+investment+ROI+property+market+2026&hl=en-AE&gl=AE&ceid=AE:en",
-        "source": "Investment News",
+    "mediaoffice_uae": {
+        "url": "https://www.mediaoffice.ae/en/rss/",
+        "source": "Dubai Media Office",
+        "weight": 0.90,
+    },
+    "construction_week": {
+        "url": "https://www.constructionweekonline.com/feed",
+        "source": "Construction Week",
         "weight": 0.84,
+    },
+    "wam_uae": {
+        "url": "https://wam.ae/en/rss.xml",
+        "source": "WAM UAE",
+        "weight": 0.88,
+    },
+    "arab_news_property": {
+        "url": "https://www.arabnews.com/taxonomy/term/8712/feed",
+        "source": "Arab News Property",
+        "weight": 0.85,
+    },
+    "tradearabia_re": {
+        "url": "https://www.tradearabia.com/rss/REAL.xml",
+        "source": "Trade Arabia",
+        "weight": 0.82,
+    },
+    "the_national_business": {
+        "url": "https://www.thenationalnews.com/rss/business.xml",
+        "source": "The National Business",
+        "weight": 0.87,
+    },
+    "reuters_business": {
+        "url": "https://feeds.reuters.com/reuters/businessNews",
+        "source": "Reuters",
+        "weight": 0.90,
     },
 }
 
