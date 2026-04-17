@@ -932,13 +932,24 @@ function SourcePreview({ url, label }) {
     <div style={{ fontSize: 10, color: '#666', marginTop: 6 }}>⏳ Loading article...</div>
   )
 
-  if (status === 'error') return (
-    <div style={{ marginTop: 6 }}>
-      <span style={{ fontSize: 10, color: '#666' }}>Preview unavailable — </span>
-      <a href={url} target="_blank" rel="noopener noreferrer"
-        style={{ fontSize: 10, color: '#B87333' }}>open in new tab ↗</a>
+if (status === 'error') return (
+  <div style={{
+    marginTop: 6, padding: '8px 10px',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid #1a3a5c', borderRadius: 6,
+  }}>
+    <div style={{ fontSize: 10, color: '#666', marginBottom: 4 }}>
+      🔒 This source blocks inline preview
     </div>
-  )
+    <a href={url} target="_blank" rel="noopener noreferrer"
+      style={{
+        fontSize: 11, color: '#B87333', textDecoration: 'none',
+        borderBottom: '1px dotted #B87333', fontWeight: 600,
+      }}>
+      ↗ Read full article on {label}
+    </a>
+  </div>
+)
 
   return (
     <div style={{
