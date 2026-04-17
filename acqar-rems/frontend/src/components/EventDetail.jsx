@@ -845,6 +845,8 @@
 
 
 
+
+
 import { useEvents } from '../context/EventsContext'
 import { useState, useEffect } from 'react'
 
@@ -868,30 +870,87 @@ const CATEGORY_LABELS = {
   regulatory: 'Regulatory', infrastructure: 'Infrastructure', investment: 'Investment'
 }
 
-function SignalPreview({ url, label }) {
+function SignalPreview({ url, label, snippet, title }) {
   const [open, setOpen] = useState(false)
 
+  // Convert snippet text into bullet points by splitting on sentences
+  function toBullets(text) {
+    if (!text) return []
+    return text
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 20)
+      .slice(0, 6)
+  }
+
+  const bullets = toBullets(snippet)
+
+  if (!open) return (
+    <button onClick={() => setOpen(true)} style={{
+      fontSize: 10, color: '#B87333', background: 'none',
+      border: '1px dotted #B87333', borderRadius: 4,
+      padding: '2px 8px', cursor: 'pointer', marginTop: 6,
+    }}>
+      📄 View Key Points
+    </button>
+  )
+
   return (
-    <div style={{ marginTop: 4 }}>
-      {!open ? (
-        <button
-          onClick={() => setOpen(true)}
-          style={{
-            fontSize: 10, color: '#B87333',
-            background: 'none', border: '1px dotted #B87333',
-            borderRadius: 4, padding: '2px 8px',
-            cursor: 'pointer',
-          }}
-        >
-          📄 View Content
-        </button>
-      ) : (
-        <MiniBrowser
-          url={url}
-          label={label}
-          onClose={() => setOpen(false)}
-        />
-      )}
+    <div style={{
+      marginTop: 8, border: '1px solid #1a3a5c',
+      borderRadius: 8, overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        background: 'rgba(184,115,51,0.10)',
+        padding: '6px 10px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        borderBottom: '1px solid #1a3a5c',
+      }}>
+        <span style={{ fontSize: 10, color: '#B87333', fontWeight: 700 }}>
+          {label}
+        </span>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {url && (
+            <a href={url} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 10, color: '#B87333', textDecoration: 'none' }}>
+              ↗ Open original
+            </a>
+          )}
+          <button onClick={() => setOpen(false)} style={{
+            background: 'none', border: 'none',
+            color: '#666', fontSize: 13, cursor: 'pointer',
+          }}>✕</button>
+        </div>
+      </div>
+
+      {/* Bullet points */}
+      <div style={{ padding: '12px 14px' }}>
+        {bullets.length > 0 ? (
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+            {bullets.map((point, i) => (
+              <li key={i} style={{
+                display: 'flex', gap: 8, alignItems: 'flex-start',
+                marginBottom: 8,
+              }}>
+                <span style={{
+                  color: '#B87333', fontWeight: 900,
+                  fontSize: 12, flexShrink: 0, marginTop: 1,
+                }}>•</span>
+                <span style={{
+                  fontSize: 11, color: '#B3B3B3', lineHeight: 1.7,
+                }}>
+                  {point}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div style={{ fontSize: 11, color: '#666' }}>
+            {snippet || 'No content available.'}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -1103,7 +1162,14 @@ export default function EventDetail({ hidden = false, onClose }) {
     {sig.snippet}
   </div>
   {/* View Content button + MiniBrowser */}
-  {sig.url && <SignalPreview url={sig.url} label={sig.source} />}
+  {sig.url && (
+  <SignalPreview
+    url={sig.url}
+    label={sig.source}
+    snippet={sig.snippet}
+    title={sig.snippet}
+  />
+)}
 </div>
               </div>
             ))}
