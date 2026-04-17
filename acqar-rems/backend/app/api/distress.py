@@ -173,10 +173,20 @@
 
 
 
-import httpx
-import time
-import re
-from fastapi.responses import JSONResponse
+
+
+
+
+
+
+
+
+
+from fastapi import APIRouter
+from datetime import datetime, timezone, timedelta
+import httpx, re
+
+router = APIRouter(prefix="/api/distress", tags=["distress"])
 
 DISTRESS_KEYWORDS = [
     'distress deal', 'distress sale', 'panic sell', 'panic sale',
@@ -192,9 +202,9 @@ SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
 
-@router.get("/api/distress/deals")
-async def get_distress_deals():
-    week_ago = time.time() - (7 * 86400)
+async def fetch_distress_deals():
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    week_ago_ts = week_ago.timestamp()
     all_deals = []
     seen = set()
 
@@ -222,7 +232,7 @@ async def get_distress_deals():
                     post = item.get("data", {})
                     if not post:
                         continue
-                    if post.get("created_utc", 0) < week_ago:
+                    if post.get("created_utc", 0) < week_ago_ts:
                         continue
                     if post.get("selftext") in ("[removed]", "[deleted]"):
                         continue
@@ -248,10 +258,9 @@ async def get_distress_deals():
                         "url": "https://www.reddit.com" + post.get("permalink", ""),
                         "source": f"r/{sub}",
                         "score": post.get("score", 0),
-                        "posted_at": time.strftime(
-                            "%Y-%m-%dT%H:%M:%SZ",
-                            time.gmtime(post.get("created_utc", 0))
-                        ),
+                        "posted_at": datetime.utcfromtimestamp(
+                            post.get("created_utc", 0)
+                        ).replace(tzinfo=timezone.utc).isoformat(),
                         "flair": post.get("link_flair_text") or "",
                     })
 
@@ -260,8 +269,25 @@ async def get_distress_deals():
                 continue
 
     all_deals.sort(key=lambda x: x["posted_at"], reverse=True)
+    return all_deals
 
-    return JSONResponse(
-        content={"deals": all_deals, "fetched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ")},
-        headers={"Cache-Control": "public, max-age=900"},
-    )
+
+# ── Cache ──
+_cache = {"data": [], "fetched_at": None}
+
+@router.get("/deals/clear-cache")
+async def clear_cache():
+    global _cache
+    _cache = {"data": [], "fetched_at": None}
+    return {"cleared": True}
+
+@router.get("/deals")
+async def get_distress_deals():
+    global _cache
+    now = datetime.now(timezone.utc)
+    if _cache["fetched_at"] and (now - _cache["fetched_at"]) < timedelta(minutes=15):
+        return {"deals": _cache["data"], "cached": True}
+    deals = await fetch_distress_deals()
+    _cache = {"data": deals, "fetched_at": now}
+    return {"deals": deals, "cached": False}
+
