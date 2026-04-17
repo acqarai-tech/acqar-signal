@@ -897,6 +897,152 @@ const CATEGORY_LABELS = {
   regulatory: 'Regulatory', infrastructure: 'Infrastructure', investment: 'Investment'
 }
 
+// ── Mini Browser Component ──
+function MiniBrowser({ url, label, onClose }) {
+  const [currentUrl, setCurrentUrl] = useState(url)
+  const [inputUrl, setInputUrl] = useState(url)
+  const [iframeKey, setIframeKey] = useState(0)
+  const [iframeError, setIframeError] = useState(false)
+
+  function navigate() {
+    setCurrentUrl(inputUrl)
+    setIframeKey(k => k + 1)
+    setIframeError(false)
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') navigate()
+  }
+
+  return (
+    <div style={{
+      marginTop: 12,
+      border: '1px solid #B87333',
+      borderRadius: 10,
+      overflow: 'hidden',
+      background: '#0a1520',
+    }}>
+
+      {/* ── Browser Top Bar ── */}
+      <div style={{
+        background: '#0F2030',
+        borderBottom: '1px solid #B87333',
+        padding: '7px 10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+      }}>
+        {/* Traffic light dots */}
+        <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#E74C3C' }} />
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#F39C12' }} />
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#27AE60' }} />
+        </div>
+
+        {/* Address bar */}
+        <input
+          value={inputUrl}
+          onChange={e => setInputUrl(e.target.value)}
+          onKeyDown={handleKeyDown}
+          style={{
+            flex: 1,
+            background: '#081525',
+            border: '1px solid #1a3a5c',
+            borderRadius: 5,
+            padding: '3px 8px',
+            fontSize: 10,
+            color: '#B3B3B3',
+            outline: 'none',
+            fontFamily: 'monospace',
+          }}
+        />
+
+        {/* Go button */}
+        <button
+          onClick={navigate}
+          style={{
+            background: '#B87333', border: 'none', borderRadius: 4,
+            color: '#fff', fontSize: 10, fontWeight: 700,
+            padding: '3px 8px', cursor: 'pointer', flexShrink: 0,
+          }}
+        >Go</button>
+
+        {/* Open original */}
+        <a
+          href={currentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 10, color: '#B87333', textDecoration: 'none', flexShrink: 0 }}
+        >↗</a>
+
+        {/* Close */}
+        <button
+          onClick={onClose}
+          style={{
+            background: 'none', border: 'none', color: '#666',
+            fontSize: 13, cursor: 'pointer', flexShrink: 0, lineHeight: 1,
+          }}
+        >✕</button>
+      </div>
+
+      {/* ── iframe Window ── */}
+      <div style={{ position: 'relative', height: 420 }}>
+        {iframeError ? (
+          // Fallback when iframe is blocked
+          <div style={{
+            height: '100%', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            background: '#081525', gap: 12,
+          }}>
+            <div style={{ fontSize: 28 }}>🔒</div>
+            <div style={{ fontSize: 12, color: '#666', textAlign: 'center', lineHeight: 1.6 }}>
+              <strong style={{ color: '#B3B3B3' }}>{label}</strong> blocks embedded preview.<br />
+              Open it directly instead:
+            </div>
+            <a
+              href={currentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: 12, color: '#B87333', fontWeight: 700,
+                textDecoration: 'none', border: '1px solid #B87333',
+                borderRadius: 6, padding: '6px 16px',
+              }}
+            >
+              ↗ Open {label} in new tab
+            </a>
+          </div>
+        ) : (
+          <iframe
+            key={iframeKey}
+            src={currentUrl}
+            style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+            title={`Preview: ${label}`}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            onError={() => setIframeError(true)}
+          />
+        )}
+      </div>
+
+      {/* ── Bottom bar ── */}
+      <div style={{
+        background: '#0F2030',
+        borderTop: '1px solid #1a3a5c',
+        padding: '4px 10px',
+        fontSize: 9,
+        color: '#444',
+        display: 'flex',
+        justifyContent: 'space-between',
+      }}>
+        <span>🌐 {label}</span>
+        <span style={{ fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '70%', whiteSpace: 'nowrap' }}>
+          {currentUrl}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 
 function SourcePreview({ url, label }) {
   const [status, setStatus] = useState('idle') // idle | loading | loaded | error
@@ -932,31 +1078,30 @@ function SourcePreview({ url, label }) {
     <div style={{ fontSize: 10, color: '#666', marginTop: 6 }}>⏳ Loading article...</div>
   )
 
-if (status === 'error') return (
-  <div style={{
-    marginTop: 6, padding: '8px 10px',
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid #1a3a5c', borderRadius: 6,
-  }}>
-    <div style={{ fontSize: 10, color: '#666', marginBottom: 4 }}>
-      🔒 This source blocks inline preview
+  if (status === 'error') return (
+    <div style={{
+      marginTop: 6, padding: '8px 10px',
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid #1a3a5c', borderRadius: 6,
+    }}>
+      <div style={{ fontSize: 10, color: '#666', marginBottom: 4 }}>
+        🔒 This source blocks inline preview
+      </div>
+      <a href={url} target="_blank" rel="noopener noreferrer"
+        style={{
+          fontSize: 11, color: '#B87333', textDecoration: 'none',
+          borderBottom: '1px dotted #B87333', fontWeight: 600,
+        }}>
+        ↗ Read full article on {label}
+      </a>
     </div>
-    <a href={url} target="_blank" rel="noopener noreferrer"
-      style={{
-        fontSize: 11, color: '#B87333', textDecoration: 'none',
-        borderBottom: '1px dotted #B87333', fontWeight: 600,
-      }}>
-      ↗ Read full article on {label}
-    </a>
-  </div>
-)
+  )
 
   return (
     <div style={{
       marginTop: 8, background: 'rgba(255,255,255,0.03)',
       border: '1px solid #1a3a5c', borderRadius: 8, overflow: 'hidden',
     }}>
-      {/* Header bar */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: 'rgba(184,115,51,0.10)', padding: '6px 10px',
@@ -970,8 +1115,6 @@ if (status === 'error') return (
             style={{ fontSize: 10, color: '#666', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
       </div>
-
-      {/* Article content */}
       <div style={{ padding: '12px 14px', maxHeight: 320, overflowY: 'auto' }}>
         {article.title && (
           <div style={{ fontSize: 13, fontWeight: 700, color: '#FAFAFA', marginBottom: 10, lineHeight: 1.4 }}>
@@ -990,6 +1133,7 @@ if (status === 'error') return (
 
 export default function EventDetail({ hidden = false, onClose }) {
   const { selectedEvent: event, setSelectedEvent } = useEvents()
+  const [showBrowser, setShowBrowser] = useState(false)  // ← controls mini browser
 
   if (!event || hidden) return null
 
@@ -997,11 +1141,11 @@ export default function EventDetail({ hidden = false, onClose }) {
 
   function close() {
     setSelectedEvent(null)
+    setShowBrowser(false)
     if (onClose) onClose()
   }
 
   return (
-    // ── STEP 2: Overlay backdrop ──
     <div
       onClick={e => { if (e.target === e.currentTarget) close() }}
       style={{
@@ -1012,20 +1156,22 @@ export default function EventDetail({ hidden = false, onClose }) {
         padding: 20,
       }}
     >
-      {/* ── STEP 3: Modal card ── */}
       <div style={{
         background: '#0D1B2A',
         border: '1px solid #B87333',
         borderRadius: 16,
-        width: '100%', maxWidth: 560,
-        maxHeight: '85vh', overflowY: 'auto',
+        width: '100%',
+        // ── Wider when browser is open ──
+        maxWidth: showBrowser ? 900 : 560,
+        maxHeight: '90vh', overflowY: 'auto',
         padding: 24,
         boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
         fontFamily: "'Inter', sans-serif",
         position: 'relative',
+        transition: 'max-width 0.3s ease',
       }}>
 
-        {/* ── STEP 4: Close button ── */}
+        {/* Close button */}
         <button
           onClick={close}
           style={{
@@ -1036,7 +1182,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           }}
         >✕</button>
 
-        {/* ── STEP 5: Top label ── */}
+        {/* Top label */}
         <div style={{
           fontSize: 9, fontWeight: 900, color: '#B87333',
           letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10,
@@ -1044,7 +1190,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           MARKET SIGNAL
         </div>
 
-        {/* ── STEP 6: Title ── */}
+        {/* Title */}
         <h3 style={{
           fontSize: 16, fontWeight: 900, color: '#FAFAFA',
           marginBottom: 10, lineHeight: 1.4, paddingRight: 32,
@@ -1052,7 +1198,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           {event.title}
         </h3>
 
-        {/* ── STEP 7: Meta row ── */}
+        {/* Meta row */}
         <div style={{
           display: 'flex', gap: 8, marginBottom: 20,
           fontSize: 10, color: '#666', fontWeight: 600,
@@ -1073,7 +1219,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           <span style={{ color: '#999' }}>{confidenceLabel(event.confidence)}</span>
         </div>
 
-        {/* ── STEP 8: Summary ── */}
+        {/* Summary */}
         {event.summary && (
           <p style={{
             fontSize: 13, color: '#B3B3B3', lineHeight: 1.75,
@@ -1083,9 +1229,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           </p>
         )}
 
-       
-
-        {/* ── STEP 10: Signal sources ── */}
+        {/* Signal sources */}
         {event.signals && event.signals.length > 0 && (
           <div style={{ marginBottom: 20 }}>
             <div style={{
@@ -1115,7 +1259,7 @@ export default function EventDetail({ hidden = false, onClose }) {
           </div>
         )}
 
-        {/* ── STEP 11: Source button at the bottom ── */}
+        {/* PRIMARY SOURCE */}
         {event.url && (
           <div style={{
             marginTop: 24, paddingTop: 16,
@@ -1127,25 +1271,36 @@ export default function EventDetail({ hidden = false, onClose }) {
             }}>
               PRIMARY SOURCE
             </div>
-            <a
-              href={event.url}
-              target="_blank"
-              rel="noopener noreferrer"
+
+            {/* ── VIEW SOURCE button → opens mini browser ── */}
+            <button
+              onClick={() => setShowBrowser(prev => !prev)}
               style={{
                 display: 'inline-flex', alignItems: 'center',
                 justifyContent: 'center', gap: 8,
                 width: '100%', padding: '14px 22px',
                 background: '#B87333', color: '#fff',
                 borderRadius: 12, fontSize: 13, fontWeight: 700,
-                textDecoration: 'none', letterSpacing: '0.02em',
+                border: 'none', cursor: 'pointer', letterSpacing: '0.02em',
                 boxShadow: '0 8px 32px rgba(184,115,51,0.30)',
               }}
             >
-              VIEW SOURCE — {(event.source || 'LINK').toUpperCase()} →
-            </a>
+              {showBrowser
+                ? '✕ CLOSE BROWSER'
+                : `🌐 VIEW SOURCE — ${(event.source || 'LINK').toUpperCase()} →`}
+            </button>
 
-<a
-            
+            {/* ── Mini Browser opens here ── */}
+            {showBrowser && (
+              <MiniBrowser
+                url={event.url}
+                label={event.source || 'Source'}
+                onClose={() => setShowBrowser(false)}
+              />
+            )}
+
+            {/* Valuation button */}
+            <a
               href="https://www.acqar.com/valuation"
               target="_blank"
               rel="noopener noreferrer"
@@ -1164,8 +1319,6 @@ export default function EventDetail({ hidden = false, onClose }) {
             </a>
           </div>
         )}
-          
-
 
       </div>
     </div>
