@@ -6955,18 +6955,19 @@ function PrivateChatOverlay({ myName, authUser, target, onClose }) {
   const [input, setInput] = useState('')
   const bottomRef = useRef(null)
 
-  const roomId = [myName, target.name].sort().join('__')
+  const roomId = [myName.trim(), target.name.trim()].sort().join('__')
 
   useEffect(() => {
-    const fetchPrivate = async () => {
-      const { data } = await supabase
-        .from('private_messages')
-        .select('*')
-        .eq('room_id', roomId)
-        .order('created_at', { ascending: true })
-        .limit(100)
-      if (data) setMessages(data)
-    }
+   const fetchPrivate = async () => {
+  const { data, error } = await supabase
+    .from('private_messages')
+    .select('*')
+    .eq('room_id', roomId)
+    .order('created_at', { ascending: true })
+    .limit(100)
+  console.log('private fetch:', data, error)
+  if (data) setMessages(data)
+}
     fetchPrivate()
 
     const channel = supabase
@@ -7014,7 +7015,7 @@ function PrivateChatOverlay({ myName, authUser, target, onClose }) {
         padding: '0 12px', height: 44, background: '#111827',
         borderBottom: '1px solid #1f2937', flexShrink: 0,
       }}>
-        <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb' }}>🔒 PRIVATE</span>
+       <span style={{ fontSize: '12px', fontWeight: 800, color: '#f9fafb' }}>PRIVATE CHAT (DM)</span>
         <span style={{ fontSize: '12px', color: nameColor(target.name), fontWeight: 700 }}>
           {target.name}
         </span>
