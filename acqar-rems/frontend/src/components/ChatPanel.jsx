@@ -8775,7 +8775,7 @@ if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
           'Authorization': `Bearer ${groqKey}`,
         },
         body: JSON.stringify({
-          model: 'llama3-8b-8192',
+         model: 'llama-3.1-8b-instant',
           max_tokens: 100,
           messages: [
             {
