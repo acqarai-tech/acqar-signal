@@ -8206,10 +8206,13 @@ function PrivateChatOverlay({ myName, authUser, target, onClose }) {
   }
 
   return (
+   
     <div style={{
       position: 'absolute', inset: 0, background: '#0d1117',
       zIndex: 99999, display: 'flex', flexDirection: 'column',
       fontFamily: "'Inter', sans-serif",
+      WebkitOverflowScrolling: 'touch',
+      touchAction: 'manipulation',
     }}>
       {/* Header */}
       <div style={{
@@ -8337,6 +8340,8 @@ function PrivateChatOverlay({ myName, authUser, target, onClose }) {
             background: '#1f2937', border: '1px solid #374151',
             color: '#f9fafb', borderRadius: '8px', outline: 'none',
             WebkitAppearance: 'none',
+            minWidth: 0,
+            WebkitTextSizeAdjust: '100%',
           }}
           onFocus={e => e.target.style.borderColor = '#6366f1'}
           onBlur={e => e.target.style.borderColor = '#374151'}
@@ -9057,11 +9062,13 @@ const sendMessage = async (e) => {
       {/* Input — paid users only */}
       {canChat && (
         <div style={{
-          padding: '10px 12px',
-          paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))',
-          borderTop: '1px solid #1f2937',
-          background: '#0d1117', flexShrink: 0,
-          display: 'flex', gap: '8px', alignItems: 'center',
+         padding: '10px 12px',
+        paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+        borderTop: '1px solid #1f2937',
+        background: '#0d1117', flexShrink: 0,
+        display: 'flex', gap: '8px', alignItems: 'center',
+        width: '100%',
+        boxSizing: 'border-box'
         }}>
           <input
             ref={inputRef}
@@ -9083,22 +9090,20 @@ const sendMessage = async (e) => {
             onFocus={e => e.target.style.borderColor = '#6366f1'}
             onBlur={e => e.target.style.borderColor = '#374151'}
           />
-          <button
-            type="button"
-            onClick={sendMessage}
-            disabled={!input.trim()}
-            style={{
-              width: 40, height: 40, borderRadius: '8px',
-              background: input.trim() ? '#6366f1' : '#1f2937',
-              border: 'none', color: 'white',
-              cursor: input.trim() ? 'pointer' : 'default',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '16px', flexShrink: 0,
-              transition: 'background 0.15s',
-              touchAction: 'manipulation',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >↗</button>
+         <button
+          onClick={send}
+          disabled={!input.trim()}
+          style={{
+            width: 44, height: 44, borderRadius: '8px',
+            background: input.trim() ? '#6366f1' : '#1f2937',
+            border: 'none', color: 'white', cursor: input.trim() ? 'pointer' : 'default',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '16px', flexShrink: 0,
+            transition: 'background 0.15s',
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >↗</button>
         </div>
       )}
 
