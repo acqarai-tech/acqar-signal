@@ -8243,9 +8243,47 @@ function PrivateChatOverlay({ myName, authUser, target, onClose }) {
         🔐 Private — you may share contact details here
       </div>
 
+     {/* DM Notifications — fixed banner */}
+      {dmNotifications.map((n) => (
+        <div
+          key={n.sender}
+          onClick={() => {
+            setPrivateTarget({ name: n.sender })
+            setDmNotifications(prev => prev.filter(x => x.sender !== n.sender))
+          }}
+          style={{
+            padding: '8px 12px',
+            background: 'rgba(99,102,241,0.2)',
+            borderBottom: '1px solid rgba(99,102,241,0.4)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ fontSize: '13px' }}>💬</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#818cf8' }}>
+              New DM from {n.sender} ({n.count})
+            </span>
+            <span style={{
+              fontSize: '11px', color: '#9ca3af', marginLeft: '6px',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              display: 'inline-block', maxWidth: '160px', verticalAlign: 'bottom',
+            }}>
+              {n.preview}
+            </span>
+          </div>
+          <span style={{ fontSize: '10px', color: '#6366f1', fontWeight: 700, flexShrink: 0 }}>
+            Open →
+          </span>
+        </div>
+      ))}
+
       {/* Messages */}
       <div style={{
-        flex: 1, overflowY: 'auto', padding: '8px 0',
+        flex: 1, overflowY: 'auto', padding: '4px 0 8px',
         scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent',
       }}>
         {messages.length === 0 && (
@@ -8982,41 +9020,7 @@ const sendMessage = async (e) => {
             Someone is typing...
           </div>
         )}
-        {/* DM Notifications */}
-        {dmNotifications.map((n) => (
-          <div
-            key={n.sender}
-            onClick={() => {
-              setPrivateTarget({ name: n.sender })
-              setDmNotifications(prev => prev.filter(x => x.sender !== n.sender))
-            }}
-            style={{
-              margin: '6px 14px',
-              padding: '8px 12px',
-              background: 'rgba(99,102,241,0.15)',
-              border: '1px solid rgba(99,102,241,0.4)',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span style={{ fontSize: '14px' }}>💬</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#818cf8' }}>
-                New DM from {n.sender} ({n.count})
-              </div>
-              <div style={{
-                fontSize: '11px', color: '#9ca3af',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {n.preview}
-              </div>
-            </div>
-            <span style={{ fontSize: '10px', color: '#6366f1', fontWeight: 700 }}>Open →</span>
-          </div>
-        ))}
+        
 
         <div ref={bottomRef} />
       </div>
