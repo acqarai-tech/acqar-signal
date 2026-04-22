@@ -8794,21 +8794,24 @@ if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
       const replyText = data?.choices?.[0]?.message?.content?.trim()
       if (!replyText) throw new Error('empty response')
 
+      console.log('Inserting AI reply:', persona.name, replyText)
       const { error: insertError } = await supabase.from('messages').insert({
-        user_id: null,
+        user_id: authUser?.id || '00000000-0000-0000-0000-000000000000',
         user_name: persona.name,
         content: replyText,
       })
 
       if (insertError) {
+        console.error('Supabase insert failed:', insertError)
         setMessages(prev => [...prev, {
           id: `agent-local-${Date.now()}`,
           user_name: persona.name,
           content: replyText,
           created_at: new Date().toISOString(),
         }])
+      } else {
+        console.log('AI reply saved to Supabase ✅')
       }
-
     } catch (err) {
       console.warn('Groq agent failed, using fallback:', err.message)
       const reply = getSmartReply(userMessage)
@@ -8816,8 +8819,8 @@ if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
         const others = AI_AGENT_NAMES.filter(n => n !== myName)
         reply.agent = others[Math.floor(Math.random() * others.length)]
       }
-      const { error: insertError } = await supabase.from('messages').insert({
-        user_id: null,
+     const { error: insertError } = await supabase.from('messages').insert({
+        user_id: authUser?.id || '00000000-0000-0000-0000-000000000000',
         user_name: reply.agent,
         content: reply.msg,
       })
