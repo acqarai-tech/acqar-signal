@@ -8766,7 +8766,8 @@ const sendMessage = async (e) => {
     setAgentTyping(false)
 
     try {
-     const groqKey = import.meta.env.VITE_GROQ_KEY || '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'
+     const groqKey = import.meta.env.VITE_GROQ_KEY
+if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -9089,27 +9090,3 @@ const sendMessage = async (e) => {
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
