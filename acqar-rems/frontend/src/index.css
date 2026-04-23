@@ -2,57 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── THEME VARIABLES ── */
-:root {
-  --color-dark: #1A1A2E;
-  --color-panel: #16213E;
-  --color-border: #0F3460;
-  --color-text-primary: #FAFAFA;
-  --color-text-secondary: #B3B3B3;
-  --color-copper: #B87333;
-  --color-overlay-bg: rgba(22, 33, 62, 0.92);
-  --color-input-bg: rgba(255, 255, 255, 0.07);
-  --color-hover: rgba(255, 255, 255, 0.03);
-  --color-ticker-bg: #0D1B30;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-[data-theme="light"] {
-  --color-dark: #F0F2F5;
-  --color-panel: #FFFFFF;
-  --color-border: #D1D9E6;
-  --color-text-primary: #0F1A2E;
-  --color-text-secondary: #5A6A80;
-  --color-copper: #B87333;
-  --color-overlay-bg: rgba(255, 255, 255, 0.95);
-  --color-input-bg: rgba(0, 0, 0, 0.04);
-  --color-hover: rgba(0, 0, 0, 0.03);
-  --color-ticker-bg: #E8EDF5;
+html, body {
+  width: 100%;
+  height: 100%;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body, #root {
-  width: 100%; height: 100%; overflow: hidden;
+#root {
+  width: 100%;
+  min-height: 100%;    /* ← min-height, not height */
+  /* NO overflow: hidden here */
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--color-dark);
-  color: var(--color-text-primary);
-  transition: background 0.25s, color 0.25s;
+  background: #1A1A2E;
+  color: #FAFAFA;
 }
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--color-panel); }
-::-webkit-scrollbar-thumb { background: var(--color-copper); border-radius: 2px; }
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #16213E;
+}
+::-webkit-scrollbar-thumb {
+  background: #B87333;
+  border-radius: 2px;
+}
 
+/* MapLibre overrides */
 .maplibregl-popup-content {
-  background: var(--color-panel) !important;
-  border: 1px solid var(--color-copper) !important;
-  color: var(--color-text-primary) !important;
+  background: #16213E !important;
+  border: 1px solid #B87333 !important;
+  color: #FAFAFA !important;
   border-radius: 8px !important;
   padding: 12px !important;
 }
-.maplibregl-popup-tip { border-top-color: var(--color-copper) !important; }
-.maplibregl-ctrl-logo { display: none !important; }
-.maplibregl-ctrl-attrib { display: none !important; }
+.maplibregl-popup-tip {
+  border-top-color: #B87333 !important;
+}
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
+.maplibregl-ctrl-attrib {
+  display: none !important;
+}
