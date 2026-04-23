@@ -3,12 +3,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        copper: '#B87333',
-        dark: '#1A1A2E',
-        panel: '#16213E',
-        border: '#0F3460',
-        'text-primary': '#FAFAFA',
-        'text-secondary': '#B3B3B3',
+        copper: 'var(--color-copper)',
+        dark: 'var(--color-dark)',
+        panel: 'var(--color-panel)',
+        border: 'var(--color-border)',
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
         severity1: '#27AE60',
         severity2: '#A8D44A',
         severity3: '#F39C12',
