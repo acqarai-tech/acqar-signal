@@ -283,7 +283,10 @@ export default function MapView() {
     attributionControl: false
   })
 
-  map.current.on('load', () => console.log('MAP LOADED ✅'))
+  map.current.on('load', () => {
+  console.log('MAP LOADED ✅')
+  map.current.resize()
+})
   map.current.on('error', (e) => console.log('MAP ERROR ❌', e))
 
   map.current.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
@@ -428,9 +431,10 @@ const res = await fetch(`${API_BASE}/api/events/area-momentum`)
     }
   }, [selectedEvent])
 
-  return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className="w-full h-full" />
+
+    return (
+  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 
       {/* Map Legend */}
       {/* <div className="absolute bottom-4 left-4 bg-panel/90 border border-border rounded-lg p-3 text-xs space-y-1.5"> */}
