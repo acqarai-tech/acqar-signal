@@ -1,4 +1,4 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -53,4 +53,120 @@ body {
 }
 .maplibregl-ctrl-attrib {
   display: none !important;
+} */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-page:    #1A1A2E;
+  --bg-panel:   #16213E;
+  --bg-card:    #0D1B2A;
+  --border-col: #0F3460;
+  --text-1:     #FAFAFA;
+  --text-2:     #B3B3B3;
+  --text-3:     #555555;
+}
+
+[data-theme="light"] {
+  --bg-page:    #F5F5F5;
+  --bg-panel:   #FFFFFF;
+  --bg-card:    #FAFAFA;
+  --border-col: #E0E0E0;
+  --text-1:     #1a1a1a;
+  --text-2:     #555555;
+  --text-3:     #999999;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-panel);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #B87333;
+  border-radius: 2px;
+}
+
+/* MapLibre overrides */
+.maplibregl-popup-content {
+  background: var(--bg-panel) !important;
+  border: 1px solid #B87333 !important;
+  color: var(--text-1) !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #B87333 !important;
+}
+
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
+
+.maplibregl-ctrl-attrib {
+  display: none !important;
+}
+
+/* Light mode MapLibre popup override */
+[data-theme="light"] .maplibregl-popup-content {
+  background: #FFFFFF !important;
+  border: 1px solid #B87333 !important;
+  color: #1a1a1a !important;
+}
+
+[data-theme="light"] .maplibregl-popup-tip {
+  border-top-color: #B87333 !important;
+}
+
+/* Light mode scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #F0F0F0;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #B87333;
+  border-radius: 2px;
 }
