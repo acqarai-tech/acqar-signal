@@ -400,7 +400,7 @@ const res = await fetch(`${API_BASE}/api/events/area-momentum`)
             pointer-events: none;
             box-shadow: 0 0 8px rgba(184,115,51,0.5);
           `
-         el.textContent = '🔥 ' + area.area + ' x' + area.count
+        el.textContent = area.area
 
           new maplibregl.Marker({ element: el, anchor: 'center' })
             .setLngLat([area.lng, area.lat + 0.005])
