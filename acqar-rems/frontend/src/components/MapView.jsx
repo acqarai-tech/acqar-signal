@@ -374,7 +374,8 @@ export default function MapView() {
 
     const fetchMomentum = async () => {
       try {
-        const res = await fetch('https://acqar-signal-production.up.railway.app/api/events/area-momentum')
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const res = await fetch(`${API_BASE}/api/events/area-momentum`)
         if (!res.ok) return
         const data = await res.json()
         const areas = data.momentum_areas || []
