@@ -16059,13 +16059,13 @@ background: 'var(--bg-secondary)', flexShrink: 0,
           onFocus={e => e.target.style.borderColor = '#6366f1'}
          onBlur={e => e.target.style.borderColor = 'var(--border-panel)'}
         />
-        <button
-          onClick={send}
-          disabled={!input.trim()}
-          style={{
-            width: 40, height: 40, borderRadius: '8px',
-            background: input.trim() ? '#6366f1' : 'var(--bg-input)',
-            border: 'none', color: 'white', cursor: input.trim() ? 'pointer' : 'default',
+       <button
+  onClick={send}
+  disabled={!input.trim()}
+  style={{
+    width: 40, height: 40, borderRadius: '8px',
+    background: input.trim() ? '#6366f1' : 'var(--border-panel)',
+    border: 'none', color: 'var(--text-muted)', cursor: input.trim() ? 'pointer' : 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '16px', flexShrink: 0,
             transition: 'background 0.15s',
