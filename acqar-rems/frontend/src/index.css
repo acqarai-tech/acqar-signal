@@ -2,6 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── DARK THEME (default) ── */
+:root,
+[data-theme="dark"] {
+  --bg-primary: #111827;
+  --bg-secondary: #0d1117;
+  --bg-panel: rgba(22,33,62,0.92);
+  --bg-card: #16213E;
+  --bg-input: #1f2937;
+  --border-color: #0F3460;
+  --border-panel: #1a2a4a;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #6b7280;
+  --text-timestamp: #374151;
+  --ticker-bg: #0A1628;
+  --ticker-border: #0F3460;
+  --ticker-label-bg: linear-gradient(135deg, #0D3B6E, #1A1A2E);
+  --ticker-text: #7FB3D3;
+  --panel-header-bg: rgba(15,52,96,0.5);
+  --row-hover: rgba(255,255,255,0.03);
+  --popup-bg: #0D1B2A;
+  --popup-text: #FAFAFA;
+  --feed-border: #0F3460;
+  --tab-bar-bg: #16213E;
+  --tab-inactive: #555555;
+  --map-fade-color: #0A1628;
+  --own-message-bg: rgba(184,115,51,0.05);
+  --lock-overlay-bg: rgba(10,14,26,0.55);
+}
+
+/* ── LIGHT THEME OVERRIDES ── */
+[data-theme="light"] {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F7FA;
+  --bg-panel: rgba(255,255,255,0.95);
+  --bg-card: #FFFFFF;
+  --bg-input: #F5F5F5;
+  --border-color: #E0E5EE;
+  --border-panel: #DEDEDE;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  --text-timestamp: #999999;
+  --ticker-bg: #F5F7FA;
+  --ticker-border: #E0E5EE;
+  --ticker-label-bg: linear-gradient(135deg, #EEF2F7, #F5F7FA);
+  --ticker-text: #5A7A9A;
+  --panel-header-bg: rgba(240,244,248,0.9);
+  --row-hover: rgba(184,115,51,0.04);
+  --popup-bg: #FFFFFF;
+  --popup-text: #1a1a1a;
+  --feed-border: #E8ECF0;
+  --tab-bar-bg: #F5F7FA;
+  --tab-inactive: #888888;
+  --map-fade-color: #F5F7FA;
+  --own-message-bg: rgba(184,115,51,0.08);
+  --lock-overlay-bg: rgba(240,242,245,0.85);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -23,8 +82,8 @@ html, body {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #1A1A2E;
-  color: #FAFAFA;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 /* Scrollbar styling */
@@ -32,7 +91,7 @@ body {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #16213E;
+  background: var(--bg-card);
 }
 ::-webkit-scrollbar-thumb {
   background: #B87333;
@@ -41,9 +100,9 @@ body {
 
 /* MapLibre overrides */
 .maplibregl-popup-content {
-  background: #16213E !important;
+  background: var(--popup-bg) !important;
   border: 1px solid #B87333 !important;
-  color: #FAFAFA !important;
+  color: var(--popup-text) !important;
   border-radius: 8px !important;
   padding: 12px !important;
 }
