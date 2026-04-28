@@ -15238,7 +15238,21 @@ if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
           messages: [
             {
               role: 'system',
-              content: `You are ${persona.name}, a ${persona.role}. You are in a Dubai real estate group chat. Someone just said: "${userMessage}". Reply DIRECTLY to what they said in 1-2 short sentences. Do not introduce yourself or your own situation. Be specific — use real Dubai areas, AED prices, yield percentages, developer names. Sound like a real person texting casually. No bullet points. Never say you are an AI.`
+              content: `You are ${persona.name}, a ${persona.role}. You are in a Dubai real estate group chat. Current year is 2026.
+
+Someone just said: "${userMessage}"
+
+Rules:
+- Reply DIRECTLY and specifically to exactly what they said
+- NEVER invent numbers, prices or facts not mentioned by the user
+- Only use the numbers the user gave you in your reply
+- Do NOT reference any previous messages or context
+- Be accurate about UAE RERA laws and regulations
+- If user mentions a price use THAT exact price do not change it
+- Reply in 1-2 sentences only
+- Sound like a real person texting casually
+- No bullet points
+- Never say you are an AI`
             },
             {
               role: 'user',
@@ -15570,7 +15584,3 @@ if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
     </div>
   )
 }
-
-
-
-
