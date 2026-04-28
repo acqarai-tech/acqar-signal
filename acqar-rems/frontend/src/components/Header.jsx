@@ -5231,9 +5231,9 @@ background: 'var(--ticker-bg)',
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            background: '#0D1B30',
-            zIndex: 2,
-            whiteSpace: 'nowrap',
+            bbackground: 'var(--ticker-bg)',
+zIndex: 2,
+whiteSpace: 'nowrap',
           }}>
             <span style={{
               display: 'inline-block', width: 5, height: 5, borderRadius: '50%',
@@ -5244,11 +5244,11 @@ background: 'var(--ticker-bg)',
           </div>
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative', height: '100%' }}>
             {predLoading ? (
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', paddingLeft: '12px', fontSize: '10px', color: '#555' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', paddingLeft: '12px', fontSize: '10px',  color: 'var(--text-muted)' }}>
                 Loading predictions...
               </div>
             ) : predictions.length === 0 ? (
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', paddingLeft: '12px', fontSize: '10px', color: '#555' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', paddingLeft: '12px', fontSize: '10px',  color: 'var(--text-muted)' }}>
                 No predictions available
               </div>
             ) : (
@@ -5258,7 +5258,7 @@ background: 'var(--ticker-bg)',
                 ))}
               </div>
             )}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '24px', height: '100%', background: 'linear-gradient(to right, var(--ticker-bg), transparent)',, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '24px', height: '100%', background: 'linear-gradient(to right, var(--ticker-bg), transparent)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: 0, right: 0, width: '24px', height: '100%', background: 'linear-gradient(to left, var(--ticker-bg), transparent)', pointerEvents: 'none' }} />
           </div>
         </div>
