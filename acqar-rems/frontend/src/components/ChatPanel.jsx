@@ -16045,12 +16045,17 @@ background: 'var(--bg-secondary)', flexShrink: 0,
           }}
           placeholder="Message privately... (email/phone allowed)"
           maxLength={300}
-          style={{
-            flex: 1, padding: '10px 14px', fontSize: '16px',
-            background: 'var(--bg-input)', border: '1px solid var(--border-panel)',
-color: 'var(--text-primary)', borderRadius: '8px', outline: 'none',
-            WebkitAppearance: 'none',
-          }}
+         style={{
+  flex: 1, padding: '10px 14px', fontSize: '16px',
+  background: 'var(--bg-input)',
+  border: '1px solid var(--border-panel)',
+  color: 'var(--text-primary)',
+  borderRadius: '8px', outline: 'none',
+  transition: 'border-color 0.15s',
+  WebkitAppearance: 'none',
+  cursor: 'text',
+  placeholderColor: 'var(--text-muted)',
+}}
           onFocus={e => e.target.style.borderColor = '#6366f1'}
          onBlur={e => e.target.style.borderColor = 'var(--border-panel)'}
         />
@@ -16651,12 +16656,19 @@ Rules:
   pointerEvents: 'auto',
   position: 'relative',   // ← ADD THIS
 }}>
-      <style>{`
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); opacity: 0.4; }
-          50% { transform: translateY(-4px); opacity: 1; }
-        }
-      `}</style>
+     <style>{`
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-4px); opacity: 1; }
+  }
+  [data-theme="light"] input::placeholder {
+    color: #999999;
+  }
+  [data-theme="light"] .chat-input-field {
+    background: #F0F0F0 !important;
+    border-color: #DEDEDE !important;
+  }
+`}</style>
 
       {/* Header */}
       {onClose && (
@@ -16866,11 +16878,12 @@ borderTop: '1px solid var(--border-color)',
 background: 'var(--bg-secondary)', flexShrink: 0,
           display: 'flex', gap: '8px', alignItems: 'center',
         }}>
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
+         <input
+  ref={inputRef}
+  className="chat-input-field"
+  value={input}
+  onChange={e => setInput(e.target.value)}
+  onKeyDown={handleKeyDown}
             placeholder={authUser ? `Message as ${myName}...` : 'Sign in to chat...'}
             maxLength={200}
             style={{
@@ -16892,8 +16905,8 @@ color: 'var(--text-primary)',
             disabled={!input.trim()}
             style={{
               width: 40, height: 40, borderRadius: '8px',
-              background: input.trim() ? '#6366f1' : 'var(--bg-input)',
-              border: 'none', color: 'white',
+             background: input.trim() ? '#6366f1' : 'var(--border-panel)',
+border: 'none', color: 'var(--text-muted)',
               cursor: input.trim() ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '16px', flexShrink: 0,
