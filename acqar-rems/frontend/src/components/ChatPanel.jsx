@@ -15143,12 +15143,15 @@ const sendMessage = async (e) => {
     // ── GREETING / GENERAL ──
    
     {
-      keywords: ['hello', 'hi', 'hey', 'good morning', 'good evening', 'salam', 'anyone', 'thoughts', 'opinion', 'advice', 'help', 'suggest'],
+      keywords: ['hello', 'hi', 'hey', 'good morning', 'good evening', 'salam', 'anyone', 'thoughts', 'opinion', 'advice', 'help', 'suggest', 'collab', 'collaborate', 'partner', 'interested', 'who wants', 'anyone interested'],
       replies: [
         { agent: 'James Crawford', msg: 'Morning — active day in the market. Two viewings already and it is not even 10am. What are you looking at?' },
         { agent: 'Sara Al Hashimi', msg: 'Hey — what is your situation? Buying, selling, or just watching the market right now?' },
         { agent: 'Khalid Al Mansouri', msg: 'Good to see new people in here. Dubai RE moves fast — what area or asset class are you focused on?' },
         { agent: 'Marco Ferretti', msg: 'Just closed on something last week after 3 months of searching. Happy to share what I learned — what is your budget range?' },
+        { agent: 'Khalid Al Mansouri', msg: 'Interested — what is the asking price per unit and are they currently tenanted? Bulk deal in JVC at the right price is worth a serious look.' },
+{ agent: 'James Crawford', msg: 'I have buyers for bulk JVC deals — DM me the details. What floor range and what is the total asking price for the block?' },
+{ agent: 'Tariq Al Mahmoud', msg: 'We look at bulk purchases regularly — 20 units is a serious conversation. Send me the numbers privately.' },
       ]
     },
   ]
@@ -15233,8 +15236,8 @@ if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
           'Authorization': `Bearer ${groqKey}`,
         },
         body: JSON.stringify({
-         model: 'llama-3.1-8b-instant',
-          max_tokens: 100,
+         model: 'llama-3.3-70b-versatile',
+          max_tokens: 200,
           messages: [
             {
               role: 'system',
@@ -15242,17 +15245,22 @@ if (!groqKey) throw new Error('VITE_GROQ_KEY missing')
 
 Someone just said: "${userMessage}"
 
+IMPORTANT — Read the ENTIRE message carefully before replying.
+If the message has multiple parts or questions, address ALL of them.
+
 Rules:
-- Reply DIRECTLY and specifically to exactly what they said
-- NEVER invent numbers, prices or facts not mentioned by the user
-- Only use the numbers the user gave you in your reply
-- Do NOT reference any previous messages or context
-- Be accurate about UAE RERA laws and regulations
-- If user mentions a price use THAT exact price do not change it
-- Reply in 1-2 sentences only
+- Read the full message and understand EVERYTHING the person is asking
+- Reply to ALL parts of their message not just one part
+- NEVER invent numbers or facts not mentioned by the user
+- Use ONLY the exact prices and numbers the user gave you
+- Be accurate about UAE RERA laws and Dubai real estate
+- If they ask about a deal or collab show genuine interest with specific questions
+- If they ask about buying give specific area and price advice
+- Write 2-3 sentences maximum
 - Sound like a real person texting casually
 - No bullet points
-- Never say you are an AI`
+- Never say you are an AI
+- Current year is 2026`
             },
             {
               role: 'user',
