@@ -987,10 +987,10 @@ position: 'relative',
           {/* Feed Drawer */}
           <div style={{
             position: 'absolute',
-           bottom: mobileDrawer === 'feed' ? '60px' : '-110%',
+           bottom: mobileDrawer === 'feed' ? '0px' : '-110%',
             left: '12px', right: '12px',
 
-            height: 'min(80%, 600px)',
+            height: 'min(88%, 700px)',
 minHeight: 300,
             background: 'var(--bg-secondary)',
 borderTop: '2px solid #B87333',
@@ -1031,9 +1031,9 @@ color: 'var(--text-primary)', cursor: 'pointer', fontSize: '18px',
           {mobileDrawer === 'chat' && (
             <div style={{
               position: 'absolute',
-             bottom: '60px',
+             bottom: '0px',
              left: '12px', right: '12px',
-              height: 'min(85%, 680px)',
+              height: 'min(90%, 750px)',
               minHeight: 340,
               background: 'var(--bg-primary)',
 borderTop: '2px solid #6366f1',
