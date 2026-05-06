@@ -1115,7 +1115,7 @@ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px',
 
         </div>
 
-        {chatOpen ? (
+        {chatOpen && !(areasOpen && selectedArea) ? (
           <div style={{flexShrink: 0, width: 340, borderLeft: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
            
             <ChatPanel onClose={() => setChatOpen(false)} userPlan={userPlan} />
