@@ -653,7 +653,7 @@ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px',
           {areasOpen && (
             <div style={{
               position: 'absolute', top: 50, right: 12, zIndex: 199,
-              width: 300, height: 'calc(100% - 70px)',
+              width: 380, height: 'calc(100% - 70px)',
               background: 'var(--bg-primary)',
               border: '1px solid var(--border-color)',
               borderTop: '2px solid #B87333',
