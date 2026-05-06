@@ -1100,10 +1100,11 @@ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px',
             <div style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              zIndex: 2000,
+              zIndex: 9999,
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
+              background: '#FAF8F5',
             }}>
               <AreaSpecialistPage
                 area={selectedArea}
