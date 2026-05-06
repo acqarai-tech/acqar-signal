@@ -696,7 +696,7 @@ async def get_community_signals(request: Request, limit: int = Query(15, ge=1, l
     return {"signals": signals, "total": len(signals)}
 
 
-    @router.get("/area-prices")
+ @router.get("/area-prices")
 async def get_area_prices():
     from app.data_pipeline.fetchers.dld_fetcher import RERA_AREA_BENCHMARKS
     return {
@@ -704,7 +704,7 @@ async def get_area_prices():
         "source": "RERA Published Averages Q4 2024"
     }
 
-    
+
 @router.get("/{event_id}/signals")
 async def get_event_signals(event_id: str, request: Request):
     """Get source signals for a specific event"""
@@ -726,12 +726,3 @@ async def get_event(event_id: str, request: Request):
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
-
-
-
-
-
-
-
-
-
