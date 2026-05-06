@@ -408,6 +408,32 @@ position: 'relative',
   />
 )}
 
+          {/* Areas floating button — top left of map */}
+          {mobileDrawer === null && (
+            <div style={{
+              position: 'absolute', top: 12, left: 12, zIndex: 100,
+            }}>
+              <button
+                onClick={() => { setSelectedArea(null); setMobileDrawer('areas'); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  padding: '7px 14px',
+                  background: 'rgba(184,115,51,0.9)',
+                  border: '1px solid #B87333',
+                  borderRadius: '20px',
+                  color: '#fff',
+                  fontSize: '11px', fontWeight: 700,
+                  cursor: 'pointer',
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
+                  touchAction: 'manipulation',
+                  WebkitTapHighlightColor: 'transparent',
+                  userSelect: 'none', WebkitUserSelect: 'none',
+                }}
+              >🗺 Areas</button>
+            </div>
+          )}
+
           <EventDetail hidden={mobileDrawer === 'chat'} onClose={() => setMobileDrawer('feed')} />
 
           {/* Feed Drawer */}
