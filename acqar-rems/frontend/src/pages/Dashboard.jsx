@@ -345,7 +345,9 @@ export default function Dashboard() {
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [mobileDrawer, setMobileDrawer] = useState(null)
-  const [selectedArea, setSelectedArea] = useState(null)
+ const [selectedArea, setSelectedArea] = useState(null)
+  const [desktopPanel, setDesktopPanel] = useState('feed')
+  const [areasOpen, setAreasOpen] = useState(false)
 
   useEffect(() => {
     if (!isMobile) {
@@ -541,19 +543,7 @@ color: 'var(--text-primary)', cursor: 'pointer', fontSize: '18px',
               }}
             ><span>☰</span> Feed</button>
 
-            <button
-              onClick={() => { setSelectedArea(null); setMobileDrawer('areas'); }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '10px 16px', background: 'rgba(184,115,51,0.15)',
-                border: '1px solid #B87333', borderRadius: '24px',
-                color: '#B87333', fontSize: '13px', fontWeight: 600,
-                cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                backdropFilter: 'blur(10px)', touchAction: 'manipulation',
-                WebkitTapHighlightColor: 'transparent',
-                userSelect: 'none', WebkitUserSelect: 'none',
-              }}
-            ><span>🗺</span> Areas</button>
+           
 
             <button
               onClick={() => setMobileDrawer('chat')}
@@ -579,6 +569,8 @@ color: 'var(--text-primary)', cursor: 'pointer', fontSize: '18px',
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', overflow: 'hidden' }}>
       <Header />
+
+        
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
         <div style={{
@@ -608,6 +600,56 @@ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px',
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <MapView />
           <OverlayPanel />
+
+          {/* Areas toggle button — top right of map */}
+          <div style={{
+            position: 'absolute', top: 12, right: 12, zIndex: 200,
+          }}>
+            <button
+              onClick={() => { setAreasOpen(!areasOpen); setSelectedArea(null); }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '7px 14px',
+                background: areasOpen ? '#B87333' : 'var(--bg-primary)',
+                border: `1px solid ${areasOpen ? '#B87333' : 'var(--border-color)'}`,
+                borderRadius: '8px',
+                color: areasOpen ? '#fff' : 'var(--text-muted)',
+                fontSize: '11px', fontWeight: 700,
+                cursor: 'pointer',
+                letterSpacing: '0.08em', textTransform: 'uppercase',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >🗺 Areas</button>
+          </div>
+
+          {/* Areas floating panel — right side of map */}
+          {areasOpen && (
+            <div style={{
+              position: 'absolute', top: 50, right: 12, zIndex: 199,
+              width: 300, height: 'calc(100% - 70px)',
+              background: 'var(--bg-primary)',
+              border: '1px solid var(--border-color)',
+              borderTop: '2px solid #B87333',
+              borderRadius: '10px',
+              display: 'flex', flexDirection: 'column',
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}>
+              {!selectedArea ? (
+                <AreaListDrawer
+                  onClose={() => setAreasOpen(false)}
+                  onSelectArea={(area) => setSelectedArea(area)}
+                />
+              ) : (
+                <AreaSpecialistPage
+                  area={selectedArea}
+                  onClose={() => setSelectedArea(null)}
+                />
+              )}
+            </div>
+          )}
+
         </div>
 
         {chatOpen ? (
