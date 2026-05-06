@@ -1088,17 +1088,27 @@ color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px',
               overflow: 'hidden',
               boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
             }}>
-              {!selectedArea ? (
-                <AreaListDrawer
-                  onClose={() => setAreasOpen(false)}
-                  onSelectArea={(area) => setSelectedArea(area)}
-                />
-              ) : (
-                <AreaSpecialistPage
-                  area={selectedArea}
-                  onClose={() => setSelectedArea(null)}
-                />
-              )}
+            <AreaListDrawer
+                onClose={() => setAreasOpen(false)}
+                onSelectArea={(area) => setSelectedArea(area)}
+              />
+            </div>
+          )}
+
+        {/* Area Specialist — full screen on desktop only */}
+          {areasOpen && selectedArea && (
+            <div style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              zIndex: 2000,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              <AreaSpecialistPage
+                area={selectedArea}
+                onClose={() => setSelectedArea(null)}
+              />
             </div>
           )}
 
