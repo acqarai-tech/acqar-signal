@@ -1166,7 +1166,7 @@ import ChatPanel from '../components/ChatPanel'
 import FilterBar from '../components/FilterBar'
 import EventDetail from '../components/EventDetail'
 import OverlayPanel from '../components/OverlayPanel'
-import AreaListDrawer from '../components/AreaListDrawer'
+import AreaListDrawer, { DUBAI_AREAS_LIST } from '../components/AreaListDrawer'
 import AreaSpecialistPage from '../components/AreaSpecialistPage'
 
 
