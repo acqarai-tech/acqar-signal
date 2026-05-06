@@ -696,7 +696,7 @@ async def get_community_signals(request: Request, limit: int = Query(15, ge=1, l
     return {"signals": signals, "total": len(signals)}
 
 
- @router.get("/area-prices")
+@router.get("/area-prices")
 async def get_area_prices():
     from app.data_pipeline.fetchers.dld_fetcher import RERA_AREA_BENCHMARKS
     return {
