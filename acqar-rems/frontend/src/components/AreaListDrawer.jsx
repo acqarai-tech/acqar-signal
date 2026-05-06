@@ -645,7 +645,7 @@ export default function AreaListDrawer({ onClose, onSelectArea }) {
       .catch(() => {})
 
     // Fetch 2: RERA area prices
-    fetch(`${API_BASE}/api/market/area-prices`)
+    fetch(`${API_BASE}/api/events/area-prices`)
       .then(r => r.json())
       .then(data => {
         const areas = data.areas || {}
