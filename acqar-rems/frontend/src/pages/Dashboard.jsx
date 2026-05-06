@@ -1214,11 +1214,13 @@ export default function Dashboard() {
   const [areasOpen, setAreasOpen] = useState(false)
 
   // Auto-open area from URL param e.g. ?area=JVC
+  // Auto-open area from URL param e.g. ?area=JVC
   useEffect(() => {
     const areaParam = new URLSearchParams(window.location.search).get('area')
     if (areaParam) {
-      const { DUBAI_AREAS_LIST } = require('../components/AreaListDrawer')
-      const found = DUBAI_AREAS_LIST.find(a => a.name.toLowerCase().includes(areaParam.toLowerCase()))
+      const found = DUBAI_AREAS_LIST.find(a =>
+        a.name.toLowerCase().includes(areaParam.toLowerCase())
+      )
       if (found) {
         setAreasOpen(true)
         setSelectedArea(found)
