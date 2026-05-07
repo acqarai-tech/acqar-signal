@@ -1498,6 +1498,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
+import TickerBar from './TickerBar'
 
 // ── DESIGN TOKENS — exact match to HTML :root vars ─────────────────
 const C = {
