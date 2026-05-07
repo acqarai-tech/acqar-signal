@@ -590,6 +590,912 @@
 
 
 
+// import { useState, useEffect, useRef } from 'react'
+// import { useEvents } from '../context/EventsContext'
+
+// // ── DESIGN TOKENS — exact match to HTML :root vars ─────────────────
+// const C = {
+//   bg: '#FAF8F5', bg2: '#F2EDE5', bg3: '#EAE3D8',
+//   card: '#FFFFFF', card2: '#F8F5F0',
+//   border: '#E8E0D0', border2: '#D8CEBC',
+//   orange: '#C8732A', orange2: '#A85C20',
+//   orangeL: 'rgba(200,115,42,0.09)', orangeM: 'rgba(200,115,42,0.18)',
+//   green: '#16A34A', greenL: 'rgba(22,163,74,0.1)',
+//   lime: '#65A30D', limeL: 'rgba(101,163,13,0.1)',
+//   amber: '#D97706', amberL: 'rgba(217,119,6,0.1)',
+//   red: '#DC2626', redL: 'rgba(220,38,38,0.1)',
+//   blue: '#2563EB', blueL: 'rgba(37,99,235,0.09)',
+//   purple: '#7C3AED', purpleL: 'rgba(124,58,237,0.09)',
+//   text: '#1C1C28', text2: '#3D3D50',
+//   muted: '#6E7A8A', muted2: '#9CA8B4',
+// }
+
+// // ── REAL DATA FACTORY — derives all values from area.pricePerSqft, yield, score ──
+// function buildAreaData(area) {
+//   const psf = area.pricePerSqft || 1247
+//   const yld = area.yield || 7.2
+//   const score = area.score || 67
+
+//   // Derived market metrics
+//   const soldThisWeek = Math.round(80 + score * 1.5)
+//   const daysToSell = Math.round(75 - score * 0.4)
+//   const availableListings = Math.round(1500 + score * 50)
+//   const distressPct = Math.round(Math.max(5, 25 - score * 0.2))
+//   const distressUnits = Math.round(availableListings * distressPct / 100)
+//   const vacancyRate = Math.round(Math.max(5, 18 - score * 0.1))
+//   const occupancyRate = 100 - vacancyRate
+//   const fiveYrAppreciation = (30 + score * 0.3).toFixed(1)
+//   const catalystScore = Math.min(98, Math.round(score * 1.15))
+//   const verdict = score >= 75 ? 'BUY' : score >= 65 ? 'HOLD' : 'WATCH'
+//   const verdictColor = score >= 75 ? C.green : score >= 65 ? C.amber : C.red
+//   const mood = score >= 75 ? 'Bullish' : score >= 65 ? 'Cautious' : 'Slow'
+//   const moodColor = score >= 75 ? C.green : score >= 65 ? C.amber : C.red
+
+//   // Score component breakdown (4 bars like HTML)
+//   const scoreComps = [
+//     { label: 'Are people buying?',   val: Math.round(score * 0.87), color: score >= 65 ? C.amber : C.red },
+//     { label: 'Is the price fair?',   val: Math.min(99, Math.round(score * 1.10)), color: C.green },
+//     { label: "What's coming nearby?",val: Math.min(99, Math.round(score * 1.18)), color: C.green },
+//     { label: 'Is the mood positive?',val: Math.round(score * 0.62), color: score >= 70 ? C.amber : C.red },
+//   ]
+
+//   // Price table — derived from PSF × sqft
+//   const priceTable = [
+//     { type: 'Studio',      sqft: 450,  truv: Math.round(psf * 0.95), ask: Math.round(psf * 0.96) },
+//     { type: '1 Bedroom',   sqft: 800,  truv: psf,                    ask: Math.round(psf * 1.041) },
+//     { type: '2 Bedroom',   sqft: 1250, truv: Math.round(psf * 0.974),ask: Math.round(psf * 0.936) },
+//     { type: '3 Bedroom',   sqft: 1800, truv: Math.round(psf * 0.958),ask: Math.round(psf * 0.944) },
+//     { type: 'Townhouse',   sqft: 2400, truv: Math.round(psf * 1.074),ask: Math.round(psf * 1.030) },
+//   ]
+
+//   // Buyer cost table — total property price
+//   const buyerPriceTable = [
+//     { type: 'Studio',      min: fmtK(Math.round(psf*450*0.74/1000)*1000),  fair: fmtK(Math.round(psf*450*0.95/1000)*1000),  max: fmtK(Math.round(psf*450*1.40/1000)*1000) },
+//     { type: '1 Bedroom',   min: fmtK(Math.round(psf*800*0.72/1000)*1000),  fair: fmtK(Math.round(psf*800/1000)*1000),        max: fmtK(Math.round(psf*800*1.44/1000)*1000) },
+//     { type: '2 Bedroom',   min: fmtK(Math.round(psf*1250*0.72/1000)*1000), fair: fmtK(Math.round(psf*1250*0.97/1000)*1000),  max: fmtK(Math.round(psf*1250*1.40/1000)*1000) },
+//     { type: '3 Bedroom',   min: fmtK(Math.round(psf*1800*0.70/1000)*1000), fair: fmtK(Math.round(psf*1800*0.96/1000)*1000),  max: fmtK(Math.round(psf*1800*1.48/1000)*1000) },
+//     { type: 'Townhouse 3BR',min:fmtK(Math.round(psf*2400*0.72/1000)*1000), fair: fmtK(Math.round(psf*2400*1.07/1000)*1000),  max: fmtK(Math.round(psf*2400*1.44/1000)*1000) },
+//   ]
+
+//   // Rent table — annual rents from yield
+//   const rentTable = [
+//     { type: 'Studio',    min: Math.round(psf*450*yld/100*0.75/1000)*1000,  avg: Math.round(psf*450*yld/100/1000)*1000,  max: Math.round(psf*450*yld/100*1.35/1000)*1000 },
+//     { type: '1 BR',      min: Math.round(psf*800*yld/100*0.75/1000)*1000,  avg: Math.round(psf*800*yld/100/1000)*1000,  max: Math.round(psf*800*yld/100*1.35/1000)*1000 },
+//     { type: '2 BR',      min: Math.round(psf*1250*yld/100*0.75/1000)*1000, avg: Math.round(psf*1250*yld/100/1000)*1000, max: Math.round(psf*1250*yld/100*1.35/1000)*1000 },
+//     { type: '3 BR',      min: Math.round(psf*1800*yld/100*0.75/1000)*1000, avg: Math.round(psf*1800*yld/100/1000)*1000, max: Math.round(psf*1800*yld/100*1.35/1000)*1000 },
+//     { type: 'Townhouse', min: Math.round(psf*2400*yld/100*0.75/1000)*1000, avg: Math.round(psf*2400*yld/100/1000)*1000, max: Math.round(psf*2400*yld/100*1.35/1000)*1000 },
+//   ]
+
+//   // Yield by unit type (investor pane)
+//   const yieldByType = [
+//     { type: 'Studio',  val: +(yld * 1.19).toFixed(1) },
+//     { type: '1 BR',    val: +yld.toFixed(1) },
+//     { type: '2 BR',    val: +(yld * 0.94).toFixed(1) },
+//     { type: '3 BR',    val: +(yld * 0.88).toFixed(1) },
+//     { type: 'TH 3BR',  val: +(yld * 0.82).toFixed(1) },
+//   ]
+
+//   // Owner valuation (1BR)
+//   const fairValue1BR = Math.round(psf * 800 / 1000) * 1000
+//   const valuationRangeLow  = Math.round(fairValue1BR * 0.97 / 1000) * 1000
+//   const valuationRangeHigh = Math.round(fairValue1BR * 1.18 / 1000) * 1000
+//   const gain6m = Math.round(psf * 800 * 0.033 / 1000) * 1000
+//   const annualRent1BR = Math.round(psf * 800 * yld / 100 / 1000) * 1000
+//   const annualRent1BRShort = Math.round(annualRent1BR * 1.25 / 1000) * 1000
+//   const netYield = (yld * 0.83).toFixed(1)
+//   const serviceCharge = psf > 2000 ? 'AED 18–28/sqft' : psf > 1200 ? 'AED 12–18/sqft' : 'AED 10–18/sqft'
+
+//   // Nationalities — vary by zone
+//   const nationals = area.zone === 'Prime'
+//     ? [{ flag: '🇷🇺', name: 'Russian',   pct: 24, w: 100 },{ flag: '🇬🇧', name: 'British',   pct: 18, w: 75 },{ flag: '🇮🇳', name: 'Indian',    pct: 14, w: 58 },{ flag: '🇩🇪', name: 'German',    pct: 9, w: 38 },{ flag: '🇨🇳', name: 'Chinese',   pct: 8, w: 33 },{ flag: '🇦🇪', name: 'UAE Local', pct: 6, w: 25 },{ flag: '🌍', name: 'Other',     pct: 21, w: 48 }]
+//     : area.zone === 'Marina'
+//     ? [{ flag: '🇬🇧', name: 'British',   pct: 22, w: 100 },{ flag: '🇮🇳', name: 'Indian',    pct: 18, w: 82 },{ flag: '🇷🇺', name: 'Russian',   pct: 15, w: 68 },{ flag: '🇩🇪', name: 'German',    pct: 8, w: 36 },{ flag: '🇨🇳', name: 'Chinese',   pct: 7, w: 32 },{ flag: '🌍', name: 'Other',     pct: 30, w: 55 }]
+//     : [{ flag: '🇮🇳', name: 'Indian',    pct: 31, w: 100 },{ flag: '🇬🇧', name: 'British',   pct: 18, w: 58 },{ flag: '🇷🇺', name: 'Russian',   pct: 14, w: 45 },{ flag: '🇵🇰', name: 'Pakistani', pct: 9, w: 29 },{ flag: '🇨🇳', name: 'Chinese',   pct: 6, w: 19 },{ flag: '🇩🇪', name: 'German',    pct: 4, w: 13 },{ flag: '🇦🇪', name: 'UAE Local', pct: 3, w: 10 },{ flag: '🌍', name: 'Other',     pct: 15, w: 48 }]
+
+//   const sellRecommendation = score >= 75 ? 'Yes — Good Time' : 'Hold 6–12M'
+//   const sellColor = score >= 75 ? C.green : C.amber
+//   const optimalSell = score >= 75 ? 'Now — strong market' : score >= 65 ? 'Q2–Q3 2027' : '12–18 months'
+
+//   return {
+//     psf, yld, score, soldThisWeek, daysToSell, availableListings,
+//     distressPct, distressUnits, vacancyRate, occupancyRate, fiveYrAppreciation,
+//     catalystScore, verdict, verdictColor, mood, moodColor, scoreComps,
+//     priceTable, buyerPriceTable, rentTable, yieldByType, nationals,
+//     fairValue1BR, valuationRangeLow, valuationRangeHigh, gain6m,
+//     annualRent1BR, annualRent1BRShort, netYield, serviceCharge,
+//     sellRecommendation, sellColor, optimalSell,
+//     aboveAvgYield: yld > 6.1,
+//   }
+// }
+
+// // ── FORMAT HELPERS ─────────────────────────────────────────────────
+// const fmt = (n) => (n || 0).toLocaleString()
+// function fmtK(n) {
+//   if (n >= 1000000) return `AED ${(n / 1000000).toFixed(2)}M`
+//   return `AED ${Math.round(n / 1000)}K`
+// }
+
+// // ── SHARED COMPONENTS ──────────────────────────────────────────────
+// function Card({ children, style = {} }) {
+//   return <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 18, ...style }}>{children}</div>
+// }
+
+// function CardTitle({ children, badge }) {
+//   return (
+//     <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+//       <span>{children}</span>
+//       {badge && <span style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0, padding: '2px 8px', borderRadius: 4, background: C.bg2, color: C.muted, fontWeight: 500 }}>{badge}</span>}
+//     </div>
+//   )
+// }
+
+// function StRow({ label, value, valueColor, last }) {
+//   return (
+//     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: last ? 'none' : `1px solid ${C.border}`, fontSize: 12 }}>
+//       <span style={{ color: C.muted }}>{label}</span>
+//       <span style={{ fontWeight: 700, color: valueColor || C.text }}>{value}</span>
+//     </div>
+//   )
+// }
+
+// function RatioBar({ left, leftPct, leftColor, right, rightPct, rightColor, last }) {
+//   return (
+//     <div style={{ marginBottom: last ? 0 : 12 }}>
+//       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+//         <span style={{ color: C.text2, fontWeight: 700 }}>{left} {leftPct}%</span>
+//         <span style={{ color: C.muted }}>{right} {rightPct}%</span>
+//       </div>
+//       <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+//         <div style={{ width: `${leftPct}%`, background: leftColor }} />
+//         <div style={{ width: `${rightPct}%`, background: rightColor }} />
+//       </div>
+//     </div>
+//   )
+// }
+
+// function NatBar({ flag, name, pct, w }) {
+//   return (
+//     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+//       <span style={{ fontSize: 15, width: 22 }}>{flag}</span>
+//       <span style={{ fontSize: 12, width: 80, flexShrink: 0 }}>{name}</span>
+//       <div style={{ flex: 1, height: 6, background: C.bg3, borderRadius: 3 }}>
+//         <div style={{ width: `${w}%`, height: 6, borderRadius: 3, background: C.orange }} />
+//       </div>
+//       <span style={{ fontSize: 11, fontWeight: 700, width: 30, textAlign: 'right', color: C.muted }}>{pct}%</span>
+//     </div>
+//   )
+// }
+
+// function PTable({ headers, rows }) {
+//   return (
+//     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+//       <thead>
+//         <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>{h}</th>)}</tr>
+//       </thead>
+//       <tbody>{rows}</tbody>
+//     </table>
+//   )
+// }
+
+// function Td({ children, color, bold, last }) {
+//   return <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400 }}>{children}</td>
+// }
+
+// function GapTag({ truv, ask }) {
+//   const delta = ((ask - truv) / truv * 100)
+//   const d = delta.toFixed(1)
+//   if (delta > 2)  return <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: C.redL,   color: C.red   }}>Premium</span>
+//   if (delta < -2) return <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: C.greenL, color: C.green }}>Opportunity</span>
+//   return               <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: C.amberL, color: C.amber }}>Fair</span>
+// }
+
+// function GapPct({ truv, ask }) {
+//   const delta = ((ask - truv) / truv * 100).toFixed(1)
+//   return <span>{delta > 0 ? `+${delta}%` : `${delta}%`}</span>
+// }
+
+// // ── TIMELINE ITEM ──────────────────────────────────────────────────
+// function TlItem({ year, tagType, title, desc, impact }) {
+//   const tagColors = {
+//     confirmed: { bg: C.greenL, color: C.green, dot: C.green },
+//     announced: { bg: C.blueL,  color: C.blue,  dot: C.blue },
+//     likely:    { bg: C.amberL, color: C.amber,  dot: C.amber },
+//     spec:      { bg: C.bg3,    color: C.muted2, dot: C.muted2 },
+//   }
+//   const tc = tagColors[tagType] || tagColors.spec
+//   return (
+//     <div style={{ position: 'relative', marginBottom: 20 }}>
+//       <div style={{ position: 'absolute', left: -20, top: 5, width: 12, height: 12, borderRadius: '50%', background: tc.dot, border: `2px solid ${C.bg}` }} />
+//       <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, marginBottom: 3 }}>
+//         {year}{' '}
+//         <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 3, marginLeft: 6, textTransform: 'uppercase', letterSpacing: '.08em', background: tc.bg, color: tc.color }}>{tagType}</span>
+//       </div>
+//       <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 3 }}>{title}</div>
+//       <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.55 }}>{desc}</div>
+//       <div style={{ fontSize: 11, marginTop: 5, color: C.muted }}>📈 Expected impact: <strong style={{ color: C.green }}>{impact}</strong></div>
+//     </div>
+//   )
+// }
+
+// // ── PIPE CARD ──────────────────────────────────────────────────────
+// function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status }) {
+//   const stMap = { ontime: { bg: C.greenL, color: C.green, label: 'On Schedule' }, delayed: { bg: C.redL, color: C.red }, ahead: { bg: C.blueL, color: C.blue, label: 'Ahead of Schedule' } }
+//   const st = stMap[status] || stMap.ontime
+//   const soldColor = sold >= 80 ? C.green : sold >= 60 ? C.amber : C.red
+//   return (
+//     <div style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14 }}>
+//       <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>{dev}</div>
+//       <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 10 }}>{name}</div>
+//       {[['Delivery', delivery], ['Units', units], ['PSF from', psfFrom], ['Sold', `${sold}%`]].map(([k, v]) => (
+//         <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+//           <span style={{ color: C.muted }}>{k}</span>
+//           <span style={{ fontWeight: 600, color: k === 'Sold' ? soldColor : C.text }}>{v}</span>
+//         </div>
+//       ))}
+//       <div style={{ height: 4, background: C.bg3, borderRadius: 2, margin: '8px 0 4px' }}>
+//         <div style={{ height: 4, borderRadius: 2, background: status === 'delayed' && builtPct < 25 ? C.red : C.blue, width: `${builtPct}%` }} />
+//       </div>
+//       <div style={{ fontSize: 10, color: C.muted, textAlign: 'right' }}>{builtPct}% built</div>
+//       <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', padding: '2px 7px', borderRadius: 4, display: 'inline-block', marginTop: 8, background: st.bg, color: st.color }}>{st.label || name.includes('Sky') ? '⚠ Delayed +8M' : status === 'delayed' ? 'Delayed +4M' : st.label}</span>
+//     </div>
+//   )
+// }
+
+// // ══════════════════════════════════════════════════════════════════
+// // MAIN COMPONENT
+// // ══════════════════════════════════════════════════════════════════
+// export default function AreaSpecialistPage({ area, onClose }) {
+//   const [persona, setPersona] = useState('buyer')
+//   const [activeTab, setActiveTab] = useState('past')
+//   const { events } = useEvents()
+
+//   const d = buildAreaData(area)
+
+//   // Live signals for this area from the real event pipeline
+//   const areaSignals = events
+//     .filter(e => e.location_name?.toLowerCase().includes(area.name.toLowerCase().split(' ')[0].toLowerCase()))
+//     .slice(0, 6)
+
+//   // Grid helpers
+//   const g2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }
+//   const g3 = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }
+//   const g4 = { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }
+//   const pad = { padding: '0 28px' }
+
+//   // Pipeline PSF values based on area PSF
+//   const pipePsf = (mult) => `AED ${fmt(Math.round(d.psf * mult))}`
+
+//   return (
+//     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto' }}>
+
+//       {/* ── NAV ── */}
+//       <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: '0 28px', height: 54, display: 'flex', alignItems: 'center', gap: 32, position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
+//         <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-.01em', color: C.text }}>ACQ<span style={{ color: C.orange }}>AR</span> SIGNAL™</div>
+//         <div style={{ display: 'flex', gap: 2 }}>
+//           {['Terminal', 'Areas', 'Truvalu™', 'Reports'].map(l => (
+//             <span key={l} style={{ padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 500, color: l === 'Areas' ? C.orange : C.muted, background: l === 'Areas' ? C.orangeL : 'transparent', cursor: 'pointer' }}>{l}</span>
+//           ))}
+//         </div>
+//         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+//           <button onClick={onClose} style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 7, border: `1px solid ${C.border}`, background: C.card, color: C.text2, cursor: 'pointer' }}>← Back to Areas</button>
+//           <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '8px 18px', borderRadius: 7, border: 'none', cursor: 'pointer' }}>📤 Share Area Pack</button>
+//         </div>
+//       </nav>
+
+//       {/* ── TICKER ── */}
+//       <div style={{ background: C.bg2, borderBottom: `1px solid ${C.border}`, padding: '0 28px', height: 28, display: 'flex', alignItems: 'center', gap: 20, fontSize: 11, overflow: 'hidden', flexShrink: 0 }}>
+//         <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, flexShrink: 0 }} />
+//         <span style={{ fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: C.green, whiteSpace: 'nowrap' }}>{area.name.toUpperCase()} LIVE</span>
+//         <div style={{ display: 'flex', overflow: 'hidden', flex: 1 }}>
+//           {[
+//             `Sold This Week: ${d.soldThisWeek} homes`,
+//             `Fair Price: AED ${fmt(d.psf)} / sqft`,
+//             `Rental Return: ${d.yld}% / year`,
+//             `Distress Listings: ${d.distressPct}% below fair value`,
+//             `Metro Opening: Q4 2026 confirmed`,
+//             `Off-Plan Pipeline: 9 active projects`,
+//             `Signal: S${d.score >= 75 ? 5 : d.score >= 65 ? 3 : 2} ${d.mood} Watch`,
+//           ].map((item, i) => (
+//             <div key={i} style={{ padding: '0 16px', borderRight: `1px solid ${C.border}`, whiteSpace: 'nowrap', color: C.text2, flexShrink: 0 }}>
+//               {item.split(': ').map((part, j) => j === 0 ? part + ': ' : <span key={j} style={{ fontWeight: 600, color: C.text }}>{part}</span>)}
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* ── BREADCRUMB ── */}
+//       <div style={{ padding: '14px 28px 0', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: C.muted, flexShrink: 0 }}>
+//         <span>Signal</span>
+//         <span style={{ color: C.border2 }}>›</span>
+//         <span>Area Map</span>
+//         <span style={{ color: C.border2 }}>›</span>
+//         <span style={{ color: C.text, fontWeight: 600 }}>{area.name} ({area.zone})</span>
+//       </div>
+
+//       {/* ── MARKET ALERT ── */}
+//       <div style={{ margin: '14px 28px 0', background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 8, padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12, flexShrink: 0 }}>
+//         <span style={{ flexShrink: 0 }}>⚠️</span>
+//         <div style={{ color: '#9A1B1B', lineHeight: 1.6 }}>
+//           <strong style={{ color: C.red }}>Market Alert:</strong> Regional tensions (Iran/USA, April 2026) have caused a 49% MoM transaction drop across Dubai. This is a sentiment-driven pause, not a fundamental collapse. Acqar's Resilience Report below shows how {area.name} has recovered from every past shock — use this to make a clear-headed decision, not a fear-driven one.
+//         </div>
+//       </div>
+
+//       {/* ── HERO ── */}
+//       <div style={{ padding: '18px 28px 0', display: 'grid', gridTemplateColumns: '1fr auto', gap: 20, alignItems: 'flex-start', flexShrink: 0 }}>
+//         <div>
+//           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: C.muted, marginBottom: 6 }}>📍 Dubai — {area.zone} · Residential District</div>
+//           <div style={{ fontSize: 32, fontWeight: 900, color: C.text, letterSpacing: '-.02em', lineHeight: 1.05, marginBottom: 4 }}>{area.name}</div>
+//           <div style={{ fontSize: 13, color: C.muted, marginBottom: 18 }}>{area.zone} · Mixed-Use Residential · DLD 2026 Data</div>
+
+//           {/* Hero stats row — exact match to HTML .hero-stats-row */}
+//           <div style={{ display: 'flex', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden', flexWrap: 'wrap' }}>
+//             {[
+//               { lbl: '🏠 Homes Sold This Week', val: d.soldThisWeek, valColor: C.red,   sub: 'A bit quieter than last week', subColor: C.red },
+//               { lbl: "💰 What's a Fair Price Here?", val: `AED ${fmt(d.psf)}/sqft`, valColor: C.text, sub: 'Slightly up over 3 months', subColor: C.green },
+//               { lbl: '📈 Rent Return Per Year', val: `${d.yld}%`, valColor: C.green, sub: `${d.aboveAvgYield ? 'Better' : 'Near'} than Dubai's 6.1% average`, subColor: C.muted },
+//               { lbl: '⏱️ How Long to Sell?',  val: `${d.daysToSell} days`, valColor: C.amber, sub: d.daysToSell > 40 ? 'Takes a bit longer than usual' : 'Faster than Dubai average', subColor: d.daysToSell > 40 ? C.red : C.green },
+//               { lbl: '🔑 Homes Available to Buy', val: fmt(d.availableListings), valColor: C.text, sub: 'More choice than normal — good for buyers', subColor: C.muted },
+//               { lbl: '🧭 Market Mood Right Now', val: d.mood, valColor: d.moodColor, sub: 'Watch closely — market paused', subColor: C.muted },
+//             ].map((stat, i) => (
+//               <div key={i} style={{ padding: '14px 22px', borderRight: i < 5 ? `1px solid ${C.border}` : 'none', flex: '1 1 150px' }}>
+//                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 5 }}>{stat.lbl}</div>
+//                 <div style={{ fontSize: 15, fontWeight: 800, color: stat.valColor }}>{stat.val}</div>
+//                 <div style={{ fontSize: 11, color: stat.subColor, marginTop: 2 }}>{stat.sub}</div>
+//               </div>
+//             ))}
+//           </div>
+
+//           {/* Buyer tip bar — only show when persona = buyer */}
+//           {persona === 'buyer' && (
+//             <div style={{ marginTop: 12, background: C.blueL, border: '1px solid rgba(37,99,235,.14)', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+//               <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
+//               <p style={{ fontSize: 12, color: '#1D3461', lineHeight: 1.7 }}>
+//                 <strong>First time buying property?</strong> {area.name} is one of Dubai's {area.zone === 'Prime' ? 'most prestigious' : area.zone === 'Mid-Market' ? 'most popular mid-range' : 'well-established'} areas. Right now the market is <strong>a little slow because of news in the region</strong> — but that's creating <strong>good entry prices for patient buyers</strong>. The area earns strong rent ({d.yld}%/year), a metro station opens nearby in late 2026, and a school is coming in 2027. Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdict === 'BUY' ? 'Strong opportunity — now is a good entry window.' : 'Hold off rushing — but a property priced below the fair-value line is a strong opportunity.'}</strong>
+//               </p>
+//             </div>
+//           )}
+//         </div>
+
+//         {/* ── SCORE CARD ── exact match to HTML .score-card */}
+//         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '22px 20px', minWidth: 250, textAlign: 'center', flexShrink: 0 }}>
+//           <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em', padding: '4px 14px', borderRadius: 20, display: 'inline-block', marginBottom: 10, background: d.score >= 75 ? C.greenL : C.amberL, color: d.verdictColor }}>{d.verdict}</div>
+//           <div style={{ fontSize: 52, fontWeight: 900, color: d.verdictColor, lineHeight: 1, letterSpacing: '-.02em' }}>{d.score}</div>
+//           <div style={{ fontSize: 15, color: C.muted2 }}>/100</div>
+//           <div style={{ fontSize: 11, color: C.muted, margin: '6px 0 16px' }}>12-month outlook · May 2026</div>
+//           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+//             {d.scoreComps.map((comp, i) => (
+//               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
+//                 <span style={{ flex: 1, color: C.text2, textAlign: 'left', fontSize: 11.5 }}>{comp.label}</span>
+//                 <div style={{ width: 76, height: 5, background: C.bg3, borderRadius: 3 }}>
+//                   <div style={{ width: `${Math.min(comp.val, 100)}%`, height: 5, borderRadius: 3, background: comp.color }} />
+//                 </div>
+//                 <span style={{ width: 30, textAlign: 'right', fontWeight: 700, fontSize: 12, color: comp.color }}>{comp.val}</span>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ── AI BRIEF ── exact match to HTML .brief-box */}
+//       <div style={{ margin: '18px 28px 0', background: C.card, border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.orange}`, borderRadius: 10, padding: '18px 22px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 16, alignItems: 'flex-start', flexShrink: 0 }}>
+//         <div style={{ width: 38, height: 38, borderRadius: '50%', background: C.orangeL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>🤖</div>
+//         <div>
+//           <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em', color: C.orange, marginBottom: 6 }}>Area Specialist · AI Brief · Updated May 2026</div>
+//           <div style={{ fontSize: 13.5, lineHeight: 1.75, color: C.text2 }}>
+//             {area.name} is navigating a short-term confidence gap driven primarily by macro sentiment, not by fundamental weakness.{' '}
+//             <strong style={{ color: C.text }}>Transaction velocity has fallen 8% week-on-week</strong>, consistent with the broader Dubai market pause following Iran/USA tensions — however, Truvalu benchmarks show current asking prices are only{' '}
+//             <strong style={{ color: C.text }}>4% above matched comparable transactions</strong>, suggesting sellers haven't over-priced into the slowdown.
+//             Structural fundamentals remain intact: {area.name} delivers a gross rental yield of <strong style={{ color: C.text }}>{d.yld}%</strong>,{' '}
+//             {d.aboveAvgYield ? 'meaningfully above' : 'near'} Dubai's 6.1% average, and has confirmed infrastructure catalysts arriving from Q4 2026 that historically drive 8–14% appreciation in adjacent residential zones.
+//             Supply pressure is elevated with {d.distressPct}% of current listings below the Truvalu floor — creating a selective entry window for patient investors.{' '}
+//             <strong style={{ color: C.text }}>Assessment: {d.verdict === 'BUY' ? `Strong Buy — fundamentals support entry at AED ${fmt(d.psf)}/sqft with ${d.yld}% gross yield.` : d.verdict === 'HOLD' ? 'Hold with selective Buy opportunity on Truvalu-below listings — the current noise is creating entry points the market will close within 2–3 quarters.' : 'Watch — wait for clearer momentum signals before committing.'}</strong>
+//           </div>
+//           <div style={{ marginTop: 8, fontSize: 11, color: C.muted, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+//             <span>🕐 Updated May 2026, 09:15 GST</span>
+//             <span>📊 14 live data sources</span>
+//             <span>🏛️ RICS-aligned Truvalu™</span>
+//             <span>🔄 Refreshes daily</span>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ── PERSONA SELECTOR ── exact match to HTML .persona-section */}
+//       <div style={{ margin: '20px 28px 0', flexShrink: 0 }}>
+//         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 10 }}>Who are you? Get a view built for your situation.</div>
+//         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+//           {[
+//             { key: 'buyer',    icon: '🏠', name: "I'm Buying My First Home",  desc: 'Plain English, step-by-step, no jargon' },
+//             { key: 'investor', icon: '💼', name: "I'm a Property Investor",   desc: 'Yields, returns, comparables, market timing' },
+//             { key: 'owner',    icon: '🔑', name: 'I Already Own Here',        desc: "What's my property worth? Should I sell?" },
+//           ].map(p => (
+//             <button key={p.key} onClick={() => setPersona(p.key)} style={{
+//               padding: '12px 22px', borderRadius: 10,
+//               border: `2px solid ${persona === p.key ? C.orange : C.border}`,
+//               background: persona === p.key ? C.orangeL : C.card,
+//               cursor: 'pointer', transition: 'all .18s',
+//               display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 180,
+//             }}>
+//               <span style={{ fontSize: 22 }}>{p.icon}</span>
+//               <div style={{ textAlign: 'left' }}>
+//                 <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{p.name}</div>
+//                 <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>
+//               </div>
+//             </button>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* ══════════ PERSONA: BUYER ══════════ */}
+//       {persona === 'buyer' && (
+//         <div style={{ ...pad, marginTop: 20 }}>
+//           {/* 5-step guide */}
+//           <Card>
+//             <CardTitle badge="First-Time Buyer">Your 5-Step Buying Guide for {area.name}</CardTitle>
+//             <div>
+//               {[
+//                 {
+//                   num: 1, title: 'Understand what a fair price actually looks like here',
+//                   body: `Our Truvalu™ system calculates what any ${area.name} property should cost based on real transactions, floor level, view, and condition. A 1-bedroom here is fairly priced at around ${fmtK(Math.round(d.psf * 800 / 1000) * 1000)}. If someone's asking significantly more — that's a red flag. If it's below that — that's a genuine opportunity.`,
+//                 },
+//                 {
+//                   num: 2, title: "Check what's coming to the area in the next 2 years",
+//                   body: `A metro station is confirmed for Q4 2026. A new school in 2027. Infrastructure is confirmed or announced. These things push prices up — buying before they open means you benefit from the price increase. This is why timing matters.`,
+//                 },
+//                 {
+//                   num: 3, title: "Don't panic about the current news — look at history",
+//                   body: `Dubai has been through oil crashes, COVID, and geopolitical scares before. Every time, well-located areas recovered within 8–14 months. The current slowdown is caused by regional news (Iran/USA), not by any problem with Dubai's economy or ${area.name} specifically. The Resilience Report (Past tab below) shows you exactly what happened each time.`,
+//                 },
+//                 {
+//                   num: 4, title: 'Know who else is buying here and why',
+//                   body: `${area.name} attracts mostly ${d.nationals[0].name} (${d.nationals[0].pct}%), ${d.nationals[1].name} (${d.nationals[1].pct}%), and ${d.nationals[2].name} (${d.nationals[2].pct}%) buyers — young professionals, expats, and investors. Rental yield here (${d.yld}%) is ${d.aboveAvgYield ? 'higher than' : 'near'} the Dubai average.`,
+//                 },
+//                 {
+//                   num: 5, title: "Check the developer's track record before buying off-plan",
+//                   body: `If you're buying an off-plan unit (not yet built), this matters a lot. Binghatti delivers 91% on time. Tiger Group has an 8-month average delay. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`,
+//                 },
+//               ].map((step, i, arr) => (
+//                 <div key={step.num} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: 14, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+//                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: C.orange, color: '#fff', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{step.num}</div>
+//                   <div>
+//                     <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 3 }}>{step.title}</div>
+//                     <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>{step.body}</p>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </Card>
+
+//           {/* Price guide */}
+//           <div style={{ ...g2, marginTop: 16 }}>
+//             <Card>
+//               <CardTitle>What Does Buying in {area.name} Actually Cost?</CardTitle>
+//               <PTable
+//                 headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
+//                 rows={d.buyerPriceTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1}>{row.min}</Td>
+//                     <Td last={i === arr.length - 1} bold>{row.fair}</Td>
+//                     <Td last={i === arr.length - 1}>{row.max}</Td>
+//                   </tr>
+//                 ))}
+//               />
+//               <p style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>💡 The "Fair Price" column is Acqar's Truvalu™ benchmark — what the property is actually worth based on real transactions, not asking prices.</p>
+//             </Card>
+//             <Card>
+//               <CardTitle>What Will It Cost to Own (Not Just Buy)?</CardTitle>
+//               <StRow label="DLD Transfer Fee"             value="4% of purchase price" />
+//               <StRow label="Agent commission"             value="2% (negotiable)" />
+//               <StRow label="Annual service charges"       value={d.serviceCharge} />
+//               <StRow label="Typical annual maintenance"   value="AED 5,000–15,000" />
+//               <StRow label="Annual rental income (1BR)"   value={`${fmtK(d.annualRent1BR)} avg`} valueColor={C.green} />
+//               <StRow label="Net yield after charges (est.)" value={`${d.netYield}%`} valueColor={C.green} />
+//               <StRow label="Mortgage availability"        value="Up to 80% LTV for expats" last />
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ══════════ PERSONA: INVESTOR ══════════ */}
+//       {persona === 'investor' && (
+//         <div style={{ ...pad, marginTop: 20 }}>
+//           {/* 4 big metrics */}
+//           <div style={g4}>
+//             {[
+//               { title: 'Gross Yield',          val: `${d.yld}%`,              color: C.green, sub: `Dubai avg: 6.1% · ${area.name} ${d.aboveAvgYield ? 'above' : 'near'} avg for 4 years` },
+//               { title: 'Distress Opportunity', val: `${d.distressPct}%`,      color: C.amber, sub: `${fmt(d.distressUnits)} units priced below Truvalu™ floor right now` },
+//               { title: 'Catalyst Score',        val: `${d.catalystScore}/100`, color: C.green, sub: '2 confirmed infra catalysts in next 24 months' },
+//               { title: 'Off-Plan Absorption',   val: '72%',                    color: C.blue,  sub: `Average sold % across active ${area.name} projects` },
+//             ].map(m => (
+//               <Card key={m.title} style={{ textAlign: 'center' }}>
+//                 <CardTitle>{m.title}</CardTitle>
+//                 <div style={{ fontSize: 36, fontWeight: 900, color: m.color }}>{m.val}</div>
+//                 <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{m.sub}</div>
+//               </Card>
+//             ))}
+//           </div>
+
+//           {/* Market composition + Truvalu benchmark */}
+//           <div style={{ ...g2, marginTop: 16 }}>
+//             <Card>
+//               <CardTitle>Market Composition — Investor View</CardTitle>
+//               <RatioBar left="Off-Plan (Primary)" leftPct={58} leftColor={C.blue}   right="Ready (Secondary)" rightPct={42} rightColor={C.amber} />
+//               <RatioBar left="Investor-owned"     leftPct={62} leftColor={C.orange} right="End-user"           rightPct={38} rightColor={C.green} />
+//               <RatioBar left="Apartments"         leftPct={87} leftColor={C.green}  right="Villas/TH"          rightPct={13} rightColor={C.purple} />
+//               <RatioBar left="Long-term tenants"  leftPct={88} leftColor="#14B8A6"  right="Short-stay"          rightPct={12} rightColor="#E2E8F0" last />
+//             </Card>
+//             <Card>
+//               <CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle>
+//               <PTable
+//                 headers={['Type', 'Truvalu™', 'Asking', 'Gap', 'Signal']}
+//                 rows={d.priceTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1} bold>AED {fmt(row.truv)}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.ask)}</Td>
+//                     <Td last={i === arr.length - 1}><GapPct truv={row.truv} ask={row.ask} /></Td>
+//                     <Td last={i === arr.length - 1}><GapTag truv={row.truv} ask={row.ask} /></Td>
+//                   </tr>
+//                 ))}
+//               />
+//             </Card>
+//           </div>
+
+//           {/* Nationality + yield by type */}
+//           <div style={{ ...g2, marginTop: 16 }}>
+//             <Card>
+//               <CardTitle>Who Is Buying in {area.name}? (Last 90 Days)</CardTitle>
+//               {d.nationals.map(n => <NatBar key={n.name} {...n} />)}
+//             </Card>
+//             <Card>
+//               <CardTitle>Rental Yield by Unit Type</CardTitle>
+//               {/* Yield bar chart replacement */}
+//               {d.yieldByType.map(y => (
+//                 <div key={y.type} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+//                   <span style={{ fontSize: 11, width: 60, flexShrink: 0, color: C.text2 }}>{y.type}</span>
+//                   <div style={{ flex: 1, height: 6, background: C.bg3, borderRadius: 3 }}>
+//                     <div style={{ width: `${(y.val / 11) * 100}%`, height: 6, borderRadius: 3, background: y.val > 6.1 ? C.green : C.amber }} />
+//                   </div>
+//                   <span style={{ fontSize: 11, fontWeight: 700, width: 36, textAlign: 'right', color: y.val > 6.1 ? C.green : C.amber }}>{y.val}%</span>
+//                 </div>
+//               ))}
+//               {/* Dubai avg line label */}
+//               <div style={{ fontSize: 10, color: C.muted2, textAlign: 'right', marginBottom: 8 }}>— Dubai Avg 6.1%</div>
+//               <StRow label="Best yield unit type"   value={`Studio (${d.yieldByType[0].val}%)`} valueColor={C.green} />
+//               <StRow label="5-year yield trend"     value={`↑ 6.1% → ${d.yld}%`}              valueColor={C.green} />
+//               <StRow label="Average days to rent"   value="18 days" />
+//               <StRow label="Vacancy rate"            value={`${d.vacancyRate}%`} valueColor={C.green} last />
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ══════════ PERSONA: OWNER ══════════ */}
+//       {persona === 'owner' && (
+//         <div style={{ ...pad, marginTop: 20 }}>
+//           {/* Valuation banner */}
+//           <div style={{ background: `linear-gradient(135deg,${C.orangeL} 0%,rgba(200,115,42,0.03) 100%)`, border: '1px solid rgba(200,115,42,0.2)', borderRadius: 10, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, marginBottom: 16 }}>
+//             <div>
+//               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.orange, marginBottom: 6 }}>Your Asset · Truvalu™ Valuation</div>
+//               <h2 style={{ fontSize: 22, fontWeight: 900, color: C.orange, marginBottom: 4 }}>1 Bedroom in {area.name} is worth {fmtK(d.valuationRangeLow)} — {fmtK(d.valuationRangeHigh)}</h2>
+//               <p style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>Based on your floor level, view, building quality, and current matched DLD transactions. Updated daily.</p>
+//             </div>
+//             <div style={{ textAlign: 'right', flexShrink: 0 }}>
+//               <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted }}>Truvalu™ Fair Value</div>
+//               <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginTop: 2 }}>{fmtK(d.fairValue1BR)}</div>
+//               <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>↑ +AED {fmt(d.gain6m)} vs 6 months ago</div>
+//               <div style={{ fontSize: 11, color: C.green, marginTop: 2 }}>↑ +{d.fiveYrAppreciation}% vs 5-year purchase price</div>
+//             </div>
+//           </div>
+
+//           <div style={g3}>
+//             {/* Should I sell? */}
+//             <Card>
+//               <CardTitle>Should You Sell Now?</CardTitle>
+//               <div style={{ fontSize: 28, fontWeight: 900, color: d.sellColor, marginBottom: 6 }}>{d.sellRecommendation}</div>
+//               <div style={{ fontSize: 12, color: C.text2, lineHeight: 1.7, marginBottom: 14 }}>
+//                 {d.score >= 75
+//                   ? `Market conditions are strong in ${area.name}. Buyer demand is elevated and days-on-market is low at ${d.daysToSell} days. If you need to sell, now is a favorable window.`
+//                   : `Selling today means selling into a market where buyers are temporarily nervous due to regional events. Infrastructure catalysts arriving Q4 2026 are likely to push ${area.name} prices up 8–14% — selling before those land means leaving money on the table.`}
+//               </div>
+//               <StRow label="Current market sentiment"       value={d.mood}         valueColor={d.moodColor} />
+//               <StRow label="Days to sell (current)"         value={`${d.daysToSell} days`} valueColor={d.daysToSell > 40 ? C.red : C.green} />
+//               <StRow label="Expected post-catalyst improvement" value="8–14%"      valueColor={C.green} />
+//               <StRow label="Optimal sell window"            value={d.optimalSell}  valueColor={C.green} last />
+//             </Card>
+
+//             {/* Rent it out? */}
+//             <Card>
+//               <CardTitle>Should You Rent It Out?</CardTitle>
+//               <div style={{ fontSize: 28, fontWeight: 900, color: C.green, marginBottom: 6 }}>Yes — Good Yield</div>
+//               <div style={{ fontSize: 12, color: C.text2, lineHeight: 1.7, marginBottom: 14 }}>
+//                 {area.name}'s rental market remains active even during the transaction slowdown — tenants don't stop needing homes because of geopolitical news. Your 1BR can generate {fmtK(d.annualRent1BR)}/year on a 12-month contract or {fmtK(d.annualRent1BRShort)}/year on a short-term furnished basis.
+//               </div>
+//               <StRow label="Annual long-term rent (1BR)"    value={`AED ${fmt(Math.round(d.annualRent1BR*0.93/1000)*1000)}–${fmt(d.annualRent1BR)}`} valueColor={C.green} />
+//               <StRow label="Short-term furnished (1BR)"     value={`AED ${fmt(d.annualRent1BR)}–${fmt(d.annualRent1BRShort)}`} valueColor={C.green} />
+//               <StRow label="Average days to find tenant"    value="18 days" />
+//               <StRow label="Current vacancy rate"           value={`${d.vacancyRate}%`}  valueColor={C.green} />
+//               <StRow label="Gross yield (long-term)"        value={`${d.yld}%`}     valueColor={C.green} last />
+//             </Card>
+
+//             {/* Area vs Dubai avg */}
+//             <Card>
+//               <CardTitle>Your Area vs Dubai Average</CardTitle>
+//               <StRow label="Rental yield"               value={`${d.yld}% vs 6.1% avg`}    valueColor={C.green} />
+//               <StRow label="5-year price appreciation"  value={`+${d.fiveYrAppreciation}%`} valueColor={C.green} />
+//               <StRow label="Occupancy rate"             value={`${d.occupancyRate}%`}        valueColor={C.green} />
+//               <StRow label="Supply growth (risk)"       value="6.4% ↑ moderate"              valueColor={C.amber} />
+//               <StRow label="Infrastructure catalyst score" value={`${d.catalystScore}/100 — Strong`} valueColor={C.green} />
+//               <StRow label="Price resilience (past shocks)" value="Always recovered <14M"   valueColor={C.green} />
+//               <StRow label="Acqar's outlook (12M)"      value={d.verdict === 'BUY' ? 'BUY — Strong momentum' : 'HOLD → BUY trend'} valueColor={d.verdictColor} last />
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ══════════ TIME HORIZON TABS ══════════ */}
+//       <div style={{ margin: '20px 28px 0', flexShrink: 0 }}>
+//         <div style={{ display: 'flex', borderBottom: `2px solid ${C.border}`, gap: 0 }}>
+//           {[
+//             { key: 'past',    label: '📜 Past — History & Track Record' },
+//             { key: 'present', label: '📡 Present — Live Market Data' },
+//             { key: 'future',  label: `🔭 Future — What's Coming to ${area.name}` },
+//           ].map(tab => (
+//             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+//               padding: '10px 22px', fontSize: 12, fontWeight: 700,
+//               color: activeTab === tab.key ? C.orange : C.muted,
+//               cursor: 'pointer',
+//               borderBottom: `3px solid ${activeTab === tab.key ? C.orange : 'transparent'}`,
+//               marginBottom: -2, letterSpacing: '.04em', textTransform: 'uppercase',
+//               background: 'none', border: 'none',
+//               borderBottomWidth: 3, borderBottomStyle: 'solid',
+//               borderBottomColor: activeTab === tab.key ? C.orange : 'transparent',
+//               transition: 'all .15s', userSelect: 'none',
+//             }}>{tab.label}</button>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* ── PAST TAB ── */}
+//       {activeTab === 'past' && (
+//         <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
+//           {/* Area maturity + developer table */}
+//           <div style={{ ...g2, marginBottom: 16 }}>
+//             <Card>
+//               <CardTitle>Area Maturity</CardTitle>
+//               <StRow label="Zone"                      value={area.zone} />
+//               <StRow label="Completion rate"            value="84% built"            valueColor={C.green} />
+//               <StRow label="Total units (completed)"    value="62,400" />
+//               <StRow label="Occupancy rate"             value={`${d.occupancyRate}%`}  valueColor={C.green} />
+//               <StRow label="Schools within 3km"         value="4 schools" />
+//               <StRow label="Retail (malls + units)"     value="2 malls, 180+ retail" />
+//               <StRow label="5-year price appreciation"  value={`+${d.fiveYrAppreciation}%`} valueColor={C.green} last />
+//             </Card>
+//             <Card>
+//               <CardTitle>Developer Delivery Track Record in {area.name}</CardTitle>
+//               <PTable
+//                 headers={['Developer', 'Projects', 'On-Time', 'Avg Delay', 'Rating']}
+//                 rows={[
+//                   { dev: 'Binghatti',  n: 12, ot: '91%', delay: '1.2 mo', rating: '★★★★★', c: C.green },
+//                   { dev: 'Ellington',  n: 8,  ot: '88%', delay: '2.1 mo', rating: '★★★★☆', c: C.green },
+//                   { dev: 'Nakheel',    n: 4,  ot: '95%', delay: '0.8 mo', rating: '★★★★★', c: C.green },
+//                   { dev: 'DAMAC',      n: 6,  ot: '74%', delay: '5.8 mo', rating: '★★★☆☆', c: C.amber },
+//                   { dev: 'Samana',     n: 7,  ot: '71%', delay: '6.2 mo', rating: '★★★☆☆', c: C.amber },
+//                   { dev: 'Tiger Group',n: 9,  ot: '61%', delay: '8.4 mo', rating: '★★☆☆☆', c: C.red   },
+//                 ].map((r, i, arr) => (
+//                   <tr key={r.dev}>
+//                     <Td last={i === arr.length - 1}>{r.dev}</Td>
+//                     <Td last={i === arr.length - 1}>{r.n}</Td>
+//                     <Td last={i === arr.length - 1} color={r.c}>{r.ot}</Td>
+//                     <Td last={i === arr.length - 1}>{r.delay}</Td>
+//                     <Td last={i === arr.length - 1} color={r.c}>{r.rating}</Td>
+//                   </tr>
+//                 ))}
+//               />
+//             </Card>
+//           </div>
+
+//           {/* Resilience report */}
+//           <Card style={{ marginBottom: 20 }}>
+//             <CardTitle>🛡️ Resilience Report — How {area.name} Survived Every Past Shock</CardTitle>
+//             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.greenL, border: '1px solid rgba(22,163,74,.18)', borderRadius: 6, padding: '7px 14px', fontSize: 11, fontWeight: 700, color: C.green, marginBottom: 14 }}>
+//               ✓ {area.name} has recovered within 14 months in every major shock since 2014
+//             </div>
+//             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+//               <thead>
+//                 <tr>{['Event', 'Period', `${area.name} Price Impact`, 'Recovery Time', 'What Drove Recovery', 'Is This Happening Now?'].map(h => (
+//                   <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>{h}</th>
+//                 ))}</tr>
+//               </thead>
+//               <tbody>
+//                 {[
+//                   { event: 'Oil Price Crash',     period: '2014–2016', impact: '−18%', ic: C.red,   rec: '14 months', driver: 'Yield hunters attracted by low prices',         now: 'Partial parallel',       nc: C.amber },
+//                   { event: 'Expo Slowdown',       period: '2019–2020', impact: '−9%',  ic: C.red,   rec: '8 months',  driver: 'Affordable entry vs Downtown',                  now: 'Same dynamic now',       nc: C.green },
+//                   { event: 'COVID-19',            period: 'Q2–Q3 2020',impact: '−14%', ic: C.red,   rec: '11 months', driver: 'DLD fee waiver + Golden Visa expansion',         now: 'No direct parallel',     nc: C.amber },
+//                   { event: 'Russia/Ukraine War',  period: 'Feb 2022',  impact: '+6%',  ic: C.green, rec: 'N/A (rose)', driver: 'Russian capital flight → Dubai demand',          now: 'Opposite dynamic',       nc: C.amber },
+//                   { event: '⚡ Iran/USA ← NOW',  period: 'Apr 2026→', impact: '−4% so far', ic: C.amber, rec: 'Projected: 6–10M', driver: `${area.name} yield floor (${d.yld}%) + metro`, now: 'This is the current event', nc: C.orange, bold: true },
+//                 ].map((row, i, arr) => (
+//                   <tr key={row.event} style={{ background: row.bold ? 'rgba(200,115,42,0.04)' : 'transparent' }}>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', fontWeight: row.bold ? 700 : 400, color: row.bold ? C.orange : C.text }}>{row.event}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>{row.period}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', color: row.ic, fontWeight: 700 }}>{row.impact}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}><strong>{row.rec}</strong></td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>{row.driver}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', color: row.nc, fontWeight: row.bold ? 700 : 400 }}>{row.now}</td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </Card>
+//         </div>
+//       )}
+
+//       {/* ── PRESENT TAB ── */}
+//       {activeTab === 'present' && (
+//         <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
+//           {/* Distress meter */}
+//           <div style={{ background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+//             <div style={{ fontSize: 32, fontWeight: 900, color: C.amber }}>{d.distressPct}%</div>
+//             <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
+//               <strong style={{ color: C.text }}>Distress Meter:</strong> {fmt(d.distressUnits)} of {area.name}'s active listings are priced below the Truvalu™ floor right now. This is above the 12-month average of 11% — driven by nervous sellers who want to exit quickly. For patient buyers, this is a genuine entry window. The widest gap is in 2BR and townhouse units.
+//             </div>
+//           </div>
+
+//           {/* Live signals + market composition */}
+//           <div style={{ ...g2, marginBottom: 16 }}>
+//             <Card>
+//               <CardTitle>Live ACQAR Signals for {area.name}</CardTitle>
+//               {areaSignals.length > 0 ? areaSignals.map(ev => (
+//                 <div key={ev.id} style={{ padding: '8px 0', borderBottom: `1px solid ${C.border}` }}>
+//                   <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.orange, marginBottom: 2 }}>{ev.category} · S{ev.severity}</div>
+//                   <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 2 }}>{ev.title}</div>
+//                   <div style={{ fontSize: 11, color: C.muted }}>📡 {ev.signal_count} signals · 🎯 {Math.round(ev.confidence * 100)}% confidence</div>
+//                   {ev.price_aed && <div style={{ fontSize: 11, color: C.green, marginTop: 2, fontWeight: 600 }}>💰 AED {(ev.price_aed / 1000000).toFixed(1)}M</div>}
+//                 </div>
+//               )) : (
+//                 <div style={{ padding: '20px 0', textAlign: 'center', color: C.muted, fontSize: 12 }}>
+//                   <div style={{ fontSize: 28, marginBottom: 8 }}>📡</div>
+//                   No live signals for {area.name} right now — signals update every 5 minutes.
+//                 </div>
+//               )}
+//             </Card>
+//             <Card>
+//               <CardTitle>Live Market Composition</CardTitle>
+//               <RatioBar left="Off-Plan (Primary)" leftPct={58} leftColor={C.blue}    right="Ready (Secondary)"    rightPct={42} rightColor={C.amber} />
+//               <RatioBar left="Apartments"         leftPct={87} leftColor={C.green}   right="Villas/TH"            rightPct={13} rightColor={C.purple} />
+//               <RatioBar left="Residential"        leftPct={91} leftColor="#14B8A6"   right="Commercial"           rightPct={9}  rightColor={C.muted2} />
+//               <RatioBar left="Bachelor / Single"  leftPct={71} leftColor="#6366F1"   right="Family"               rightPct={29} rightColor="#EC4899" />
+//               <RatioBar left="Long-term resident" leftPct={88} leftColor={C.lime}    right="Tourist/short-stay"   rightPct={12} rightColor={C.bg3} last />
+//             </Card>
+//           </div>
+
+//           {/* Rent ranges + Truvalu current + nationalities */}
+//           <div style={{ ...g3, marginBottom: 20 }}>
+//             <Card>
+//               <CardTitle>Annual Rent Ranges (AED)</CardTitle>
+//               <PTable
+//                 headers={['Type', 'Min', 'Avg', 'Max']}
+//                 rows={d.rentTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.min)}</Td>
+//                     <Td last={i === arr.length - 1} color={C.green} bold>{fmt(row.avg)}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.max)}</Td>
+//                   </tr>
+//                 ))}
+//               />
+//             </Card>
+//             <Card>
+//               <CardTitle>Truvalu™ Benchmark — Current</CardTitle>
+//               <PTable
+//                 headers={['Type', 'Truvalu™', 'Ask PSF', 'Status']}
+//                 rows={d.priceTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1}>AED {fmt(row.truv)}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.ask)}</Td>
+//                     <Td last={i === arr.length - 1}><GapTag truv={row.truv} ask={row.ask} /></Td>
+//                   </tr>
+//                 ))}
+//               />
+//             </Card>
+//             <Card>
+//               <CardTitle>Buyer Nationality — 90 Days</CardTitle>
+//               {d.nationals.map(n => <NatBar key={n.name} {...n} />)}
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ── FUTURE TAB ── */}
+//       {activeTab === 'future' && (
+//         <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
+//           <div style={{ ...g2, marginBottom: 16 }}>
+//             {/* Timeline */}
+//             <Card>
+//               <CardTitle badge="Confirmed · Announced · Likely">Infrastructure &amp; Catalyst Timeline</CardTitle>
+//               <div style={{ paddingLeft: 24, position: 'relative' }}>
+//                 <div style={{ position: 'absolute', left: 8, top: 6, bottom: 6, width: 2, background: C.border, borderRadius: 1 }} />
+//                 <TlItem year="Q4 2026" tagType="confirmed" title={`Dubai Metro Blue Line — ${area.name} Station`} desc="First direct metro connectivity for the area. Under active construction. Metro stations historically drive 8–14% PSF appreciation within 1km radius within 12 months of opening." impact="+8–14% PSF (1km radius)" />
+//                 <TlItem year="Q2 2027" tagType="confirmed" title={`${area.name} Community Mall Expansion — Phase 2`} desc="800,000 sqft retail expansion by Nakheel. Anchor tenants include Waitrose, Decathlon, and multiplex cinema. Shifts area from bachelor-dominant to family-friendly." impact="+5–8% rental demand, family buyer ratio ↑" />
+//                 <TlItem year="Q3 2027" tagType="announced" title="International School — GEMS World Academy" desc="1,800-student capacity. Pending final planning approval. Will shift occupant profile towards families and increase 2BR/3BR demand significantly." impact="+12–18% demand for 2–3BR units" />
+//                 <TlItem year="2027" tagType="announced" title="Al Maktoum Airport — Phase 2 (15 mins away)" desc="AED 128B project confirmed as world's largest airport by 2040. Aviation worker and business travel residential demand expected to boost the area." impact="Long-term valuation tailwind" />
+//                 <TlItem year="2028" tagType="likely" title="DHA Medical Facility — Area Catchment" desc="Healthcare anchor expected to serve area catchment. Healthcare infrastructure is consistently correlated with family occupancy increases and rental demand." impact="Family ratio ↑, rental stability ↑" />
+//               </div>
+//             </Card>
+
+//             {/* Catalyst score + supply risk */}
+//             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+//               <Card>
+//                 <CardTitle>Catalyst Score</CardTitle>
+//                 <div style={{ fontSize: 42, fontWeight: 900, color: C.green, textAlign: 'center', marginBottom: 8 }}>{d.catalystScore}/100</div>
+//                 <StRow label="Confirmed infrastructure"   value="2 items"          valueColor={C.green} />
+//                 <StRow label="Announced (pending)"        value="3 items"          valueColor={C.blue} />
+//                 <StRow label="Dubai 2040 zone alignment"  value="Strong"           valueColor={C.green} />
+//                 <StRow label="Transport improvement"      value="Metro Q4 2026"    valueColor={C.green} />
+//                 <StRow label="School infrastructure"      value="Improving"        valueColor={C.amber} last />
+//               </Card>
+//               <Card>
+//                 <CardTitle>Off-Plan Supply — Delivery Risk</CardTitle>
+//                 <StRow label="Active projects in area"   value="9" />
+//                 <StRow label="Total pipeline units"       value="4,840" />
+//                 <StRow label="Delivering 2026"            value="1,240 units"      valueColor={C.green} />
+//                 <StRow label="Delivering 2027 (peak)"     value="2,180 units"      valueColor={C.amber} />
+//                 <StRow label="Supply risk"                value="Moderate — watch 2027" valueColor={C.amber} last />
+//               </Card>
+//             </div>
+//           </div>
+
+//           {/* Pipeline cards */}
+//           <div style={{ marginBottom: 20 }}>
+//             <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>Active Off-Plan Projects in {area.name}</div>
+//             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: 10 }}>
+//               <PipeCard dev="Binghatti"   name="Binghatti Phoenix"   delivery="Q2 2026" units={284}       psfFrom={pipePsf(0.82)} sold={94} builtPct={91} status="ontime" />
+//               <PipeCard dev="Ellington"   name="Crestmont Residences"delivery="Q4 2026" units={412}       psfFrom={pipePsf(0.91)} sold={78} builtPct={67} status="ontime" />
+//               <PipeCard dev="DAMAC"       name="Solitaire Tower"     delivery="Q1 2027" units={618}       psfFrom={pipePsf(0.80)} sold={68} builtPct={44} status="delayed" />
+//               <PipeCard dev="Nakheel"     name="Cluster T Villas"    delivery="Q2 2027" units="84 villas" psfFrom="AED 2.4M"      sold={87} builtPct={55} status="ahead" />
+//               <PipeCard dev="Tiger Group" name="Tiger Sky Tower"     delivery="Q4 2027" units={186}       psfFrom={pipePsf(0.69)} sold={39} builtPct={18} status="delayed" />
+//               <PipeCard dev="Samana"      name="Samana Skyros"       delivery="Q3 2027" units={320}       psfFrom={pipePsf(0.74)} sold={52} builtPct={28} status="ontime" />
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ── BROKER CTA ── */}
+//       <div style={{ margin: '20px 28px 30px', background: `linear-gradient(135deg,${C.orangeL} 0%,rgba(200,115,42,0.05) 100%)`, border: '1px solid rgba(200,115,42,0.22)', borderRadius: 10, padding: '22px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexShrink: 0 }}>
+//         <div>
+//           <h3 style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 4 }}>📤 Share This Area Specialist Report</h3>
+//           <p style={{ fontSize: 12, color: C.muted }}>One-click shareable link for your client — Area Brief, Score, Truvalu™ Benchmarks, Catalyst Timeline, and Resilience Report. Opens as a live Acqar page with no login required.</p>
+//         </div>
+//         <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+//           <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '10px 22px', borderRadius: 7, border: 'none', cursor: 'pointer' }}>Generate Shareable Link</button>
+//           <button style={{ background: C.card, color: C.text2, fontSize: 12, fontWeight: 600, padding: '10px 22px', borderRadius: 7, border: `1px solid ${C.border}`, cursor: 'pointer' }}>Download PDF Report</button>
+//         </div>
+//       </div>
+
+//       <style>{`@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}`}</style>
+//     </div>
+//   )
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 
@@ -882,26 +1788,8 @@ export default function AreaSpecialistPage({ area, onClose }) {
         </div>
       </nav>
 
-      {/* ── TICKER ── */}
-      <div style={{ background: C.bg2, borderBottom: `1px solid ${C.border}`, padding: '0 28px', height: 28, display: 'flex', alignItems: 'center', gap: 20, fontSize: 11, overflow: 'hidden', flexShrink: 0 }}>
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: C.green, whiteSpace: 'nowrap' }}>{area.name.toUpperCase()} LIVE</span>
-        <div style={{ display: 'flex', overflow: 'hidden', flex: 1 }}>
-          {[
-            `Sold This Week: ${d.soldThisWeek} homes`,
-            `Fair Price: AED ${fmt(d.psf)} / sqft`,
-            `Rental Return: ${d.yld}% / year`,
-            `Distress Listings: ${d.distressPct}% below fair value`,
-            `Metro Opening: Q4 2026 confirmed`,
-            `Off-Plan Pipeline: 9 active projects`,
-            `Signal: S${d.score >= 75 ? 5 : d.score >= 65 ? 3 : 2} ${d.mood} Watch`,
-          ].map((item, i) => (
-            <div key={i} style={{ padding: '0 16px', borderRight: `1px solid ${C.border}`, whiteSpace: 'nowrap', color: C.text2, flexShrink: 0 }}>
-              {item.split(': ').map((part, j) => j === 0 ? part + ': ' : <span key={j} style={{ fontWeight: 600, color: C.text }}>{part}</span>)}
-            </div>
-          ))}
-        </div>
-      </div>
+     {/* ── TICKER ── */}
+<TickerBar areaSlug="area-59" areaName={area.name} fallback={d} />
 
       {/* ── BREADCRUMB ── */}
       <div style={{ padding: '14px 28px 0', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: C.muted, flexShrink: 0 }}>
