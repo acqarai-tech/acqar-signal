@@ -8,10 +8,9 @@ import os
 
 router = APIRouter(prefix="/api/ticker", tags=["ticker"])
 
-supabase = create_client(
-    os.environ["SUPABASE_URL"],
-    os.environ["SUPABASE_SERVICE_KEY"]
-)
+url = os.environ.get("VITE_SUPABASE_URL", "")
+key = os.environ.get("VITE_SUPABASE_ANON_KEY", "")
+supabase = create_client(url, key)
 
 @router.get("/{area_slug}")
 async def get_ticker(area_slug: str):
