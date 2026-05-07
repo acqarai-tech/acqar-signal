@@ -20,17 +20,23 @@ async def get_ticker(area_slug: str):
 
     area = area_res.data[0]
 
-    metro_res = supabase.table("area_catalysts").select(
-        "name, expected_date, confidence"
-    ).eq("area_id", area["area_id"]).eq("catalyst_type", "metro").eq("human_approved", True).order(
-        "expected_date", desc=False
-    ).limit(1).execute()
+    try:
+        metro_res = supabase.table("area_catalysts").select(
+            "name, expected_date, confidence"
+        ).eq("area_id", area["area_id"]).eq("catalyst_type", "metro").eq("human_approved", True).order(
+            "expected_date", desc=False
+        ).limit(1).execute()
+        metro = metro_res.data[0] if metro_res.data else None
+    except:
+        metro = None
 
-    metro = metro_res.data[0] if metro_res.data else None
-
-    pipeline_res = supabase.table("off_plan_projects").select(
-        "id", count="exact"
-    ).eq("area_id", area["area_id"]).eq("status", "active").execute()
+    try:
+        pipeline_res = supabase.table("off_plan_projects").select(
+            "id", count="exact"
+        ).eq("area_id", area["area_id"]).eq("status", "active").execute()
+        pipeline_count = pipeline_res.count or 0
+    except:
+        pipeline_count = 0
 
     truvalu_psm = area.get("truvalu_psm")
     fair_price_psf = round(truvalu_psm / 10.764) if truvalu_psm else None
@@ -42,7 +48,7 @@ async def get_ticker(area_slug: str):
         "rentalReturnPct": area.get("gross_yield_pct"),
         "distressPct":     area.get("distress_pct") or 0,
         "metroOpening":    metro,
-        "offPlanPipeline": pipeline_res.count or 0,
+        "offPlanPipeline": pipeline_count,
         "signalMood":      area.get("verdict") or "WATCH",
         "score":           area.get("investment_score") or 50,
     }
