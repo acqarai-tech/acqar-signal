@@ -15,4 +15,4 @@ lxml
 beautifulsoup4
 yfinance>=0.2.36
 pandas>=2.0.0
-supabase==2.10.0
+supabase==2.6.0
