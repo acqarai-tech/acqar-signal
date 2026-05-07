@@ -10,15 +10,15 @@ async def get_ticker(area_slug: str):
         os.environ.get("VITE_SUPABASE_URL", ""),
         os.environ.get("VITE_SUPABASE_ANON_KEY", "")
     )
-    
+
     area_res = supabase.table("area_intelligence").select(
         "area_id, area_name_en, tx_7d, tx_7d_delta_pct, truvalu_psm, gross_yield_pct, distress_pct, verdict, investment_score"
-    ).eq("area_slug", area_slug).single().execute()
+    ).eq("area_slug", area_slug).limit(1).execute()
 
-    if not area_res.data:
+    if not area_res.data or len(area_res.data) == 0:
         raise HTTPException(status_code=404, detail=f"Area '{area_slug}' not found")
 
-    area = area_res.data
+    area = area_res.data[0]
 
     metro_res = supabase.table("area_catalysts").select(
         "name, expected_date, confidence"
