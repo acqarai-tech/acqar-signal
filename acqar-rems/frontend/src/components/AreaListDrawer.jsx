@@ -461,7 +461,7 @@ export const DUBAI_AREAS_LIST = [
 
   // MID-MARKET — DXB Analytics Jan 2026: JVC=1,473/sqft, Silicon Oasis=1,501
   // Bayut 2025: Arjan=1,355, International City yield 10%, Discovery Gardens 9.47%
-  { name: 'JVC', zone: 'Mid-Market', lat: 25.0586, lng: 55.2069, pricePerSqft: 1473, yield: 6.7, score: 69 },
+ { name: 'JVC', zone: 'Mid-Market', dxbSlug: 'jumeirah-village-circle', lat: 25.0586, lng: 55.2069, pricePerSqft: 1473, yield: 6.7, score: 69 },
   { name: 'JVT', zone: 'Mid-Market', lat: 25.0550, lng: 55.1950, pricePerSqft: 1350, yield: 7.0, score: 66 },
   { name: 'Arjan', zone: 'Mid-Market', lat: 25.0620, lng: 55.2150, pricePerSqft: 1355, yield: 8.2, score: 65 },
   { name: 'Dubai Production City', zone: 'Mid-Market', lat: 25.0400, lng: 55.2080, pricePerSqft: 1150, yield: 8.5, score: 63 },
