@@ -2639,12 +2639,11 @@ export default function AreaSpecialistPage({ area, onClose }) {
 const [tickerData, setTickerData] = useState(null)
 
 useEffect(() => {
-  if (!area.dxbSlug) return
-  fetch(`${BACKEND}/api/ticker/${area.dxbSlug}`)
+  fetch(`${BACKEND}/api/ticker/area-59`)
     .then(r => r.json())
     .then(setTickerData)
     .catch(() => {})
-}, [area.dxbSlug])
+}, [])
 
 const livePsf           = tickerData?.fairPriceAedPsf  ?? area.pricePerSqft
 const liveScore         = tickerData?.score             ?? area.score
@@ -3268,6 +3267,7 @@ const liveDistressPct   = tickerData?.distressPct       ?? null
     </div>
   )
 }
+
 
 
 
