@@ -2375,6 +2375,31 @@ import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 import TickerBar from './TickerBar'
 
+
+const GROQ_KEY = import.meta.env.VITE_GROQ_KEY
+const BACKEND_GROQ = 'https://api.groq.com/openai/v1/chat/completions'
+
+async function askGroq(prompt) {
+  if (!GROQ_KEY) return null
+  try {
+    const res = await fetch(BACKEND_GROQ, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 120,
+        temperature: 0.7,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    })
+    const data = await res.json()
+    return data.choices?.[0]?.message?.content?.trim() ?? null
+  } catch { return null }
+}
+
 // ── DESIGN TOKENS — exact match to HTML :root vars ─────────────────
 const C = {
   bg: '#FAF8F5', bg2: '#F2EDE5', bg3: '#EAE3D8',
@@ -2628,7 +2653,10 @@ function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status 
 // ══════════════════════════════════════════════════════════════════
 export default function AreaSpecialistPage({ area, onClose }) {
   const [persona, setPersona] = useState('buyer')
-  const [activeTab, setActiveTab] = useState('past')
+const [activeTab, setActiveTab] = useState('past')
+const [aiAlert, setAiAlert] = useState(null)
+const [aiBrief, setAiBrief] = useState(null)
+const [aiBuyerTip, setAiBuyerTip] = useState(null)
   
   const { events } = useEvents()
 
@@ -2644,6 +2672,22 @@ useEffect(() => {
     .then(setTickerData)
     .catch(() => {})
 }, [])
+
+useEffect(() => {
+  if (!GROQ_KEY) return
+  const name = area.name
+  const yld = area.yield || 7
+  const psf = area.pricePerSqft || 1247
+
+  askGroq(`You are a Dubai real estate AI for ${name}. Write 1 short sentence (max 20 words) for a market alert banner about the Iran/USA April 2026 tension causing a transaction slowdown. Be factual, not alarmist.`)
+    .then(t => { if (t) setAiAlert(t) })
+
+  askGroq(`You are a Dubai real estate AI specialist for ${name}. Write 2 sentences (max 60 words total) for an AI brief. Mention the ${yld}% gross yield, AED ${psf}/sqft fair price, and that infrastructure catalysts are confirmed for Q4 2026. Sound like a professional analyst. No bullet points.`)
+    .then(t => { if (t) setAiBrief(t) })
+
+  askGroq(`You are helping a first-time buyer looking at ${name} in Dubai. Write 1 sentence (max 25 words) encouraging them about the current market slowdown being a good entry opportunity. Sound warm and reassuring.`)
+    .then(t => { if (t) setAiBuyerTip(t) })
+}, [area.name])
 
 const livePsf           = tickerData?.fairPriceAedPsf  ?? area.pricePerSqft
 const liveScore         = tickerData?.score             ?? area.score
@@ -2706,7 +2750,8 @@ const liveDistressPct   = tickerData?.distressPct       ?? null
       <div style={{ margin: '14px 28px 0', background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 8, padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12, flexShrink: 0 }}>
         <span style={{ flexShrink: 0 }}>⚠️</span>
         <div style={{ color: '#9A1B1B', lineHeight: 1.6 }}>
-          <strong style={{ color: C.red }}>Market Alert:</strong> Regional tensions (Iran/USA, April 2026) have caused a 49% MoM transaction drop across Dubai. This is a sentiment-driven pause, not a fundamental collapse. Acqar's Resilience Report below shows how {area.name} has recovered from every past shock — use this to make a clear-headed decision, not a fear-driven one.
+          <strong style={{ color: C.red }}>Market Alert:</strong>{' '}
+{aiAlert ?? `Regional tensions (Iran/USA, April 2026) have caused a 49% MoM transaction drop across Dubai. This is a sentiment-driven pause, not a fundamental collapse. Acqar's Resilience Report below shows how ${area.name} has recovered from every past shock — use this to make a clear-headed decision, not a fear-driven one.`}
         </div>
       </div>
 
@@ -2740,7 +2785,8 @@ const liveDistressPct   = tickerData?.distressPct       ?? null
             <div style={{ marginTop: 12, background: C.blueL, border: '1px solid rgba(37,99,235,.14)', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
               <p style={{ fontSize: 12, color: '#1D3461', lineHeight: 1.7 }}>
-                <strong>First time buying property?</strong> {area.name} is one of Dubai's {area.zone === 'Prime' ? 'most prestigious' : area.zone === 'Mid-Market' ? 'most popular mid-range' : 'well-established'} areas. Right now the market is <strong>a little slow because of news in the region</strong> — but that's creating <strong>good entry prices for patient buyers</strong>. The area earns strong rent ({d.yld}%/year), a metro station opens nearby in late 2026, and a school is coming in 2027. Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdict === 'BUY' ? 'Strong opportunity — now is a good entry window.' : 'Hold off rushing — but a property priced below the fair-value line is a strong opportunity.'}</strong>
+                <strong>First time buying property?</strong> {area.name} is one of Dubai's {area.zone === 'Prime' ? 'most prestigious' : area.zone === 'Mid-Market' ? 'most popular mid-range' : 'well-established'} areas. Right now the market is <strong>a little slow because of news in the region</strong> — but that's creating <strong>good entry prices for patient buyers</strong>. {aiBuyerTip ?? `The area earns strong rent (${d.yld}%/year), a metro station opens nearby in late 2026, and a school is coming in 2027.`}{' '}
+Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdict === 'BUY' ? 'Strong opportunity — now is a good entry window.' : 'Hold off rushing — but a property priced below the fair-value line is a strong opportunity.'}</strong>
               </p>
             </div>
           )}
@@ -2772,14 +2818,8 @@ const liveDistressPct   = tickerData?.distressPct       ?? null
         <div>
           <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em', color: C.orange, marginBottom: 6 }}>Area Specialist · AI Brief · Updated May 2026</div>
           <div style={{ fontSize: 13.5, lineHeight: 1.75, color: C.text2 }}>
-            {area.name} is navigating a short-term confidence gap driven primarily by macro sentiment, not by fundamental weakness.{' '}
-            <strong style={{ color: C.text }}>Transaction velocity has fallen 8% week-on-week</strong>, consistent with the broader Dubai market pause following Iran/USA tensions — however, Truvalu benchmarks show current asking prices are only{' '}
-            <strong style={{ color: C.text }}>4% above matched comparable transactions</strong>, suggesting sellers haven't over-priced into the slowdown.
-            Structural fundamentals remain intact: {area.name} delivers a gross rental yield of <strong style={{ color: C.text }}>{d.yld}%</strong>,{' '}
-            {d.aboveAvgYield ? 'meaningfully above' : 'near'} Dubai's 6.1% average, and has confirmed infrastructure catalysts arriving from Q4 2026 that historically drive 8–14% appreciation in adjacent residential zones.
-            Supply pressure is elevated with {d.distressPct}% of current listings below the Truvalu floor — creating a selective entry window for patient investors.{' '}
-            <strong style={{ color: C.text }}>Assessment: {d.verdict === 'BUY' ? `Strong Buy — fundamentals support entry at AED ${fmt(d.psf)}/sqft with ${d.yld}% gross yield.` : d.verdict === 'HOLD' ? 'Hold with selective Buy opportunity on Truvalu-below listings — the current noise is creating entry points the market will close within 2–3 quarters.' : 'Watch — wait for clearer momentum signals before committing.'}</strong>
-          </div>
+  {aiBrief ?? `${area.name} is navigating a short-term confidence gap driven primarily by macro sentiment, not by fundamental weakness. Structural fundamentals remain intact: ${area.name} delivers a gross rental yield of ${d.yld}%, ${d.aboveAvgYield ? 'meaningfully above' : 'near'} Dubai's 6.1% average, and has confirmed infrastructure catalysts arriving from Q4 2026 that historically drive 8–14% appreciation in adjacent residential zones. Supply pressure is elevated with ${d.distressPct}% of current listings below the Truvalu floor — creating a selective entry window for patient investors.`}
+</div>
           <div style={{ marginTop: 8, fontSize: 11, color: C.muted, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
             <span>🕐 Updated May 2026, 09:15 GST</span>
             <span>📊 14 live data sources</span>
@@ -3267,8 +3307,6 @@ const liveDistressPct   = tickerData?.distressPct       ?? null
     </div>
   )
 }
-
-
 
 
 
