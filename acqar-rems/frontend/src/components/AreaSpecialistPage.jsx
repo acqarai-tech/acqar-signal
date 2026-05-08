@@ -2629,34 +2629,29 @@ function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status 
 export default function AreaSpecialistPage({ area, onClose }) {
   const [persona, setPersona] = useState('buyer')
   const [activeTab, setActiveTab] = useState('past')
-  const [liveData, setLiveData] = useState(null)
+  
   const { events } = useEvents()
 
   // Fetch live data from Supabase area_intelligence table
-  useEffect(() => {
-    if (!area.dxbSlug) return
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-    const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-    fetch(`${SUPABASE_URL}/rest/v1/area_intelligence?area_slug=eq.area-59&select=*`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    })
-    .then(r => r.json())
-    .then(rows => { if (rows[0]) setLiveData(rows[0]) })
-    .catch(() => {})
-  }, [area.dxbSlug])
 
-  // Use live data if available, else fallback to hardcoded
-  const livePsf = liveData?.truvalu_psm
-    ? Math.round(liveData.truvalu_psm / 10.764)  // convert sqm to sqft
-    : area.pricePerSqft
-  const liveScore = liveData?.investment_score || area.score
-  const liveVerdict = liveData?.verdict || (liveScore >= 75 ? 'BUY' : liveScore >= 65 ? 'HOLD' : 'WATCH')
-  const liveYield = liveData?.gross_yield_pct || area.yield
-  const liveSoldThisWeek = liveData?.tx_7d ?? null
-  const liveDistressPct = liveData?.distress_pct ?? null
+
+ const BACKEND = 'https://acqar-signal-production.up.railway.app'
+const [tickerData, setTickerData] = useState(null)
+
+useEffect(() => {
+  if (!area.dxbSlug) return
+  fetch(`${BACKEND}/api/ticker/${area.dxbSlug}`)
+    .then(r => r.json())
+    .then(setTickerData)
+    .catch(() => {})
+}, [area.dxbSlug])
+
+const livePsf           = tickerData?.fairPriceAedPsf  ?? area.pricePerSqft
+const liveScore         = tickerData?.score             ?? area.score
+const liveVerdict       = tickerData?.signalMood        ?? (liveScore >= 75 ? 'BUY' : liveScore >= 65 ? 'HOLD' : 'WATCH')
+const liveYield         = tickerData?.rentalReturnPct   ?? area.yield
+const liveSoldThisWeek  = tickerData?.soldThisWeek      ?? null
+const liveDistressPct   = tickerData?.distressPct       ?? null
 
   const d = buildAreaData({
     ...area,
@@ -3273,7 +3268,6 @@ export default function AreaSpecialistPage({ area, onClose }) {
     </div>
   )
 }
-
 
 
 
