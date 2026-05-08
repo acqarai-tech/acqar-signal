@@ -143,6 +143,7 @@ from contextlib import asynccontextmanager
 from app.api import distress
 from app.api.article import router as article_router
 from app.api.ticker import router as ticker_router
+from app.api.area_full import router as area_full_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -208,6 +209,7 @@ app.include_router(chat_router)
 app.include_router(summary_router)
 app.include_router(article_router)
 app.include_router(ticker_router)
+app.include_router(area_full_router)
 
 app.include_router(distress.router)
 
