@@ -4026,6 +4026,8 @@ setMyName(name)
   }
 }
 loadUser()
+}, [])
+
 
 //     // Listen for auth changes
 //    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
