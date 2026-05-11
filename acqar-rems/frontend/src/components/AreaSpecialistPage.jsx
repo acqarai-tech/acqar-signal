@@ -3589,6 +3589,62 @@ function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status 
   )
 }
 
+
+function PriceHistoryChart({ data }) {
+  if (!data?.length) return null
+  const psfs = data.map(d => d.psf)
+  const minPsf = Math.min(...psfs) - 50
+  const maxPsf = Math.max(...psfs) + 50
+  const w = 800, h = 200, padL = 80, padR = 20, padT = 20, padB = 35
+  const chartW = w - padL - padR
+  const chartH = h - padT - padB
+
+  const x = (i) => padL + (i / (data.length - 1)) * chartW
+  const y = (psf) => padT + chartH - ((psf - minPsf) / (maxPsf - minPsf)) * chartH
+
+  const pathD = data.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(p.psf)}`).join(' ')
+  const pathDLD = data.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(p.psf + 12)}`).join(' ')
+
+  const ySteps = 5
+  const yLabels = Array.from({ length: ySteps }, (_, i) =>
+    Math.round(minPsf + (i / (ySteps - 1)) * (maxPsf - minPsf))
+  )
+
+  const xLabels = data.reduce((acc, p, i) => {
+    if (p.month === 1 || i === 0) acc.push({ i, label: `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p.month-1]} ${String(p.year).slice(2)}` })
+    return acc
+  }, [])
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }}>
+      {/* Background */}
+      <rect x={padL} y={padT} width={chartW} height={chartH} fill="rgba(200,115,42,0.02)" />
+      {/* Grid lines */}
+      {yLabels.map(v => (
+        <g key={v}>
+          <line x1={padL} x2={w - padR} y1={y(v)} y2={y(v)} stroke="#E8E0D0" strokeWidth={1} />
+          <text x={padL - 8} y={y(v) + 4} textAnchor="end" fontSize={9} fill="#6E7A8A">
+            AED {v.toLocaleString()}
+          </text>
+        </g>
+      ))}
+      {/* X axis */}
+      {xLabels.map(({ i, label }) => (
+        <text key={label} x={x(i)} y={h - 4} textAnchor="middle" fontSize={9} fill="#6E7A8A">{label}</text>
+      ))}
+      {/* DLD dashed line */}
+      <path d={pathDLD} fill="none" stroke="#2563EB" strokeWidth={1.5} strokeDasharray="5 3" />
+      {/* Truvalu solid line */}
+      <path d={pathD} fill="none" stroke="#C8732A" strokeWidth={2.5} />
+      {/* Legend */}
+      <rect x={w - 220} y={padT + 4} width={14} height={14} fill="none" stroke="#C8732A" strokeWidth={2} />
+      <text x={w - 202} y={padT + 15} fontSize={10} fill="#6E7A8A">Truvalu™ Benchmark PSF</text>
+      <line x1={w - 220} x2={w - 206} y1={padT + 32} y2={padT + 32} stroke="#2563EB" strokeWidth={1.5} strokeDasharray="5 3" />
+      <text x={w - 202} y={padT + 36} fontSize={10} fill="#6E7A8A">DLD Transacted PSF</text>
+    </svg>
+  )
+}
+
 // ══════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════
@@ -3608,6 +3664,7 @@ const [aiBuyerTip, setAiBuyerTip] = useState(null)
 const [tickerData, setTickerData] = useState(null)
 const [areaIntel, setAreaIntel] = useState(null)
 const [buyerPrices, setBuyerPrices] = useState(null)
+const [priceHistory, setPriceHistory] = useState(null)
 
 useEffect(() => {
   fetch(`${BACKEND}/api/ticker/area-59`)
@@ -3665,6 +3722,31 @@ useEffect(() => {
 }, [])
 
 useEffect(() => {
+  const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+  const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+  fetch(
+    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&price_per_sqm=gt.0&select=sale_year,sale_month,price_per_sqm&limit=10000`,
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+  )
+    .then(r => r.json())
+    .then(rows => {
+      const map = {}
+      rows.forEach(row => {
+        const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
+        if (!map[key]) map[key] = { sum: 0, count: 0, year: row.sale_year, month: row.sale_month }
+        map[key].sum += Number(row.price_per_sqm) * 10.764
+        map[key].count++
+      })
+      const points = Object.entries(map)
+        .map(([key, v]) => ({ key, psf: Math.round(v.sum / v.count), year: v.year, month: v.month, count: v.count }))
+        .filter(p => p.count >= 3)
+        .sort((a, b) => a.key.localeCompare(b.key))
+      setPriceHistory(points)
+    })
+    .catch(() => {})
+}, [])
+
+useEffect(() => {
   if (!GROQ_KEY) return
   const name = area.name
   const yld = area.yield || 7
@@ -3715,6 +3797,17 @@ const liveYieldByType = [
   { type: 'TH 3BR',  val: +(liveYield * 0.82).toFixed(1) },
 ]
 
+
+const fiveYrAppreciationReal = priceHistory?.length
+  ? (() => {
+      const pts2021 = priceHistory.filter(p => p.year === 2021)
+      const pts2026 = priceHistory.filter(p => p.year === 2026)
+      if (!pts2021.length || !pts2026.length) return null
+      const avg2021 = pts2021.reduce((s, p) => s + p.psf, 0) / pts2021.length
+      const avg2026 = pts2026.reduce((s, p) => s + p.psf, 0) / pts2026.length
+      return ((avg2026 - avg2021) / avg2021 * 100).toFixed(1)
+    })()
+  : null
 
   const liveBuyerPriceTable = buyerPrices?.length
   ? [...buyerPrices.map(row => ({
@@ -4148,18 +4241,30 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 
       {/* ── PAST TAB ── */}
       {activeTab === 'past' && (
-        <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
-          {/* Area maturity + developer table */}
-          <div style={{ ...g2, marginBottom: 16 }}>
+  <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
+
+    {/* Price history chart */}
+    {priceHistory?.length > 0 && (
+      <Card style={{ marginBottom: 16 }}>
+        <CardTitle badge="Truvalu™ Benchmark vs DLD Transacted">
+          {area.name} Price Per Sqft — 5 Year History
+        </CardTitle>
+        <PriceHistoryChart data={priceHistory} />
+      </Card>
+    )}
+
+    {/* Area maturity + developer table */}
+    <div style={{ ...g2, marginBottom: 16 }}>
             <Card>
-              <CardTitle>Area Maturity</CardTitle>
-              <StRow label="Zone"                      value={area.zone} />
+          <CardTitle>Area Maturity</CardTitle>
+<StRow label="Year established" value="2008" />
+<StRow label="Zone" value={area.zone} />
               <StRow label="Completion rate"            value="84% built"            valueColor={C.green} />
               <StRow label="Total units (completed)"    value="62,400" />
               <StRow label="Occupancy rate"             value={`${d.occupancyRate}%`}  valueColor={C.green} />
               <StRow label="Schools within 3km"         value="4 schools" />
               <StRow label="Retail (malls + units)"     value="2 malls, 180+ retail" />
-              <StRow label="5-year price appreciation"  value={`+${d.fiveYrAppreciation}%`} valueColor={C.green} last />
+              <StRow label="5-year price appreciation" value={`+${fiveYrAppreciationReal ?? d.fiveYrAppreciation}%`} valueColor={C.green} last />
             </Card>
             <Card>
               <CardTitle>Developer Delivery Track Record in {area.name}</CardTitle>
@@ -4203,7 +4308,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                   { event: 'Expo Slowdown',       period: '2019–2020', impact: '−9%',  ic: C.red,   rec: '8 months',  driver: 'Affordable entry vs Downtown',                  now: 'Same dynamic now',       nc: C.green },
                   { event: 'COVID-19',            period: 'Q2–Q3 2020',impact: '−14%', ic: C.red,   rec: '11 months', driver: 'DLD fee waiver + Golden Visa expansion',         now: 'No direct parallel',     nc: C.amber },
                   { event: 'Russia/Ukraine War',  period: 'Feb 2022',  impact: '+6%',  ic: C.green, rec: 'N/A (rose)', driver: 'Russian capital flight → Dubai demand',          now: 'Opposite dynamic',       nc: C.amber },
-                  { event: '⚡ Iran/USA ← NOW',  period: 'Apr 2026→', impact: '−4% so far', ic: C.amber, rec: 'Projected: 6–10M', driver: `${area.name} yield floor (${d.yld}%) + metro`, now: 'This is the current event', nc: C.orange, bold: true },
+                  { event: '⚡ Iran/USA ← NOW',  period: 'Apr 2026→', impact: '−4% so far', ic: C.amber, rec: 'Projected: 6–10M', driver: `${area.name} yield floor (${liveYield}%) + metro catalyst`, now: 'This is the current event', nc: C.orange, bold: true },
                 ].map((row, i, arr) => (
                   <tr key={row.event} style={{ background: row.bold ? 'rgba(200,115,42,0.04)' : 'transparent' }}>
                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', fontWeight: row.bold ? 700 : 400, color: row.bold ? C.orange : C.text }}>{row.event}</td>
