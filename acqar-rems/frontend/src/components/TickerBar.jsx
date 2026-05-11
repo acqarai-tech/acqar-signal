@@ -90,7 +90,7 @@ const BACKEND = 'https://acqar-signal-production.up.railway.app'
 
 const fmt = (n) => (n || 0).toLocaleString()
 
-export default function TickerBar({ areaSlug, areaName, fallback }) {
+export default function TickerBar({ areaSlug, areaName, fallback, activeProjectCount, metroCatalyst }) {
   const [data, setData] = useState(null)
   const trackRef = useRef(null)
 
