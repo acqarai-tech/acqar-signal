@@ -4681,11 +4681,12 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           </div>
 
 
-{/* Transaction Volume Chart */}
-<Card style={{ marginBottom: 16 }}>
-  <CardTitle badge="DLD · Monthly Transactions">
-    7-Day Transaction Volume — Last 12 Months
-  </CardTitle>
+
+          {/* Live signals + market composition */}
+          <div style={{ ...g2, marginBottom: 16 }}>
+  
+            <Card>
+  <CardTitle badge="DLD · Monthly Transactions">Transaction Volume — Last 12 Months</CardTitle>
   {txHistory === null ? (
     <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.muted, fontSize: 12 }}>
       <div style={{ width: 20, height: 20, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.orange, animation: 'spin 0.8s linear infinite' }} />
@@ -4694,67 +4695,11 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
   ) : (
     <>
       <TxVolumeChart data={txHistory} currentTx={liveSoldThisWeek} />
-      <div style={{ display: 'flex', gap: 20, marginTop: 8, fontSize: 11, color: C.muted }}>
-        <span>📊 Source: DLD registered transactions (avm) · Monthly aggregated</span>
-        <span style={{ marginLeft: 'auto', color: liveTxDelta != null && liveTxDelta < 0 ? C.red : C.green, fontWeight: 600 }}>
-          {liveTxDelta != null ? `${liveTxDelta > 0 ? '+' : ''}${liveTxDelta}% vs last period` : ''}
-        </span>
-      </div>
+      <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>📊 DLD registered transactions · Monthly aggregated</p>
     </>
   )}
 </Card>
-          {/* Live signals + market composition */}
-          <div style={{ ...g2, marginBottom: 16 }}>
-            <Card>
-  <CardTitle badge="Live">📡 ACQAR Signals for {area.name}</CardTitle>
-  {areaCatalysts?.length > 0 ? areaCatalysts.map(ev => {
-    const typeIcon = {
-      metro: '🚇', school: '🏫', mall: '🛒', hospital: '🏥',
-      airport: '✈️', road: '🛣️', park: '🌿'
-    }[ev.catalyst_type] ?? '📍'
-    const confColor = {
-      confirmed: C.green, announced: C.blue, likely: C.amber
-    }[ev.confidence] ?? C.muted
-    const confBg = {
-      confirmed: C.greenL, announced: C.blueL, likely: C.amberL
-    }[ev.confidence] ?? C.bg2
-    const dateLabel = ev.expected_date
-      ? new Date(ev.expected_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
-      : 'TBC'
-    return (
-      <div key={ev.id} style={{ padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 16 }}>{typeIcon}</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.text, flex: 1 }}>{ev.name}</span>
-          <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '.07em', background: confBg, color: confColor }}>
-            {ev.confidence}
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 24 }}>
-          <span style={{ fontSize: 11, color: C.muted }}>
-            📅 Expected: <strong style={{ color: C.text }}>{dateLabel}</strong>
-          </span>
-          <span style={{ fontSize: 11, color: C.muted, textTransform: 'capitalize' }}>
-            · {ev.catalyst_type}
-          </span>
-        </div>
-      </div>
-    )
-  }) : areaCatalysts === null ? (
-    <div style={{ padding: '20px 0', textAlign: 'center', color: C.muted, fontSize: 12 }}>
-      <div style={{ fontSize: 24, marginBottom: 6 }}>📡</div>
-      Loading signals...
-    </div>
-  ) : (
-    <div style={{ padding: '20px 0', textAlign: 'center', color: C.muted, fontSize: 12 }}>
-      <div style={{ fontSize: 28, marginBottom: 8 }}>📡</div>
-      No active signals for {area.name} right now.
-    </div>
-  )}
-  <p style={{ fontSize: 10, color: C.muted2, marginTop: 10 }}>
-    📋 Source: Acqar area_catalysts · Human-approved signals only
-  </p>
-</Card>
+
             <Card>
   <CardTitle badge="DLD 2024–2026">Live Market Composition</CardTitle>
   <RatioBar
