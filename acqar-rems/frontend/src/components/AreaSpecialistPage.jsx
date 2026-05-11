@@ -3746,6 +3746,18 @@ useEffect(() => {
     .catch(() => {})
 }, [])
 
+
+
+const livePsf = areaIntel?.truvalu_psm
+  ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
+  : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
+const liveScore        = areaIntel?.investment_score ?? tickerData?.score ?? area.score
+const liveYield        = Number(areaIntel?.gross_yield_pct ?? tickerData?.rentalReturnPct ?? area.yield)
+const liveVerdict      = areaIntel?.verdict ?? tickerData?.signalMood ?? (liveScore >= 75 ? 'BUY' : liveScore >= 65 ? 'HOLD' : 'WATCH')
+const liveSoldThisWeek = areaIntel?.tx_7d ?? tickerData?.soldThisWeek ?? null
+const liveDistressPct  = Number(areaIntel?.distress_pct ?? tickerData?.distressPct ?? null)
+const liveTxDelta      = areaIntel?.tx_7d_delta_pct ?? null
+
 useEffect(() => {
   if (!GROQ_KEY) return
   const name = area.name
@@ -3761,16 +3773,6 @@ useEffect(() => {
   askGroq(`You are helping a first-time buyer looking at ${name} in Dubai. Write 1 sentence (max 25 words) encouraging them about the current market slowdown being a good entry opportunity. Sound warm and reassuring.`)
     .then(t => { if (t) setAiBuyerTip(t) })
 }, [area.name, livePsf, liveYield])
-
-const livePsf = areaIntel?.truvalu_psm
-  ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
-  : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
-const liveScore        = areaIntel?.investment_score ?? tickerData?.score ?? area.score
-const liveYield        = Number(areaIntel?.gross_yield_pct ?? tickerData?.rentalReturnPct ?? area.yield)
-const liveVerdict      = areaIntel?.verdict ?? tickerData?.signalMood ?? (liveScore >= 75 ? 'BUY' : liveScore >= 65 ? 'HOLD' : 'WATCH')
-const liveSoldThisWeek = areaIntel?.tx_7d ?? tickerData?.soldThisWeek ?? null
-const liveDistressPct  = Number(areaIntel?.distress_pct ?? tickerData?.distressPct ?? null)
-const liveTxDelta      = areaIntel?.tx_7d_delta_pct ?? null
 
   const d = buildAreaData({
     ...area,
