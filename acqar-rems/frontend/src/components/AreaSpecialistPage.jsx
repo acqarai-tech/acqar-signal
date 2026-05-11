@@ -3756,6 +3756,7 @@ const [buyerPrices, setBuyerPrices] = useState(null)
 const [priceHistory, setPriceHistory] = useState(null)
 const [areaProjects, setAreaProjects] = useState(null)
 const [marketComp, setMarketComp] = useState(null)
+const [areaCatalysts, setAreaCatalysts] = useState(null)
 
 useEffect(() => {
   fetch(`${BACKEND}/api/ticker/area-59`)
@@ -3883,6 +3884,20 @@ useEffect(() => {
         familyPct:   roomsTotal > 0 ? Math.round(large / roomsTotal * 100) : 29,
       })
     })
+    .catch(() => {})
+}, [])
+
+
+
+useEffect(() => {
+  const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+  const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+  fetch(
+    `${SUPA_URL}/rest/v1/area_catalysts?area_name_en=eq.Jumeirah Village Circle&status=eq.active&select=*&order=expected_date.asc`,
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+  )
+    .then(r => r.json())
+    .then(data => { if (data?.length) setAreaCatalysts(data) })
     .catch(() => {})
 }, [])
 
@@ -4573,21 +4588,55 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           {/* Live signals + market composition */}
           <div style={{ ...g2, marginBottom: 16 }}>
             <Card>
-              <CardTitle>Live ACQAR Signals for {area.name}</CardTitle>
-              {areaSignals.length > 0 ? areaSignals.map(ev => (
-                <div key={ev.id} style={{ padding: '8px 0', borderBottom: `1px solid ${C.border}` }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: C.orange, marginBottom: 2 }}>{ev.category} · S{ev.severity}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 2 }}>{ev.title}</div>
-                  <div style={{ fontSize: 11, color: C.muted }}>📡 {ev.signal_count} signals · 🎯 {Math.round(ev.confidence * 100)}% confidence</div>
-                  {ev.price_aed && <div style={{ fontSize: 11, color: C.green, marginTop: 2, fontWeight: 600 }}>💰 AED {(ev.price_aed / 1000000).toFixed(1)}M</div>}
-                </div>
-              )) : (
-                <div style={{ padding: '20px 0', textAlign: 'center', color: C.muted, fontSize: 12 }}>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>📡</div>
-                  No live signals for {area.name} right now — signals update every 5 minutes.
-                </div>
-              )}
-            </Card>
+  <CardTitle badge="Live">📡 ACQAR Signals for {area.name}</CardTitle>
+  {areaCatalysts?.length > 0 ? areaCatalysts.map(ev => {
+    const typeIcon = {
+      metro: '🚇', school: '🏫', mall: '🛒', hospital: '🏥',
+      airport: '✈️', road: '🛣️', park: '🌿'
+    }[ev.catalyst_type] ?? '📍'
+    const confColor = {
+      confirmed: C.green, announced: C.blue, likely: C.amber
+    }[ev.confidence] ?? C.muted
+    const confBg = {
+      confirmed: C.greenL, announced: C.blueL, likely: C.amberL
+    }[ev.confidence] ?? C.bg2
+    const dateLabel = ev.expected_date
+      ? new Date(ev.expected_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+      : 'TBC'
+    return (
+      <div key={ev.id} style={{ padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 16 }}>{typeIcon}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.text, flex: 1 }}>{ev.name}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '.07em', background: confBg, color: confColor }}>
+            {ev.confidence}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 24 }}>
+          <span style={{ fontSize: 11, color: C.muted }}>
+            📅 Expected: <strong style={{ color: C.text }}>{dateLabel}</strong>
+          </span>
+          <span style={{ fontSize: 11, color: C.muted, textTransform: 'capitalize' }}>
+            · {ev.catalyst_type}
+          </span>
+        </div>
+      </div>
+    )
+  }) : areaCatalysts === null ? (
+    <div style={{ padding: '20px 0', textAlign: 'center', color: C.muted, fontSize: 12 }}>
+      <div style={{ fontSize: 24, marginBottom: 6 }}>📡</div>
+      Loading signals...
+    </div>
+  ) : (
+    <div style={{ padding: '20px 0', textAlign: 'center', color: C.muted, fontSize: 12 }}>
+      <div style={{ fontSize: 28, marginBottom: 8 }}>📡</div>
+      No active signals for {area.name} right now.
+    </div>
+  )}
+  <p style={{ fontSize: 10, color: C.muted2, marginTop: 10 }}>
+    📋 Source: Acqar area_catalysts · Human-approved signals only
+  </p>
+</Card>
             <Card>
   <CardTitle badge="DLD 2024–2026">Live Market Composition</CardTitle>
   <RatioBar
@@ -4724,7 +4773,6 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
-
 
 
 
