@@ -3749,13 +3749,13 @@ useEffect(() => {
 useEffect(() => {
   if (!GROQ_KEY) return
   const name = area.name
-  const yld = area.yield || 7
-  const psf = area.pricePerSqft || 1247
+  const yld = liveYield || area.yield || 7
+  const psf = livePsf || area.pricePerSqft || 1247
 
   askGroq(`You are a Dubai real estate AI for ${name}. Write 1 short sentence (max 20 words) for a market alert banner about the Iran/USA April 2026 tension causing a transaction slowdown. Be factual, not alarmist.`)
     .then(t => { if (t) setAiAlert(t) })
 
-  askGroq(`You are a Dubai real estate AI specialist for ${name}. Write 2 sentences (max 60 words total) for an AI brief. Mention the ${yld}% gross yield, AED ${psf}/sqft fair price, and that infrastructure catalysts are confirmed for Q4 2026. Sound like a professional analyst. No bullet points.`)
+  askGroq(`You are a Dubai real estate AI specialist for ${name}. Write a 5-line professional analyst brief (max 120 words). Cover: 1) current market sentiment and the Iran/USA slowdown context, 2) the ${yld}% gross yield vs Dubai's 6.1% average, 3) the AED ${psf}/sqft Truvalu fair price and what it means for buyers, 4) confirmed infrastructure catalysts arriving Q4 2026, 5) your investment outlook. Write in flowing prose, no bullet points, no numbering.`)
     .then(t => { if (t) setAiBrief(t) })
 
   askGroq(`You are helping a first-time buyer looking at ${name} in Dubai. Write 1 sentence (max 25 words) encouraging them about the current market slowdown being a good entry opportunity. Sound warm and reassuring.`)
@@ -3936,7 +3936,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         <div style={{ width: 38, height: 38, borderRadius: '50%', background: C.orangeL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>🤖</div>
         <div>
           <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em', color: C.orange, marginBottom: 6 }}>Area Specialist · AI Brief · Updated May 2026</div>
-          <div style={{ fontSize: 13.5, lineHeight: 1.75, color: C.text2 }}>
+         <div style={{ fontSize: 12.5, lineHeight: 1.8, color: C.text2 }}>
   {aiBrief ?? `${area.name} is navigating a short-term confidence gap driven primarily by macro sentiment, not by fundamental weakness. Structural fundamentals remain intact: ${area.name} delivers a gross rental yield of ${d.yld}%, ${d.aboveAvgYield ? 'meaningfully above' : 'near'} Dubai's 6.1% average, and has confirmed infrastructure catalysts arriving from Q4 2026 that historically drive 8–14% appreciation in adjacent residential zones. Supply pressure is elevated with ${d.distressPct}% of current listings below the Truvalu floor — creating a selective entry window for patient investors.`}
 </div>
           <div style={{ marginTop: 8, fontSize: 11, color: C.muted, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
@@ -4472,6 +4472,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
+
+
 
 // import { useState, useEffect, useRef } from 'react'
 // import { useEvents } from '../context/EventsContext'
