@@ -4079,10 +4079,30 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               <CardTitle>Should You Rent It Out?</CardTitle>
               <div style={{ fontSize: 28, fontWeight: 900, color: C.green, marginBottom: 6 }}>Yes — Good Yield</div>
               <div style={{ fontSize: 12, color: C.text2, lineHeight: 1.7, marginBottom: 14 }}>
-                {area.name}'s rental market remains active even during the transaction slowdown — tenants don't stop needing homes because of geopolitical news. Your 1BR can generate {fmtK(d.annualRent1BR)}/year on a 12-month contract or {fmtK(d.annualRent1BRShort)}/year on a short-term furnished basis.
+                {area.name}'s rental market remains active even during the transaction slowdown — tenants don't stop needing homes because of geopolitical news. 
+                {(() => {
+  const fair = buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+  const rent = fair ? Math.round(fair * liveYield / 100 / 1000) * 1000 : d.annualRent1BR
+  const rentShort = Math.round(rent * 1.25 / 1000) * 1000
+  return `Your 1BR can generate ${fmtK(rent)}/year on a 12-month contract or ${fmtK(rentShort)}/year on a short-term furnished basis.`
+})()}
               </div>
-              <StRow label="Annual long-term rent (1BR)"    value={`AED ${fmt(Math.round(d.annualRent1BR*0.93/1000)*1000)}–${fmt(d.annualRent1BR)}`} valueColor={C.green} />
-              <StRow label="Short-term furnished (1BR)"     value={`AED ${fmt(d.annualRent1BR)}–${fmt(d.annualRent1BRShort)}`} valueColor={C.green} />
+              <StRow label="Annual long-term rent (1BR)"
+  value={(() => {
+    const fair = buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+    const rent = fair ? Math.round(fair * liveYield / 100 / 1000) * 1000 : d.annualRent1BR
+    return `AED ${fmt(Math.round(rent * 0.93 / 1000) * 1000)}–${fmt(rent)}`
+  })()}
+  valueColor={C.green}
+/>
+              <StRow label="Short-term furnished (1BR)"
+  value={(() => {
+    const fair = buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+    const rent = fair ? Math.round(fair * liveYield / 100 / 1000) * 1000 : d.annualRent1BR
+    return `AED ${fmt(rent)}–${fmt(Math.round(rent * 1.25 / 1000) * 1000)}`
+  })()}
+  valueColor={C.green}
+/>
               <StRow label="Average days to find tenant"    value="18 days" />
               <StRow label="Current vacancy rate"           value={`${d.vacancyRate}%`}  valueColor={C.green} />
               <StRow label="Gross yield (long-term)"        value={`${d.yld}%`}     valueColor={C.green} last />
@@ -4095,7 +4115,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               <StRow label="5-year price appreciation"  value={`+${d.fiveYrAppreciation}%`} valueColor={C.green} />
               <StRow label="Occupancy rate"             value={`${d.occupancyRate}%`}        valueColor={C.green} />
               <StRow label="Supply growth (risk)"       value="6.4% ↑ moderate"              valueColor={C.amber} />
-              <StRow label="Infrastructure catalyst score" value={`${d.catalystScore}/100 — Strong`} valueColor={C.green} />
+<StRow label="Infrastructure catalyst score" value={`${areaIntel?.catalyst_score ?? d.catalystScore}/100`} valueColor={C.green} />
               <StRow label="Price resilience (past shocks)" value="Always recovered <14M"   valueColor={C.green} />
               <StRow label="Acqar's outlook (12M)"      value={d.verdict === 'BUY' ? 'BUY — Strong momentum' : 'HOLD → BUY trend'} valueColor={d.verdictColor} last />
             </Card>
