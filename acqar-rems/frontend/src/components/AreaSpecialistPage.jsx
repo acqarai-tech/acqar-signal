@@ -3310,6 +3310,8 @@
 
 
 
+
+
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 import TickerBar from './TickerBar'
@@ -3678,9 +3680,9 @@ useEffect(() => {
     .then(t => { if (t) setAiBuyerTip(t) })
 }, [area.name])
 
-const livePsf          = areaIntel?.truvalu_psm
-                           ? Math.round(areaIntel.truvalu_psm * 10.764)
-                           : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
+const livePsf = areaIntel?.truvalu_psm
+  ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
+  : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
 const liveScore        = areaIntel?.investment_score ?? tickerData?.score ?? area.score
 const liveYield        = Number(areaIntel?.gross_yield_pct ?? tickerData?.rentalReturnPct ?? area.yield)
 const liveVerdict      = areaIntel?.verdict ?? tickerData?.signalMood ?? (liveScore >= 75 ? 'BUY' : liveScore >= 65 ? 'HOLD' : 'WATCH')
@@ -4327,8 +4329,6 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
-
-
 
 
 
