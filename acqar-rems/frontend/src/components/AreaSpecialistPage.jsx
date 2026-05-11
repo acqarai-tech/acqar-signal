@@ -3825,12 +3825,12 @@ useEffect(() => {
       rows.forEach(row => {
         const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
         if (!map[key]) map[key] = { sum: 0, count: 0, year: row.sale_year, month: row.sale_month }
-        map[key].sum += Number(row.price_per_sqm) * 10.764
+        map[key].sum += Number(row.price_per_sqm) / 10.764
         map[key].count++
       })
       const points = Object.entries(map)
         .map(([key, v]) => ({ key, psf: Math.round(v.sum / v.count), year: v.year, month: v.month, count: v.count }))
-        .filter(p => p.count >= 3)
+        .filter(p => p.count >= 10)
         .sort((a, b) => a.key.localeCompare(b.key))
       setPriceHistory(points)
     })
