@@ -3760,7 +3760,7 @@ useEffect(() => {
 
   askGroq(`You are helping a first-time buyer looking at ${name} in Dubai. Write 1 sentence (max 25 words) encouraging them about the current market slowdown being a good entry opportunity. Sound warm and reassuring.`)
     .then(t => { if (t) setAiBuyerTip(t) })
-}, [area.name])
+}, [area.name, livePsf, liveYield])
 
 const livePsf = areaIntel?.truvalu_psm
   ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
