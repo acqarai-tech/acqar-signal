@@ -3630,7 +3630,7 @@ useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   fetch(
-    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_sub_type_en=eq.Apartments&instance_date=gte.2025-09-01&select=price_per_sqm,procedure_area,rooms_en`,
+    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_sub_type_en=eq.Apartments&select=price_per_sqm,procedure_area,rooms_en&limit=5000&order=instance_date.desc`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
   )
     .then(r => r.json())
