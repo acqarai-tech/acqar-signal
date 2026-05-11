@@ -40,7 +40,7 @@ export default function TickerBar({ areaSlug, areaName, fallback }) {
     `Rental Return: ${data?.rentalReturnPct ?? fallback.yld}% / year`,
     `Distress Listings: ${data?.distressPct ?? fallback.distressPct}% below fair value`,
     `Metro Opening: ${data?.metroOpening ? new Date(data.metroOpening.date).getFullYear() + ' ' + data.metroOpening.confidence : 'Q4 2026 confirmed'}`,
-    `Off-Plan Pipeline: ${data?.offPlanPipeline ?? 9} active projects`,
+    `Off-Plan Pipeline: ${(data?.offPlanPipeline && data.offPlanPipeline > 0) ? data.offPlanPipeline : 9} active projects`,
     `Signal: ${data?.signalMood ?? fallback.verdict} · Score ${data?.score ?? fallback.score}/100`,
   ]
 
