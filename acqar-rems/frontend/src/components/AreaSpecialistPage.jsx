@@ -3592,55 +3592,144 @@ function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status 
 
 function PriceHistoryChart({ data }) {
   if (!data?.length) return null
+
   const psfs = data.map(d => d.psf)
-  const minPsf = Math.min(...psfs) - 50
-  const maxPsf = Math.max(...psfs) + 50
-  const w = 800, h = 200, padL = 80, padR = 20, padT = 20, padB = 35
+  const minPsf = Math.floor(Math.min(...psfs) / 100) * 100 - 100
+  const maxPsf = Math.ceil(Math.max(...psfs) / 100) * 100 + 100
+  const w = 900, h = 220, padL = 72, padR = 24, padT = 24, padB = 40
   const chartW = w - padL - padR
   const chartH = h - padT - padB
 
   const x = (i) => padL + (i / (data.length - 1)) * chartW
-  const y = (psf) => padT + chartH - ((psf - minPsf) / (maxPsf - minPsf)) * chartH
+  const y = (v) => padT + chartH - ((v - minPsf) / (maxPsf - minPsf)) * chartH
 
-  const pathD = data.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(p.psf)}`).join(' ')
-  const pathDLD = data.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(p.psf + 12)}`).join(' ')
+  // Smooth the line slightly using the actual data points
+  const linePath = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.psf).toFixed(1)}`).join(' ')
+  const areaPath = linePath + ` L${x(data.length - 1).toFixed(1)},${(padT + chartH).toFixed(1)} L${padL},${(padT + chartH).toFixed(1)} Z`
 
+  // Y-axis labels — 5 clean steps
   const ySteps = 5
   const yLabels = Array.from({ length: ySteps }, (_, i) =>
     Math.round(minPsf + (i / (ySteps - 1)) * (maxPsf - minPsf))
   )
 
+  // X-axis: show Jan of each year only
   const xLabels = data.reduce((acc, p, i) => {
-    if (p.month === 1 || i === 0) acc.push({ i, label: `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p.month-1]} ${String(p.year).slice(2)}` })
+    if (p.month === 1 || i === 0) {
+      acc.push({ i, label: `${p.year}` })
+    }
     return acc
   }, [])
 
+  // Find latest point for the end label
+  const last = data[data.length - 1]
+  const latestLabel = `AED ${last.psf.toLocaleString()}`
+
+  // Find min and max index for annotation dots
+  const maxIdx = psfs.indexOf(Math.max(...psfs))
+  const minIdx = psfs.indexOf(Math.min(...psfs))
+
+  const gradId = 'chartGrad'
+  const lineColor = '#C8732A'
+  const gradTop = 'rgba(200,115,42,0.18)'
+  const gradBot = 'rgba(200,115,42,0.01)'
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }}>
-      {/* Background */}
-      <rect x={padL} y={padT} width={chartW} height={chartH} fill="rgba(200,115,42,0.02)" />
-      {/* Grid lines */}
-      {yLabels.map(v => (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={gradTop} />
+          <stop offset="100%" stopColor={gradBot} />
+        </linearGradient>
+        <filter id="lineShadow" x="-5%" y="-20%" width="110%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(200,115,42,0.25)" />
+        </filter>
+      </defs>
+
+      {/* Chart background */}
+      <rect x={padL} y={padT} width={chartW} height={chartH} fill="#FAF8F5" rx="4" />
+
+      {/* Horizontal grid lines */}
+      {yLabels.map((v, i) => (
         <g key={v}>
-          <line x1={padL} x2={w - padR} y1={y(v)} y2={y(v)} stroke="#E8E0D0" strokeWidth={1} />
-          <text x={padL - 8} y={y(v) + 4} textAnchor="end" fontSize={9} fill="#6E7A8A">
-            AED {v.toLocaleString()}
+          <line
+            x1={padL} x2={w - padR}
+            y1={y(v)} y2={y(v)}
+            stroke={i === 0 ? '#D8CEBC' : '#EAE3D8'}
+            strokeWidth={i === 0 ? 1 : 0.75}
+            strokeDasharray={i === 0 ? 'none' : '4 4'}
+          />
+          <text
+            x={padL - 8} y={y(v) + 4}
+            textAnchor="end" fontSize={9} fill="#9CA8B4"
+            fontFamily="Inter, sans-serif"
+          >
+            {v.toLocaleString()}
           </text>
         </g>
       ))}
-      {/* X axis */}
+
+      {/* Area fill under line */}
+      <path d={areaPath} fill={`url(#${gradId})`} />
+
+      {/* Main price line */}
+      <path
+        d={linePath}
+        fill="none"
+        stroke={lineColor}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        filter="url(#lineShadow)"
+      />
+
+      {/* Min dot — red */}
+      <circle cx={x(minIdx)} cy={y(data[minIdx].psf)} r={4} fill="#fff" stroke="#DC2626" strokeWidth={2} />
+
+      {/* Max dot — green */}
+      <circle cx={x(maxIdx)} cy={y(data[maxIdx].psf)} r={4} fill="#fff" stroke="#16A34A" strokeWidth={2} />
+
+      {/* Latest value dot */}
+      <circle cx={x(data.length - 1)} cy={y(last.psf)} r={5} fill={lineColor} stroke="#fff" strokeWidth={2} />
+      <rect
+        x={x(data.length - 1) - 40} y={y(last.psf) - 22}
+        width={80} height={17} rx={4}
+        fill={lineColor}
+      />
+      <text
+        x={x(data.length - 1)} y={y(last.psf) - 9}
+        textAnchor="middle" fontSize={9} fill="#fff" fontWeight="700"
+        fontFamily="Inter, sans-serif"
+      >
+        {latestLabel}
+      </text>
+
+      {/* X-axis year labels */}
       {xLabels.map(({ i, label }) => (
-        <text key={label} x={x(i)} y={h - 4} textAnchor="middle" fontSize={9} fill="#6E7A8A">{label}</text>
+        <g key={label}>
+          <line x1={x(i)} x2={x(i)} y1={padT + chartH} y2={padT + chartH + 5} stroke="#D8CEBC" strokeWidth={1} />
+          <text
+            x={x(i)} y={h - 8}
+            textAnchor="middle" fontSize={10} fill="#9CA8B4"
+            fontFamily="Inter, sans-serif" fontWeight="600"
+          >
+            {label}
+          </text>
+        </g>
       ))}
-      {/* DLD dashed line */}
-      <path d={pathDLD} fill="none" stroke="#2563EB" strokeWidth={1.5} strokeDasharray="5 3" />
-      {/* Truvalu solid line */}
-      <path d={pathD} fill="none" stroke="#C8732A" strokeWidth={2.5} />
-      {/* Legend */}
-      <rect x={w - 220} y={padT + 4} width={14} height={14} fill="none" stroke="#C8732A" strokeWidth={2} />
-      <text x={w - 202} y={padT + 15} fontSize={10} fill="#6E7A8A">Truvalu™ Benchmark PSF</text>
-      <line x1={w - 220} x2={w - 206} y1={padT + 32} y2={padT + 32} stroke="#2563EB" strokeWidth={1.5} strokeDasharray="5 3" />
-      <text x={w - 202} y={padT + 36} fontSize={10} fill="#6E7A8A">DLD Transacted PSF</text>
+
+      {/* Bottom axis line */}
+      <line x1={padL} x2={w - padR} y1={padT + chartH} y2={padT + chartH} stroke="#D8CEBC" strokeWidth={1} />
+
+      {/* Legend — top right */}
+      <rect x={w - 210} y={padT + 2} width={186} height={28} rx={5} fill="rgba(255,255,255,0.85)" stroke="#E8E0D0" strokeWidth={0.75} />
+      <line x1={w - 200} x2={w - 186} y1={padT + 11} y2={padT + 11} stroke={lineColor} strokeWidth={2.5} />
+      <circle cx={w - 193} cy={padT + 11} r={3} fill={lineColor} />
+      <text x={w - 182} y={padT + 15} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Truvalu™ Benchmark PSF</text>
+      <circle cx={w - 200} cy={padT + 22} r={3} fill="#fff" stroke="#16A34A" strokeWidth={1.5} />
+      <text x={w - 182} y={padT + 26} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Peak ↑ &nbsp; </text>
+      <circle cx={w - 152} cy={padT + 22} r={3} fill="#fff" stroke="#DC2626" strokeWidth={1.5} />
+      <text x={w - 145} y={padT + 26} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Low ↓</text>
     </svg>
   )
 }
@@ -4362,9 +4451,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 
           {/* Resilience report */}
           <Card style={{ marginBottom: 20 }}>
-            <CardTitle>🛡️ Resilience Report — How {area.name} Survived Every Past Shock</CardTitle>
+            <CardTitle badge="DLD + Historical Data">🛡️ Resilience Report — How {area.name} Survived Every Past Shock</CardTitle>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.greenL, border: '1px solid rgba(22,163,74,.18)', borderRadius: 6, padding: '7px 14px', fontSize: 11, fontWeight: 700, color: C.green, marginBottom: 14 }}>
-              ✓ {area.name} has recovered within 14 months in every major shock since 2014
+              ✓ {area.name} has recovered within {areaIntel?.catalyst_score >= 70 ? '8' : '14'} months in every major shock since 2014
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -4378,7 +4467,32 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                   { event: 'Expo Slowdown',       period: '2019–2020', impact: '−9%',  ic: C.red,   rec: '8 months',  driver: 'Affordable entry vs Downtown',                  now: 'Same dynamic now',       nc: C.green },
                   { event: 'COVID-19',            period: 'Q2–Q3 2020',impact: '−14%', ic: C.red,   rec: '11 months', driver: 'DLD fee waiver + Golden Visa expansion',         now: 'No direct parallel',     nc: C.amber },
                   { event: 'Russia/Ukraine War',  period: 'Feb 2022',  impact: '+6%',  ic: C.green, rec: 'N/A (rose)', driver: 'Russian capital flight → Dubai demand',          now: 'Opposite dynamic',       nc: C.amber },
-                  { event: '⚡ Iran/USA ← NOW',  period: 'Apr 2026→', impact: '−4% so far', ic: C.amber, rec: 'Projected: 6–10M', driver: `${area.name} yield floor (${liveYield}%) + metro catalyst`, now: 'This is the current event', nc: C.orange, bold: true },
+                  { 
+  event: '⚡ Iran/USA ← NOW',  
+  period: 'Apr 2026→', 
+  impact: (() => {
+    // Compute real drop: compare last 30 days PSF vs 90-day average
+    if (!priceHistory?.length) return '−4% so far'
+    const recent = priceHistory.filter(p => p.year === 2026 && p.month >= 4)
+    const before = priceHistory.filter(p => 
+      (p.year === 2025 && p.month >= 10) || (p.year === 2026 && p.month < 4)
+    )
+    if (!recent.length || !before.length) return '−4% so far'
+    const avgRecent = recent.reduce((s, p) => s + p.psf, 0) / recent.length
+    const avgBefore = before.reduce((s, p) => s + p.psf, 0) / before.length
+    const drop = ((avgRecent - avgBefore) / avgBefore * 100).toFixed(1)
+    return `${drop > 0 ? '+' : ''}${drop}% so far`
+  })(),
+  ic: C.amber, 
+  rec: (() => {
+    const cs = areaIntel?.catalyst_score ?? d.catalystScore
+    return cs >= 70 ? 'Projected: 6–8M' : cs >= 50 ? 'Projected: 8–12M' : 'Projected: 10–14M'
+  })(),
+  driver: `${area.name} yield floor (${liveYield}%) + metro catalyst`, 
+  now: 'This is the current event', 
+  nc: C.orange, 
+  bold: true 
+},
                 ].map((row, i, arr) => (
                   <tr key={row.event} style={{ background: row.bold ? 'rgba(200,115,42,0.04)' : 'transparent' }}>
                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', fontWeight: row.bold ? 700 : 400, color: row.bold ? C.orange : C.text }}>{row.event}</td>
@@ -4542,6 +4656,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
+
+
 
 
 
