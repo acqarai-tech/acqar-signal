@@ -4137,7 +4137,13 @@ const fiveYrAppreciationReal = priceHistory?.length
       </nav>
 
      {/* ── TICKER ── */}
-<TickerBar areaSlug="area-59" areaName={area.name} fallback={d} />
+<TickerBar
+  areaSlug="area-59"
+  areaName={area.name}
+  fallback={d}
+  activeProjectCount={activeProjects?.filter(p => p.project_status === 'ACTIVE').length ?? null}
+  metroCatalyst={areaCatalysts?.find(c => c.catalyst_type === 'metro') ?? null}
+/>
 
       {/* ── BREADCRUMB ── */}
       <div style={{ padding: '14px 28px 0', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: C.muted, flexShrink: 0 }}>
