@@ -3632,7 +3632,7 @@ useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   fetch(
-    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&select=price_per_sqm,procedure_area,rooms_en&limit=5000&order=instance_date.desc`,
+    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&select=price_per_sqm,procedure_area,rooms_en&limit=5000`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
   )
     .then(r => r.json())
@@ -4329,7 +4329,6 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
-
 
 
 // import { useState, useEffect, useRef } from 'react'
