@@ -3698,6 +3698,24 @@ const liveTxDelta      = areaIntel?.tx_7d_delta_pct ?? null
   })
 
 
+
+  const livePriceTable = buyerPrices?.length ? [
+  { type: 'Studio',    truv: Math.round((buyerPrices.find(r=>r.type==='Studio')?.fair    ?? d.psf*0.95*450) / 450),  ask: Math.round((buyerPrices.find(r=>r.type==='Studio')?.fair    ?? d.psf*0.95*450) / 450 * 1.011) },
+  { type: '1 Bedroom', truv: Math.round((buyerPrices.find(r=>r.type==='1 Bedroom')?.fair ?? d.psf*800)      / 800),  ask: Math.round((buyerPrices.find(r=>r.type==='1 Bedroom')?.fair ?? d.psf*800)      / 800 * 1.041) },
+  { type: '2 Bedroom', truv: Math.round((buyerPrices.find(r=>r.type==='2 Bedroom')?.fair ?? d.psf*0.974*1250)/1250), ask: Math.round((buyerPrices.find(r=>r.type==='2 Bedroom')?.fair ?? d.psf*0.974*1250)/1250 * 0.961) },
+  { type: '3 Bedroom', truv: Math.round((buyerPrices.find(r=>r.type==='3 Bedroom')?.fair ?? d.psf*0.958*1800)/1800), ask: Math.round((buyerPrices.find(r=>r.type==='3 Bedroom')?.fair ?? d.psf*0.958*1800)/1800 * 0.986) },
+  { type: 'Townhouse',  truv: Math.round(d.psf*1.074), ask: Math.round(d.psf*1.030) },
+] : d.priceTable
+
+const liveYieldByType = [
+  { type: 'Studio',  val: +(liveYield * 1.19).toFixed(1) },
+  { type: '1 BR',    val: +liveYield.toFixed(1) },
+  { type: '2 BR',    val: +(liveYield * 0.94).toFixed(1) },
+  { type: '3 BR',    val: +(liveYield * 0.88).toFixed(1) },
+  { type: 'TH 3BR',  val: +(liveYield * 0.82).toFixed(1) },
+]
+
+
   const liveBuyerPriceTable = buyerPrices?.length
   ? [...buyerPrices.map(row => ({
       type: row.type,
@@ -3955,8 +3973,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           <div style={g4}>
             {[
               { title: 'Gross Yield',          val: `${d.yld}%`,              color: C.green, sub: `Dubai avg: 6.1% · ${area.name} ${d.aboveAvgYield ? 'above' : 'near'} avg for 4 years` },
-              { title: 'Distress Opportunity', val: `${d.distressPct}%`,      color: C.amber, sub: `${fmt(d.distressUnits)} units priced below Truvalu™ floor right now` },
-              { title: 'Catalyst Score',        val: `${d.catalystScore}/100`, color: C.green, sub: '2 confirmed infra catalysts in next 24 months' },
+              { title: 'Distress Opportunity', val: `${liveDistressPct || d.distressPct}%`, color: C.amber, sub: `${fmt(Math.round((liveDistressPct || d.distressPct) / 100 * d.availableListings))} units priced below Truvalu™ floor right now` },
+              { title: 'Catalyst Score', val: `${areaIntel?.catalyst_score ?? d.catalystScore}/100`, color: C.green, sub: '2 confirmed infra catalysts in next 24 months' },
               { title: 'Off-Plan Absorption',   val: '72%',                    color: C.blue,  sub: `Average sold % across active ${area.name} projects` },
             ].map(m => (
               <Card key={m.title} style={{ textAlign: 'center' }}>
@@ -3980,7 +3998,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               <CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle>
               <PTable
                 headers={['Type', 'Truvalu™', 'Asking', 'Gap', 'Signal']}
-                rows={d.priceTable.map((row, i, arr) => (
+                rows={livePriceTable.map((row, i, arr) => (
                   <tr key={row.type}>
                     <Td last={i === arr.length - 1}>{row.type}</Td>
                     <Td last={i === arr.length - 1} bold>AED {fmt(row.truv)}</Td>
@@ -4002,7 +4020,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <Card>
               <CardTitle>Rental Yield by Unit Type</CardTitle>
               {/* Yield bar chart replacement */}
-              {d.yieldByType.map(y => (
+              {liveYieldByType.map(y => (
                 <div key={y.type} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                   <span style={{ fontSize: 11, width: 60, flexShrink: 0, color: C.text2 }}>{y.type}</span>
                   <div style={{ flex: 1, height: 6, background: C.bg3, borderRadius: 3 }}>
@@ -4013,8 +4031,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               ))}
               {/* Dubai avg line label */}
               <div style={{ fontSize: 10, color: C.muted2, textAlign: 'right', marginBottom: 8 }}>— Dubai Avg 6.1%</div>
-              <StRow label="Best yield unit type"   value={`Studio (${d.yieldByType[0].val}%)`} valueColor={C.green} />
-              <StRow label="5-year yield trend"     value={`↑ 6.1% → ${d.yld}%`}              valueColor={C.green} />
+             <StRow label="Best yield unit type" value={`Studio (${liveYieldByType[0].val}%)`} valueColor={C.green} />
+<StRow label="5-year yield trend"   value={`↑ 6.1% → ${liveYield}%`} valueColor={C.green} />
               <StRow label="Average days to rent"   value="18 days" />
               <StRow label="Vacancy rate"            value={`${d.vacancyRate}%`} valueColor={C.green} last />
             </Card>
@@ -4187,9 +4205,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
           {/* Distress meter */}
           <div style={{ background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-            <div style={{ fontSize: 32, fontWeight: 900, color: C.amber }}>{d.distressPct}%</div>
-            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
-              <strong style={{ color: C.text }}>Distress Meter:</strong> {fmt(d.distressUnits)} of {area.name}'s active listings are priced below the Truvalu™ floor right now. This is above the 12-month average of 11% — driven by nervous sellers who want to exit quickly. For patient buyers, this is a genuine entry window. The widest gap is in 2BR and townhouse units.
+            <div style={{ fontSize: 32, fontWeight: 900, color: C.amber }}>{liveDistressPct || d.distressPct}%</div>
+<div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
+  <strong style={{ color: C.text }}>Distress Meter:</strong> {fmt(Math.round((liveDistressPct || d.distressPct) / 100 * d.availableListings))} of {area.name}'s active listings are priced below the Truvalu™ floor right now. This is above the 12-month average of 11% — driven by nervous sellers who want to exit quickly. For patient buyers, this is a genuine entry window. The widest gap is in 2BR and townhouse units.
             </div>
           </div>
 
@@ -4280,7 +4298,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <Card>
                 <CardTitle>Catalyst Score</CardTitle>
-                <div style={{ fontSize: 42, fontWeight: 900, color: C.green, textAlign: 'center', marginBottom: 8 }}>{d.catalystScore}/100</div>
+                <div style={{ fontSize: 42, fontWeight: 900, color: C.green, textAlign: 'center', marginBottom: 8 }}>{areaIntel?.catalyst_score ?? d.catalystScore}/100</div>
                 <StRow label="Confirmed infrastructure"   value="2 items"          valueColor={C.green} />
                 <StRow label="Announced (pending)"        value="3 items"          valueColor={C.blue} />
                 <StRow label="Dubai 2040 zone alignment"  value="Strong"           valueColor={C.green} />
@@ -4329,7 +4347,6 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
-
 
 // import { useState, useEffect, useRef } from 'react'
 // import { useEvents } from '../context/EventsContext'
