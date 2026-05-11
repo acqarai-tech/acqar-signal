@@ -3588,7 +3588,76 @@ function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status 
     </div>
   )
 }
+function TxVolumeChart({ data, currentTx }) {
+  if (!data?.length) return null
+  const counts = data.map(d => d.count)
+  const maxCount = Math.max(...counts)
+  const w = 700, h = 200, padL = 50, padR = 20, padT = 20, padB = 40
+  const chartW = w - padL - padR
+  const chartH = h - padT - padB
+  const barW = Math.floor(chartW / data.length) - 4
+  const x = (i) => padL + (i / data.length) * chartW + barW / 2
 
+  // April 2026 onwards = Iran/USA shock period (red bars)
+  const isShock = (p) => p.year === 2026 && p.month >= 4
+
+  // Y grid steps
+  const yStep = Math.ceil(maxCount / 4 / 50) * 50
+  const ySteps = Array.from({ length: 5 }, (_, i) => i * yStep).filter(v => v <= maxCount + yStep)
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      {/* Y grid */}
+      {ySteps.map(v => {
+        const yy = padT + chartH - (v / (maxCount * 1.1)) * chartH
+        return (
+          <g key={v}>
+            <line x1={padL} x2={w - padR} y1={yy} y2={yy} stroke="#EAE3D8" strokeWidth={0.75} strokeDasharray="4 4" />
+            <text x={padL - 6} y={yy + 4} textAnchor="end" fontSize={9} fill="#9CA8B4" fontFamily="Inter, sans-serif">{v}</text>
+          </g>
+        )
+      })}
+
+      {/* Bars */}
+      {data.map((p, i) => {
+        const barH = (p.count / (maxCount * 1.1)) * chartH
+        const barX = padL + (i / data.length) * chartW + 2
+        const barY = padT + chartH - barH
+        const shock = isShock(p)
+        const fill = shock ? 'rgba(220,38,38,0.35)' : 'rgba(200,115,42,0.25)'
+        const stroke = shock ? '#DC2626' : '#C8732A'
+        return (
+          <g key={p.key}>
+            <rect x={barX} y={barY} width={barW} height={barH}
+              fill={fill} stroke={stroke} strokeWidth={0.5} rx={2} />
+            {/* count label on hover-style — show on last bar */}
+            {i === data.length - 1 && (
+              <>
+                <rect x={barX - 10} y={barY - 22} width={barW + 20} height={17} rx={3} fill="#C8732A" />
+                <text x={barX + barW / 2} y={barY - 9} textAnchor="middle" fontSize={9} fill="#fff" fontWeight="700" fontFamily="Inter, sans-serif">{p.count}</text>
+              </>
+            )}
+          </g>
+        )
+      })}
+
+      {/* X labels — show every 2 months */}
+      {data.map((p, i) => i % 2 === 0 && (
+        <text key={p.key} x={padL + (i / data.length) * chartW + barW} y={h - 8}
+          textAnchor="middle" fontSize={9} fill="#9CA8B4" fontFamily="Inter, sans-serif">{p.label}</text>
+      ))}
+
+      {/* Bottom axis */}
+      <line x1={padL} x2={w - padR} y1={padT + chartH} y2={padT + chartH} stroke="#D8CEBC" strokeWidth={1} />
+
+      {/* Legend */}
+      <rect x={w - 200} y={padT} width={14} height={10} fill="rgba(200,115,42,0.25)" stroke="#C8732A" strokeWidth={0.5} rx={1} />
+      <text x={w - 182} y={padT + 9} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Normal volume</text>
+      <rect x={w - 200} y={padT + 16} width={14} height={10} fill="rgba(220,38,38,0.35)" stroke="#DC2626" strokeWidth={0.5} rx={1} />
+      <text x={w - 182} y={padT + 25} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Iran/USA shock period</text>
+    </svg>
+  )
+}
 
 function PriceHistoryChart({ data }) {
   if (!data?.length) return null
@@ -3757,6 +3826,7 @@ const [priceHistory, setPriceHistory] = useState(null)
 const [areaProjects, setAreaProjects] = useState(null)
 const [marketComp, setMarketComp] = useState(null)
 const [areaCatalysts, setAreaCatalysts] = useState(null)
+const [txHistory, setTxHistory] = useState(null)
 
 useEffect(() => {
   fetch(`${BACKEND}/api/ticker/area-59`)
@@ -3887,7 +3957,32 @@ useEffect(() => {
     .catch(() => {})
 }, [])
 
-
+useEffect(() => {
+  const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+  const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+  fetch(
+    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&sale_year=gte.2025&select=sale_year,sale_month&limit=10000`,
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+  )
+    .then(r => r.json())
+    .then(rows => {
+      const map = {}
+      rows.forEach(row => {
+        const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
+        map[key] = (map[key] || 0) + 1
+      })
+      const points = Object.entries(map)
+        .map(([key, count]) => {
+          const [y, m] = key.split('-')
+          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+          return { key, label: `${months[Number(m)-1]} ${y.slice(2)}`, count, year: Number(y), month: Number(m) }
+        })
+        .sort((a, b) => a.key.localeCompare(b.key))
+        .slice(-12) // last 12 months
+      setTxHistory(points)
+    })
+    .catch(() => {})
+}, [])
 
 useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
@@ -4585,6 +4680,29 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             </div>
           </div>
 
+
+{/* Transaction Volume Chart */}
+<Card style={{ marginBottom: 16 }}>
+  <CardTitle badge="DLD · Monthly Transactions">
+    7-Day Transaction Volume — Last 12 Months
+  </CardTitle>
+  {txHistory === null ? (
+    <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.muted, fontSize: 12 }}>
+      <div style={{ width: 20, height: 20, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.orange, animation: 'spin 0.8s linear infinite' }} />
+      Loading...
+    </div>
+  ) : (
+    <>
+      <TxVolumeChart data={txHistory} currentTx={liveSoldThisWeek} />
+      <div style={{ display: 'flex', gap: 20, marginTop: 8, fontSize: 11, color: C.muted }}>
+        <span>📊 Source: DLD registered transactions (avm) · Monthly aggregated</span>
+        <span style={{ marginLeft: 'auto', color: liveTxDelta != null && liveTxDelta < 0 ? C.red : C.green, fontWeight: 600 }}>
+          {liveTxDelta != null ? `${liveTxDelta > 0 ? '+' : ''}${liveTxDelta}% vs last period` : ''}
+        </span>
+      </div>
+    </>
+  )}
+</Card>
           {/* Live signals + market composition */}
           <div style={{ ...g2, marginBottom: 16 }}>
             <Card>
@@ -4773,6 +4891,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
+
 
 
 
