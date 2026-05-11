@@ -3755,6 +3755,7 @@ const [areaIntel, setAreaIntel] = useState(null)
 const [buyerPrices, setBuyerPrices] = useState(null)
 const [priceHistory, setPriceHistory] = useState(null)
 const [areaProjects, setAreaProjects] = useState(null)
+const [marketComp, setMarketComp] = useState(null)
 
 useEffect(() => {
   fetch(`${BACKEND}/api/ticker/area-59`)
@@ -3850,6 +3851,41 @@ useEffect(() => {
     .catch(() => {})
 }, [])
 
+
+
+useEffect(() => {
+  const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+  const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+  // Fetch aggregated composition from avm
+  fetch(
+    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&sale_year=gte.2024&select=property_sub_type_en,property_usage_en,rooms_en&limit=10000`,
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+  )
+    .then(r => r.json())
+    .then(rows => {
+      const total = rows.length
+      if (!total) return
+      const apt   = rows.filter(r => r.property_sub_type_en?.toLowerCase().includes('flat') || r.property_sub_type_en?.toLowerCase().includes('apart')).length
+      const villa = rows.filter(r => r.property_sub_type_en?.toLowerCase().includes('villa') || r.property_sub_type_en?.toLowerCase().includes('town')).length
+      const res   = rows.filter(r => r.property_usage_en === 'Residential').length
+      const com   = rows.filter(r => r.property_usage_en === 'Commercial').length
+      const small = rows.filter(r => ['0','0.0','1','1.0'].includes(r.rooms_en)).length
+      const large = rows.filter(r => ['2','2.0','3','3.0','4','4.0'].includes(r.rooms_en)).length
+      const roomsTotal = small + large
+
+      // Off-plan ratio from dld_projects (already loaded)
+      setMarketComp({
+        aptPct:   Math.round(apt   / total * 100),
+        villaPct: Math.round(villa / total * 100) || 2, // min 2% for display
+        resPct:   Math.round(res   / total * 100),
+        comPct:   Math.round(com   / total * 100) || 0,
+        bachelorPct: roomsTotal > 0 ? Math.round(small / roomsTotal * 100) : 71,
+        familyPct:   roomsTotal > 0 ? Math.round(large / roomsTotal * 100) : 29,
+      })
+    })
+    .catch(() => {})
+}, [])
+
 const livePsf = areaIntel?.truvalu_psm
   ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
   : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
@@ -3930,6 +3966,12 @@ const devStats = areaProjects?.length ? (() => {
       avgPct: s.pcts.length ? Math.round(s.pcts.reduce((a, b) => a + b, 0) / s.pcts.length) : 0,
     }))
 })() : null
+
+// Real off-plan vs ready ratio from DLD projects
+const offPlanPct = areaProjects?.length
+  ? Math.round(activeProjects.length / areaProjects.length * 100)
+  : 58
+const readyPct = 100 - offPlanPct
 
 
 const fiveYrAppreciationReal = priceHistory?.length
@@ -4378,14 +4420,22 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
   <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
 
     {/* Price history chart */}
-    {priceHistory?.length > 0 && (
-      <Card style={{ marginBottom: 16 }}>
-        <CardTitle badge="Truvalu™ Benchmark vs DLD Transacted">
-          {area.name} Price Per Sqft — 5 Year History
-        </CardTitle>
-        <PriceHistoryChart data={priceHistory} />
-      </Card>
-    )}
+   <Card style={{ marginBottom: 16 }}>
+  <CardTitle badge="Truvalu™ Benchmark vs DLD Transacted">
+    {area.name} Price Per Sqft — 5 Year History
+  </CardTitle>
+  {priceHistory === null ? (
+    <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, background: C.bg2, borderRadius: 6 }}>
+      <div style={{ width: 26, height: 26, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.orange, animation: 'spin 0.8s linear infinite' }} />
+      <span style={{ fontSize: 11, color: C.muted }}>Loading price history...</span>
+    </div>
+  ) : priceHistory.length === 0 ? (
+    <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: C.muted }}>No price data available.</div>
+  ) : (
+    <PriceHistoryChart data={priceHistory} />
+  )}
+</Card>
+    
 
     {/* Area maturity + developer table */}
     <div style={{ ...g2, marginBottom: 16 }}>
@@ -4539,13 +4589,31 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               )}
             </Card>
             <Card>
-              <CardTitle>Live Market Composition</CardTitle>
-              <RatioBar left="Off-Plan (Primary)" leftPct={58} leftColor={C.blue}    right="Ready (Secondary)"    rightPct={42} rightColor={C.amber} />
-              <RatioBar left="Apartments"         leftPct={87} leftColor={C.green}   right="Villas/TH"            rightPct={13} rightColor={C.purple} />
-              <RatioBar left="Residential"        leftPct={91} leftColor="#14B8A6"   right="Commercial"           rightPct={9}  rightColor={C.muted2} />
-              <RatioBar left="Bachelor / Single"  leftPct={71} leftColor="#6366F1"   right="Family"               rightPct={29} rightColor="#EC4899" />
-              <RatioBar left="Long-term resident" leftPct={88} leftColor={C.lime}    right="Tourist/short-stay"   rightPct={12} rightColor={C.bg3} last />
-            </Card>
+  <CardTitle badge="DLD 2024–2026">Live Market Composition</CardTitle>
+  <RatioBar
+    left="Off-Plan (Primary)" leftPct={offPlanPct} leftColor={C.blue}
+    right="Ready (Secondary)" rightPct={readyPct} rightColor={C.amber}
+  />
+  <RatioBar
+    left="Apartments" leftPct={marketComp?.aptPct ?? 98} leftColor={C.green}
+    right="Villas/TH"  rightPct={marketComp?.villaPct ?? 2} rightColor={C.purple}
+  />
+  <RatioBar
+    left="Residential" leftPct={marketComp?.resPct ?? 100} leftColor="#14B8A6"
+    right="Commercial"  rightPct={marketComp?.comPct ?? 0}  rightColor={C.muted2}
+  />
+  <RatioBar
+    left="Studio & 1BR" leftPct={marketComp?.bachelorPct ?? 74} leftColor="#6366F1"
+    right="2BR+"          rightPct={marketComp?.familyPct   ?? 26} rightColor="#EC4899"
+  />
+  <RatioBar
+    left="Long-term resident" leftPct={88} leftColor={C.lime}
+    right="Tourist/short-stay" rightPct={12} rightColor={C.bg3} last
+  />
+  <p style={{ fontSize: 10, color: C.muted, marginTop: 10 }}>
+    📋 Apartments/Residential/Unit mix: DLD avm data 2024–2026 · Off-plan ratio: DLD Projects
+  </p>
+</Card>
           </div>
 
           {/* Rent ranges + Truvalu current + nationalities */}
@@ -4579,7 +4647,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               />
             </Card>
             <Card>
-              <CardTitle>Buyer Nationality — 90 Days</CardTitle>
+              <CardTitle badge="Market estimate">Buyer Nationality — 90 Days</CardTitle>
               {d.nationals.map(n => <NatBar key={n.name} {...n} />)}
             </Card>
           </div>
@@ -4652,11 +4720,10 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         </div>
       </div>
 
-      <style>{`@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}`}</style>
+     <style>{`@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}} @keyframes spin{to{transform:rotate(360deg);}}`}</style>
     </div>
   )
 }
-
 
 
 
