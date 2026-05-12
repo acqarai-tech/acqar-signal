@@ -308,16 +308,23 @@ async def debug_reddit():
             "status_code": resp.status_code,
             "response_preview": resp.text[:500],
         }
+
 @router.get("/reddit/new")
 async def reddit_proxy(sub: str, limit: int = 100):
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.get(
-            f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "application/json, text/plain, */*",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Referer": "https://www.reddit.com/",
-            },
-        )
-        return resp.json()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer": "https://www.reddit.com/",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            resp = await client.get(
+                f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
+                headers=headers,
+            )
+            if resp.status_code != 200:
+                return {"data": {"children": []}, "error": f"Reddit returned {resp.status_code}"}
+            return resp.json()
+    except Exception as e:
+        return {"data": {"children": []}, "error": str(e)}
