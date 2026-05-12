@@ -349,9 +349,154 @@
 
 
 
+# from fastapi import APIRouter
+# from datetime import datetime, timezone, timedelta
+# import httpx, re
+
+# router = APIRouter(prefix="/api/distress", tags=["distress"])
+
+# DISTRESS_KEYWORDS = [
+#     'distress deal', 'distress sale', 'panic sell', 'panic sale',
+#     'forced sale', 'urgent sale', 'must sell', 'need to sell',
+#     'quick sale', 'below op', 'below original price', 'below market',
+#     'selling at loss', 'below asking', 'price reduced', 'motivated seller',
+#     'investor exit', 'relocation sale', 'genuine seller', 'sp below',
+#     'transfer in 3', 'transfer in 7',
+# ]
+
+# SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
+
+# HEADERS = {
+#     "User-Agent": "python:acqar-rems:v1.0 (by /u/acqar_bot)",
+#     "Accept": "application/json",
+# }
+
+# def normalize_title(title: str) -> str:
+#     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
+
+# async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
+#     """Try multiple Reddit URLs until one works."""
+#     for url in [
+#         f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
+#         f"https://old.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
+#         f"https://api.reddit.com/r/{sub}/new?limit={limit}&raw_json=1",
+#     ]:
+#         try:
+#             resp = await client.get(url, headers=HEADERS)
+#             if resp.status_code == 200:
+#                 return resp.json().get("data", {}).get("children", [])
+#         except Exception:
+#             continue
+#     return []
+
+# async def fetch_distress_deals():
+#     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+#     week_ago_ts = week_ago.timestamp()
+#     all_deals = []
+#     seen = set()
+
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         for sub in SUBREDDITS:
+#             try:
+#                 posts = await fetch_reddit_posts(client, sub)
+#                 for item in posts:
+#                     post = item.get("data", {})
+#                     if not post:
+#                         continue
+#                     if post.get("created_utc", 0) < week_ago_ts:
+#                         continue
+#                     if post.get("selftext") in ("[removed]", "[deleted]"):
+#                         continue
+#                     combined = (post.get("title", "") + " " + post.get("selftext", "")).lower()
+#                     if not any(kw in combined for kw in DISTRESS_KEYWORDS):
+#                         continue
+#                     norm_title = normalize_title(post.get("title", ""))
+#                     body_snippet = post.get("selftext", "")[:100].lower().strip()
+#                     if norm_title in seen or (body_snippet and body_snippet in seen):
+#                         continue
+#                     seen.add(norm_title)
+#                     if body_snippet:
+#                         seen.add(body_snippet)
+#                     all_deals.append({
+#                         "id": post.get("id"),
+#                         "title": post.get("title"),
+#                         "body": post.get("selftext", "")[:800],
+#                         "url": "https://www.reddit.com" + post.get("permalink", ""),
+#                         "source": f"r/{sub}",
+#                         "score": post.get("score", 0),
+#                         "posted_at": datetime.utcfromtimestamp(
+#                             post.get("created_utc", 0)
+#                         ).replace(tzinfo=timezone.utc).isoformat(),
+#                         "flair": post.get("link_flair_text") or "",
+#                     })
+#             except Exception as e:
+#                 print(f"Reddit fetch failed for r/{sub}: {e}")
+#                 continue
+
+#     all_deals.sort(key=lambda x: x["posted_at"], reverse=True)
+#     return all_deals
+
+
+# # ── Cache ──
+# _cache = {"data": [], "fetched_at": None}
+
+# @router.get("/deals/clear-cache")
+# async def clear_cache():
+#     global _cache
+#     _cache = {"data": [], "fetched_at": None}
+#     return {"cleared": True}
+
+# @router.get("/deals")
+# async def get_distress_deals():
+#     global _cache
+#     now = datetime.now(timezone.utc)
+#     if _cache["fetched_at"] and (now - _cache["fetched_at"]) < timedelta(minutes=15):
+#         return {"deals": _cache["data"], "cached": True}
+#     deals = await fetch_distress_deals()
+#     _cache = {"data": deals, "fetched_at": now}
+#     return {"deals": deals, "cached": False}
+
+# @router.get("/deals/debug")
+# async def debug_reddit():
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         posts = await fetch_reddit_posts(client, "DubaiRealEstate", limit=5)
+#         return {
+#             "posts_found": len(posts),
+#             "first_title": posts[0]["data"].get("title") if posts else None,
+#         }
+
+# @router.get("/reddit/new")
+# async def reddit_proxy(sub: str, limit: int = 100):
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         posts = await fetch_reddit_posts(client, sub, limit)
+#         if posts:
+#             return {"data": {"children": posts}}
+#         return {"data": {"children": []}, "error": "All Reddit endpoints blocked"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
-import httpx, re
+import httpx, re, logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/distress", tags=["distress"])
 
@@ -375,19 +520,21 @@ def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
 
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
-    """Try multiple Reddit URLs until one works."""
-    for url in [
-        f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
-        f"https://old.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
-        f"https://api.reddit.com/r/{sub}/new?limit={limit}&raw_json=1",
-    ]:
-        try:
-            resp = await client.get(url, headers=HEADERS)
-            if resp.status_code == 200:
-                return resp.json().get("data", {}).get("children", [])
-        except Exception:
-            continue
-    return []
+    """Use Arctic Shift API — no Reddit account needed."""
+    try:
+        resp = await client.get(
+            "https://arctic-shift.photon-reddit.com/api/posts/search",
+            params={"subreddit": sub, "limit": limit, "sort": "new"},
+            headers={"User-Agent": "python:acqar-rems:v1.0"},
+            timeout=15
+        )
+        if resp.status_code == 200:
+            posts = resp.json().get("data", [])
+            return [{"data": post} for post in posts]
+        return []
+    except Exception as e:
+        logger.warning(f"Arctic Shift fetch error r/{sub}: {e}")
+        return []
 
 async def fetch_distress_deals():
     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
