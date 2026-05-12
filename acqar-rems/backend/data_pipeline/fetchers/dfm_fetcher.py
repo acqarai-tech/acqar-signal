@@ -358,200 +358,144 @@
 
 
 
-"""
-UAE Real Estate Stock Fetcher.
-Uses yfinance for DFM-listed stocks available on Yahoo Finance (.AE suffix).
-Confirmed working: EMAAR.AE, EMAARDEV.AE, DEYAAR.AE, UPP.AE
-ALDAR (ADX) and DAMAC (not on YF) use calibrated last-known prices with
-intraday micro-drift so the ticker always shows movement.
-"""
 import asyncio
 import logging
 import time
 import math
+import os
+import httpx
 from datetime import datetime, timezone
 from typing import Dict
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Symbol registry
-# live=True  -> fetched from Yahoo Finance (yfinance)
-# live=False -> calibrated estimate with intraday sine-wave drift
-# ---------------------------------------------------------------------------
+ALPHA_VANTAGE_KEY = os.getenv("ALPHA_VANTAGE_KEY")
+
 TRACKED_STOCKS = {
-    "EMAAR.AE": {
-        "name": "Emaar", "fullname": "Emaar Properties",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 8.45,
-    },
-    "EMAARDEV.AE": {
-        "name": "EmaarDev", "fullname": "Emaar Development",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 4.20,
-    },
-    "DEYAAR.AE": {
-        "name": "Deyaar", "fullname": "Deyaar Development",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 0.72,
-    },
-    "UPP.AE": {
-        "name": "Union P.", "fullname": "Union Properties",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 0.38,
-    },
-    "ALDAR.AE": {
-        "name": "Aldar", "fullname": "Aldar Properties",
-        "currency": "AED", "exchange": "ADX",
-        "live": False, "base_price": 3.18,
-    },
-    "DIC.AE": {
-        "name": "Dubai Inv.", "fullname": "Dubai Investments",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 2.85,
-    },
-    "AMLAK.AE": {
-        "name": "Amlak", "fullname": "Amlak Finance",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 0.52,
-    },
-    "DAMAC": {
-        "name": "DAMAC", "fullname": "DAMAC Real Estate",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 0.41,
-    },
-    "NAKHEEL": {
-        "name": "Nakheel", "fullname": "Nakheel PJSC",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 1.85,
-    },
-    "SOBHA": {
-        "name": "Sobha", "fullname": "Sobha Realty",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 1.22,
-    },
+    "EMAAR.AE": {"name": "Emaar", "fullname": "Emaar Properties", "currency": "AED", "exchange": "DFM"},
+    "EMAARDEV.AE": {"name": "EmaarDev", "fullname": "Emaar Development", "currency": "AED", "exchange": "DFM"},
+    "DEYAAR.AE": {"name": "Deyaar", "fullname": "Deyaar Development", "currency": "AED", "exchange": "DFM"},
+    "UPP.AE": {"name": "Union P.", "fullname": "Union Properties", "currency": "AED", "exchange": "DFM"},
+    "ALDAR.AE": {"name": "Aldar", "fullname": "Aldar Properties", "currency": "AED", "exchange": "ADX"},
+    "DIC.AE": {"name": "Dubai Inv.", "fullname": "Dubai Investments", "currency": "AED", "exchange": "DFM"},
+    "DAMAC": {"name": "DAMAC", "fullname": "DAMAC Real Estate", "currency": "AED", "exchange": "DFM"},
+    "NAKHEEL": {"name": "Nakheel", "fullname": "Nakheel PJSC", "currency": "AED", "exchange": "DFM"},
+    "SOBHA": {"name": "Sobha", "fullname": "Sobha Realty", "currency": "AED", "exchange": "DFM"},
 }
-    # ── Calibrated estimates (not on Yahoo Finance) ──────────────────────
-    "DAMAC": {
-        "name": "DAMAC", "fullname": "DAMAC Real Estate",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 0.41,
-    },
-    "NAKHEEL": {
-        "name": "Nakheel", "fullname": "Nakheel PJSC",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 1.85,
-    },
-    "SOBHA": {
-        "name": "Sobha", "fullname": "Sobha Realty",
-        "currency": "AED", "exchange": "DFM",
-        "live": False, "base_price": 1.22,
-    },
+
+# Fallback base prices if API fails
+BASE_PRICES = {
+    "EMAAR.AE": 8.45, "EMAARDEV.AE": 4.20, "DEYAAR.AE": 0.72,
+    "UPP.AE": 0.38, "ALDAR.AE": 3.18, "DIC.AE": 2.85,
+    "DAMAC": 0.41, "NAKHEEL": 1.85, "SOBHA": 1.22,
 }
 
 _cache: Dict = {}
 _cache_ts: float = 0.0
-_CACHE_TTL = 300  # 5 minutes between full yfinance fetches
+_CACHE_TTL = 300  # 5 minutes
 
 
 def _micro_drift(symbol: str, base: float):
-    """Return (price, change_pct) with a slow sine-wave intraday drift."""
     phase = (hash(symbol) % 1000) / 1000.0
     cycle = math.sin(time.time() / 14400 * 2 * math.pi + phase * 2 * math.pi)
-    drift_pct = cycle * 0.8   # ±0.8 % amplitude
+    drift_pct = cycle * 0.8
     price = round(base * (1 + drift_pct / 100), 3)
     return price, round(drift_pct, 2)
 
 
-def _fetch_yfinance_sync(symbols: list) -> Dict:
-    """Blocking yfinance call — always run via asyncio.to_thread."""
-    import warnings
-    warnings.filterwarnings("ignore")
+async def _fetch_alpha_vantage(symbol: str, meta: dict) -> dict | None:
+    """Fetch single stock from Alpha Vantage."""
+    if not ALPHA_VANTAGE_KEY:
+        return None
     try:
-        import yfinance as yf
-    except ImportError:
-        logger.warning("yfinance not installed; install it with: pip install yfinance")
-        return {}
+        url = "https://www.alphavantage.co/query"
+        params = {
+            "function": "GLOBAL_QUOTE",
+            "symbol": symbol,
+            "apikey": ALPHA_VANTAGE_KEY,
+        }
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(url, params=params)
+            data = resp.json()
 
-    results = {}
-    for sym in symbols:
-        meta = TRACKED_STOCKS.get(sym, {})
-        try:
-            hist = yf.Ticker(sym).history(period="5d")
-            if hist.empty:
-                logger.warning(f"{sym}: no history returned by Yahoo Finance")
-                continue
-            price = float(hist["Close"].iloc[-1])
-            prev  = float(hist["Close"].iloc[-2]) if len(hist) > 1 else price
-            change     = round(price - prev, 4)
-            change_pct = round((change / prev * 100) if prev else 0.0, 2)
-            results[sym] = {
-                "symbol":     sym,
-                "name":       meta.get("name", sym),
-                "fullname":   meta.get("fullname", sym),
-                "price":      round(price, 3),
-                "change":     change,
-                "change_pct": change_pct,
-                "currency":   meta.get("currency", "AED"),
-                "exchange":   meta.get("exchange", "DFM"),
-                "is_real":    True,
-                "source":     f"Yahoo Finance / {meta.get('exchange', 'DFM')}",
-                "fetched_at": datetime.now(timezone.utc).isoformat(),
-            }
-            logger.info(f"{sym}: AED {price:.3f} ({change_pct:+.2f}%)")
-        except Exception as e:
-            logger.warning(f"{sym} yfinance error: {e}")
-    return results
+        quote = data.get("Global Quote", {})
+        price = float(quote.get("05. price", 0))
+        prev = float(quote.get("08. previous close", price))
+        change = round(price - prev, 4)
+        change_pct = round((change / prev * 100) if prev else 0.0, 2)
+
+        if price <= 0:
+            logger.warning(f"{symbol}: Alpha Vantage returned price 0")
+            return None
+
+        return {
+            "symbol": symbol,
+            "name": meta["name"],
+            "fullname": meta["fullname"],
+            "price": round(price, 3),
+            "change": change,
+            "change_pct": change_pct,
+            "currency": meta["currency"],
+            "exchange": meta["exchange"],
+            "is_real": True,
+            "source": "Alpha Vantage",
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+        }
+    except Exception as e:
+        logger.warning(f"{symbol} Alpha Vantage error: {e}")
+        return None
+
+
+def _fallback(symbol: str, meta: dict) -> dict:
+    """Return calibrated estimate when API fails."""
+    base = BASE_PRICES.get(symbol, 1.0)
+    p, dp = _micro_drift(symbol, base)
+    return {
+        "symbol": symbol,
+        "name": meta["name"],
+        "fullname": meta["fullname"],
+        "price": p,
+        "change": round(p - base, 4),
+        "change_pct": dp,
+        "currency": meta["currency"],
+        "exchange": meta["exchange"],
+        "is_real": False,
+        "source": "Calibrated estimate",
+        "fetched_at": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 class DFMFetcher:
-    """Fetches UAE real estate stock prices."""
-
     async def fetch_all_stocks(self) -> Dict:
         global _cache, _cache_ts
 
         now = time.time()
         if _cache and (now - _cache_ts) < _CACHE_TTL:
-            # Serve cache but refresh drift for estimated stocks
+            # Refresh drift for estimated stocks in cache
             result = dict(_cache)
             for sym, meta in TRACKED_STOCKS.items():
-                if not meta.get("live") and sym in result:
-                    p, dp = _micro_drift(sym, meta["base_price"])
+                if sym in result and not result[sym]["is_real"]:
+                    p, dp = _micro_drift(sym, BASE_PRICES.get(sym, 1.0))
                     result[sym] = {**result[sym], "price": p, "change_pct": dp}
             return result
 
-        # Full refresh — fetch live symbols in a thread
-        live_syms = [s for s, m in TRACKED_STOCKS.items() if m.get("live")]
-        try:
-            live_data = await asyncio.to_thread(_fetch_yfinance_sync, live_syms)
-        except Exception as e:
-            logger.warning(f"yfinance thread failed: {e}")
-            live_data = {}
+        # Fetch all stocks concurrently from Alpha Vantage
+        tasks = [
+            _fetch_alpha_vantage(sym, meta)
+            for sym, meta in TRACKED_STOCKS.items()
+        ]
+        results_list = await asyncio.gather(*tasks, return_exceptions=True)
 
-        result = dict(live_data)
+        result = {}
+        live_count = 0
+        for sym, meta, data in zip(TRACKED_STOCKS.keys(), TRACKED_STOCKS.values(), results_list):
+            if isinstance(data, dict) and data:
+                result[sym] = data
+                live_count += 1
+            else:
+                result[sym] = _fallback(sym, meta)
 
-        # Add calibrated estimates for non-YF symbols
-        for sym, meta in TRACKED_STOCKS.items():
-            if not meta.get("live"):
-                p, dp = _micro_drift(sym, meta["base_price"])
-                result[sym] = {
-                    "symbol":     sym,
-                    "name":       meta["name"],
-                    "fullname":   meta["fullname"],
-                    "price":      p,
-                    "change":     round(p - meta["base_price"], 4),
-                    "change_pct": dp,
-                    "currency":   meta.get("currency", "AED"),
-                    "exchange":   meta.get("exchange", "DFM"),
-                    "is_real":    False,
-                    "source":     "Calibrated estimate",
-                    "fetched_at": datetime.now(timezone.utc).isoformat(),
-                }
-
-        _cache    = result
+        _cache = result
         _cache_ts = now
-        logger.info(
-            f"DFMFetcher: {len(live_data)} live + "
-            f"{len(result) - len(live_data)} estimated"
-        )
+        logger.info(f"DFMFetcher: {live_count} live + {len(result) - live_count} estimated")
         return result
