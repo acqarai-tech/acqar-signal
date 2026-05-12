@@ -512,7 +512,7 @@ DISTRESS_KEYWORDS = [
 SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
 
 HEADERS = {
-    "User-Agent": "python:acqar-rems:v1.0 (by /u/acqar_bot)",
+    "User-Agent": "ACQAR-REMS/1.0 (Dubai Real Estate Intelligence Platform)",
     "Accept": "application/json",
 }
 
@@ -520,20 +520,19 @@ def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
 
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
-    """Use Arctic Shift API — no Reddit account needed."""
+    url = f"https://www.reddit.com/r/{sub}/new.json"
     try:
-        resp = await client.get(
-            "https://arctic-shift.photon-reddit.com/api/posts/search",
-            params={"subreddit": sub, "limit": limit, "sort": "new"},
-            headers={"User-Agent": "python:acqar-rems:v1.0"},
-            timeout=15
-        )
-        if resp.status_code == 200:
-            posts = resp.json().get("data", [])
-            return [{"data": post} for post in posts]
-        return []
+        async with httpx.AsyncClient(
+            timeout=12,
+            headers=HEADERS,
+            follow_redirects=True,
+            trust_env=False
+        ) as c:
+            resp = await c.get(url, params={"limit": limit, "raw_json": 1})
+            resp.raise_for_status()
+            return resp.json().get("data", {}).get("children", [])
     except Exception as e:
-        logger.warning(f"Arctic Shift fetch error r/{sub}: {e}")
+        logger.warning(f"Reddit fetch error r/{sub}: {e}")
         return []
 
 async def fetch_distress_deals():
