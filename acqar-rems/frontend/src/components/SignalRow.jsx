@@ -362,7 +362,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSocket } from '../context/SocketContext'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL || 'https://acqar-signal-production.up.railway.app'
 
 function getCategoryColor(cat) {
   const map = {
