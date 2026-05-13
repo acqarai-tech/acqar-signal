@@ -493,10 +493,147 @@
 
 
 
+# from fastapi import APIRouter
+# from datetime import datetime, timezone, timedelta
+# import httpx, re, logging
+# logger = logging.getLogger(__name__)
+
+# router = APIRouter(prefix="/api/distress", tags=["distress"])
+
+# DISTRESS_KEYWORDS = [
+#     'distress deal', 'distress sale', 'panic sell', 'panic sale',
+#     'forced sale', 'urgent sale', 'must sell', 'need to sell',
+#     'quick sale', 'below op', 'below original price', 'below market',
+#     'selling at loss', 'below asking', 'price reduced', 'motivated seller',
+#     'investor exit', 'relocation sale', 'genuine seller', 'sp below',
+#     'transfer in 3', 'transfer in 7',
+# ]
+
+# SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
+
+# HEADERS = {
+#     "User-Agent": "ACQAR-REMS/1.0 (Dubai Real Estate Intelligence Platform)",
+#     "Accept": "application/json",
+# }
+
+# def normalize_title(title: str) -> str:
+#     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
+
+# async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
+#     url = f"https://www.reddit.com/r/{sub}/new.json"
+#     try:
+#         async with httpx.AsyncClient(
+#             timeout=12,
+#             headers=HEADERS,
+#             follow_redirects=True,
+#             trust_env=False
+#         ) as c:
+#             resp = await c.get(url, params={"limit": limit, "raw_json": 1})
+#             resp.raise_for_status()
+#             return resp.json().get("data", {}).get("children", [])
+#     except Exception as e:
+#         logger.warning(f"Reddit fetch error r/{sub}: {e}")
+#         return []
+
+# async def fetch_distress_deals():
+#     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+#     week_ago_ts = week_ago.timestamp()
+#     all_deals = []
+#     seen = set()
+
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         for sub in SUBREDDITS:
+#             try:
+#                 posts = await fetch_reddit_posts(client, sub)
+#                 for item in posts:
+#                     post = item.get("data", {})
+#                     if not post:
+#                         continue
+#                     if post.get("created_utc", 0) < week_ago_ts:
+#                         continue
+#                     if post.get("selftext") in ("[removed]", "[deleted]"):
+#                         continue
+#                     combined = (post.get("title", "") + " " + post.get("selftext", "")).lower()
+#                     if not any(kw in combined for kw in DISTRESS_KEYWORDS):
+#                         continue
+#                     norm_title = normalize_title(post.get("title", ""))
+#                     body_snippet = post.get("selftext", "")[:100].lower().strip()
+#                     if norm_title in seen or (body_snippet and body_snippet in seen):
+#                         continue
+#                     seen.add(norm_title)
+#                     if body_snippet:
+#                         seen.add(body_snippet)
+#                     all_deals.append({
+#                         "id": post.get("id"),
+#                         "title": post.get("title"),
+#                         "body": post.get("selftext", "")[:800],
+#                         "url": "https://www.reddit.com" + post.get("permalink", ""),
+#                         "source": f"r/{sub}",
+#                         "score": post.get("score", 0),
+#                         "posted_at": datetime.utcfromtimestamp(
+#                             post.get("created_utc", 0)
+#                         ).replace(tzinfo=timezone.utc).isoformat(),
+#                         "flair": post.get("link_flair_text") or "",
+#                     })
+#             except Exception as e:
+#                 print(f"Reddit fetch failed for r/{sub}: {e}")
+#                 continue
+
+#     all_deals.sort(key=lambda x: x["posted_at"], reverse=True)
+#     return all_deals
+
+
+# # ── Cache ──
+# _cache = {"data": [], "fetched_at": None}
+
+# @router.get("/deals/clear-cache")
+# async def clear_cache():
+#     global _cache
+#     _cache = {"data": [], "fetched_at": None}
+#     return {"cleared": True}
+
+# @router.get("/deals")
+# async def get_distress_deals():
+#     global _cache
+#     now = datetime.now(timezone.utc)
+#     if _cache["fetched_at"] and (now - _cache["fetched_at"]) < timedelta(minutes=15):
+#         return {"deals": _cache["data"], "cached": True}
+#     deals = await fetch_distress_deals()
+#     _cache = {"data": deals, "fetched_at": now}
+#     return {"deals": deals, "cached": False}
+
+# @router.get("/deals/debug")
+# async def debug_reddit():
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         posts = await fetch_reddit_posts(client, "DubaiRealEstate", limit=5)
+#         return {
+#             "posts_found": len(posts),
+#             "first_title": posts[0]["data"].get("title") if posts else None,
+#         }
+
+# @router.get("/reddit/new")
+# async def reddit_proxy(sub: str, limit: int = 100):
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         posts = await fetch_reddit_posts(client, sub, limit)
+#         if posts:
+#             return {"data": {"children": posts}}
+#         return {"data": {"children": []}, "error": "All Reddit endpoints blocked"}
+
+
+
+
+
+
+
+
+
+
+
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
 import httpx, re, logging
 logger = logging.getLogger(__name__)
+import os
 
 router = APIRouter(prefix="/api/distress", tags=["distress"])
 
@@ -518,17 +655,22 @@ HEADERS = {
 
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
+SCRAPER_KEY = os.environ.get("SCRAPER_API_KEY", "")
 
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
-    url = f"https://www.reddit.com/r/{sub}/new.json"
+    target_url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
+    
+    # Use ScraperAPI proxy to bypass Railway IP block
+    proxy_url = f"https://api.scraperapi.com/?api_key={SCRAPER_KEY}&url={target_url}"
+    
+    BROWSER_HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "application/json",
+    }
+    
     try:
-        async with httpx.AsyncClient(
-            timeout=12,
-            headers=HEADERS,
-            follow_redirects=True,
-            trust_env=False
-        ) as c:
-            resp = await c.get(url, params={"limit": limit, "raw_json": 1})
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as c:
+            resp = await c.get(proxy_url, headers=BROWSER_HEADERS)
             resp.raise_for_status()
             return resp.json().get("data", {}).get("children", [])
     except Exception as e:
