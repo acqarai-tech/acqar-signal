@@ -5394,15 +5394,7 @@ function PriceHistoryChart({ data }) {
       {/* Bottom axis line */}
       <line x1={padL} x2={w - padR} y1={padT + chartH} y2={padT + chartH} stroke="#D8CEBC" strokeWidth={1} />
 
-      {/* Legend — top right */}
-      <rect x={w - 210} y={padT + 2} width={186} height={28} rx={5} fill="rgba(255,255,255,0.85)" stroke="#E8E0D0" strokeWidth={0.75} />
-      <line x1={w - 200} x2={w - 186} y1={padT + 11} y2={padT + 11} stroke={lineColor} strokeWidth={2.5} />
-      <circle cx={w - 193} cy={padT + 11} r={3} fill={lineColor} />
-      <text x={w - 182} y={padT + 15} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Truvalu™ Benchmark PSF</text>
-      <circle cx={w - 200} cy={padT + 22} r={3} fill="#fff" stroke="#16A34A" strokeWidth={1.5} />
-      <text x={w - 182} y={padT + 26} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Peak ↑ &nbsp; </text>
-      <circle cx={w - 152} cy={padT + 22} r={3} fill="#fff" stroke="#DC2626" strokeWidth={1.5} />
-      <text x={w - 145} y={padT + 26} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Low ↓</text>
+      
     </svg>
   )
 }
@@ -6535,6 +6527,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
+
 
 
 
