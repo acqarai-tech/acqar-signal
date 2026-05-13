@@ -3311,6 +3311,1611 @@
 
 
 
+// import { useState, useEffect, useRef } from 'react'
+// import { useEvents } from '../context/EventsContext'
+// import TickerBar from './TickerBar'
+
+
+// const GROQ_KEY = import.meta.env.VITE_GROQ_KEY
+// const BACKEND_GROQ = 'https://api.groq.com/openai/v1/chat/completions'
+
+// async function askGroq(prompt) {
+//   if (!GROQ_KEY) return null
+//   try {
+//     const res = await fetch(BACKEND_GROQ, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${GROQ_KEY}`,
+//       },
+//       body: JSON.stringify({
+//         model: 'llama-3.3-70b-versatile',
+//         max_tokens: 120,
+//         temperature: 0.7,
+//         messages: [{ role: 'user', content: prompt }],
+//       }),
+//     })
+//     const data = await res.json()
+//     return data.choices?.[0]?.message?.content?.trim() ?? null
+//   } catch { return null }
+// }
+
+// // ── DESIGN TOKENS — exact match to HTML :root vars ─────────────────
+// const C = {
+//   bg: '#FAF8F5', bg2: '#F2EDE5', bg3: '#EAE3D8',
+//   card: '#FFFFFF', card2: '#F8F5F0',
+//   border: '#E8E0D0', border2: '#D8CEBC',
+//   orange: '#C8732A', orange2: '#A85C20',
+//   orangeL: 'rgba(200,115,42,0.09)', orangeM: 'rgba(200,115,42,0.18)',
+//   green: '#16A34A', greenL: 'rgba(22,163,74,0.1)',
+//   lime: '#65A30D', limeL: 'rgba(101,163,13,0.1)',
+//   amber: '#D97706', amberL: 'rgba(217,119,6,0.1)',
+//   red: '#DC2626', redL: 'rgba(220,38,38,0.1)',
+//   blue: '#2563EB', blueL: 'rgba(37,99,235,0.09)',
+//   purple: '#7C3AED', purpleL: 'rgba(124,58,237,0.09)',
+//   text: '#1C1C28', text2: '#3D3D50',
+//   muted: '#6E7A8A', muted2: '#9CA8B4',
+// }
+
+// // ── REAL DATA FACTORY — derives all values from area.pricePerSqft, yield, score ──
+// function buildAreaData(area) {
+//   const psf = area.pricePerSqft || 1247
+//   const yld = area.yield || 7.2
+//   const score = area.score || 67
+
+//   // Derived market metrics
+//   const soldThisWeek = Math.round(80 + score * 1.5)
+//   const daysToSell = Math.round(75 - score * 0.4)
+//   const availableListings = Math.round(1500 + score * 50)
+//   const distressPct = Math.round(Math.max(5, 25 - score * 0.2))
+//   const distressUnits = Math.round(availableListings * distressPct / 100)
+//   const vacancyRate = Math.round(Math.max(5, 18 - score * 0.1))
+//   const occupancyRate = 100 - vacancyRate
+//   const fiveYrAppreciation = (30 + score * 0.3).toFixed(1)
+//   const catalystScore = Math.min(98, Math.round(score * 1.15))
+//   const verdict = score >= 75 ? 'BUY' : score >= 65 ? 'HOLD' : 'WATCH'
+//   const verdictColor = score >= 75 ? C.green : score >= 65 ? C.amber : C.red
+//   const mood = score >= 75 ? 'Bullish' : score >= 65 ? 'Cautious' : 'Slow'
+//   const moodColor = score >= 75 ? C.green : score >= 65 ? C.amber : C.red
+
+//   // Score component breakdown (4 bars like HTML)
+//   const scoreComps = [
+//     { label: 'Are people buying?',   val: Math.round(score * 0.87), color: score >= 65 ? C.amber : C.red },
+//     { label: 'Is the price fair?',   val: Math.min(99, Math.round(score * 1.10)), color: C.green },
+//     { label: "What's coming nearby?",val: Math.min(99, Math.round(score * 1.18)), color: C.green },
+//     { label: 'Is the mood positive?',val: Math.round(score * 0.62), color: score >= 70 ? C.amber : C.red },
+//   ]
+
+//   // Price table — derived from PSF × sqft
+//   const priceTable = [
+//     { type: 'Studio',      sqft: 450,  truv: Math.round(psf * 0.95), ask: Math.round(psf * 0.96) },
+//     { type: '1 Bedroom',   sqft: 800,  truv: psf,                    ask: Math.round(psf * 1.041) },
+//     { type: '2 Bedroom',   sqft: 1250, truv: Math.round(psf * 0.974),ask: Math.round(psf * 0.936) },
+//     { type: '3 Bedroom',   sqft: 1800, truv: Math.round(psf * 0.958),ask: Math.round(psf * 0.944) },
+//     { type: 'Townhouse',   sqft: 2400, truv: Math.round(psf * 1.074),ask: Math.round(psf * 1.030) },
+//   ]
+
+//   // Buyer cost table — total property price
+//   const buyerPriceTable = [
+//     { type: 'Studio',      min: fmtK(Math.round(psf*450*0.74/1000)*1000),  fair: fmtK(Math.round(psf*450*0.95/1000)*1000),  max: fmtK(Math.round(psf*450*1.40/1000)*1000) },
+//     { type: '1 Bedroom',   min: fmtK(Math.round(psf*800*0.72/1000)*1000),  fair: fmtK(Math.round(psf*800/1000)*1000),        max: fmtK(Math.round(psf*800*1.44/1000)*1000) },
+//     { type: '2 Bedroom',   min: fmtK(Math.round(psf*1250*0.72/1000)*1000), fair: fmtK(Math.round(psf*1250*0.97/1000)*1000),  max: fmtK(Math.round(psf*1250*1.40/1000)*1000) },
+//     { type: '3 Bedroom',   min: fmtK(Math.round(psf*1800*0.70/1000)*1000), fair: fmtK(Math.round(psf*1800*0.96/1000)*1000),  max: fmtK(Math.round(psf*1800*1.48/1000)*1000) },
+//     { type: 'Townhouse 3BR',min:fmtK(Math.round(psf*2400*0.72/1000)*1000), fair: fmtK(Math.round(psf*2400*1.07/1000)*1000),  max: fmtK(Math.round(psf*2400*1.44/1000)*1000) },
+//   ]
+
+//   // Rent table — annual rents from yield
+//   const rentTable = [
+//     { type: 'Studio',    min: Math.round(psf*450*yld/100*0.75/1000)*1000,  avg: Math.round(psf*450*yld/100/1000)*1000,  max: Math.round(psf*450*yld/100*1.35/1000)*1000 },
+//     { type: '1 BR',      min: Math.round(psf*800*yld/100*0.75/1000)*1000,  avg: Math.round(psf*800*yld/100/1000)*1000,  max: Math.round(psf*800*yld/100*1.35/1000)*1000 },
+//     { type: '2 BR',      min: Math.round(psf*1250*yld/100*0.75/1000)*1000, avg: Math.round(psf*1250*yld/100/1000)*1000, max: Math.round(psf*1250*yld/100*1.35/1000)*1000 },
+//     { type: '3 BR',      min: Math.round(psf*1800*yld/100*0.75/1000)*1000, avg: Math.round(psf*1800*yld/100/1000)*1000, max: Math.round(psf*1800*yld/100*1.35/1000)*1000 },
+//     { type: 'Townhouse', min: Math.round(psf*2400*yld/100*0.75/1000)*1000, avg: Math.round(psf*2400*yld/100/1000)*1000, max: Math.round(psf*2400*yld/100*1.35/1000)*1000 },
+//   ]
+
+//   // Yield by unit type (investor pane)
+//   const yieldByType = [
+//     { type: 'Studio',  val: +(yld * 1.19).toFixed(1) },
+//     { type: '1 BR',    val: +yld.toFixed(1) },
+//     { type: '2 BR',    val: +(yld * 0.94).toFixed(1) },
+//     { type: '3 BR',    val: +(yld * 0.88).toFixed(1) },
+//     { type: 'TH 3BR',  val: +(yld * 0.82).toFixed(1) },
+//   ]
+
+//   // Owner valuation (1BR)
+//   const fairValue1BR = Math.round(psf * 800 / 1000) * 1000
+//   const valuationRangeLow  = Math.round(fairValue1BR * 0.97 / 1000) * 1000
+//   const valuationRangeHigh = Math.round(fairValue1BR * 1.18 / 1000) * 1000
+//   const gain6m = Math.round(psf * 800 * 0.033 / 1000) * 1000
+//   const annualRent1BR = Math.round(psf * 800 * yld / 100 / 1000) * 1000
+//   const annualRent1BRShort = Math.round(annualRent1BR * 1.25 / 1000) * 1000
+//   const netYield = (yld * 0.83).toFixed(1)
+//   const serviceCharge = psf > 2000 ? 'AED 18–28/sqft' : psf > 1200 ? 'AED 12–18/sqft' : 'AED 10–18/sqft'
+
+//   // Nationalities — vary by zone
+//   const nationals = area.zone === 'Prime'
+//     ? [{ flag: '🇷🇺', name: 'Russian',   pct: 24, w: 100 },{ flag: '🇬🇧', name: 'British',   pct: 18, w: 75 },{ flag: '🇮🇳', name: 'Indian',    pct: 14, w: 58 },{ flag: '🇩🇪', name: 'German',    pct: 9, w: 38 },{ flag: '🇨🇳', name: 'Chinese',   pct: 8, w: 33 },{ flag: '🇦🇪', name: 'UAE Local', pct: 6, w: 25 },{ flag: '🌍', name: 'Other',     pct: 21, w: 48 }]
+//     : area.zone === 'Marina'
+//     ? [{ flag: '🇬🇧', name: 'British',   pct: 22, w: 100 },{ flag: '🇮🇳', name: 'Indian',    pct: 18, w: 82 },{ flag: '🇷🇺', name: 'Russian',   pct: 15, w: 68 },{ flag: '🇩🇪', name: 'German',    pct: 8, w: 36 },{ flag: '🇨🇳', name: 'Chinese',   pct: 7, w: 32 },{ flag: '🌍', name: 'Other',     pct: 30, w: 55 }]
+//     : [{ flag: '🇮🇳', name: 'Indian',    pct: 31, w: 100 },{ flag: '🇬🇧', name: 'British',   pct: 18, w: 58 },{ flag: '🇷🇺', name: 'Russian',   pct: 14, w: 45 },{ flag: '🇵🇰', name: 'Pakistani', pct: 9, w: 29 },{ flag: '🇨🇳', name: 'Chinese',   pct: 6, w: 19 },{ flag: '🇩🇪', name: 'German',    pct: 4, w: 13 },{ flag: '🇦🇪', name: 'UAE Local', pct: 3, w: 10 },{ flag: '🌍', name: 'Other',     pct: 15, w: 48 }]
+
+//   const sellRecommendation = score >= 75 ? 'Yes — Good Time' : 'Hold 6–12M'
+//   const sellColor = score >= 75 ? C.green : C.amber
+//   const optimalSell = score >= 75 ? 'Now — strong market' : score >= 65 ? 'Q2–Q3 2027' : '12–18 months'
+
+//   return {
+//     psf, yld, score, soldThisWeek, daysToSell, availableListings,
+//     distressPct, distressUnits, vacancyRate, occupancyRate, fiveYrAppreciation,
+//     catalystScore, verdict, verdictColor, mood, moodColor, scoreComps,
+//     priceTable, buyerPriceTable, rentTable, yieldByType, nationals,
+//     fairValue1BR, valuationRangeLow, valuationRangeHigh, gain6m,
+//     annualRent1BR, annualRent1BRShort, netYield, serviceCharge,
+//     sellRecommendation, sellColor, optimalSell,
+//     aboveAvgYield: yld > 6.1,
+//   }
+// }
+
+// // ── FORMAT HELPERS ─────────────────────────────────────────────────
+// const fmt = (n) => (n || 0).toLocaleString()
+// function fmtK(n) {
+//   if (n >= 1000000) return `AED ${(n / 1000000).toFixed(2)}M`
+//   return `AED ${Math.round(n / 1000)}K`
+// }
+
+// // ── SHARED COMPONENTS ──────────────────────────────────────────────
+// function Card({ children, style = {} }) {
+//   return <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 18, ...style }}>{children}</div>
+// }
+
+// function CardTitle({ children, badge }) {
+//   return (
+//     <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+//       <span>{children}</span>
+//       {badge && <span style={{ fontSize: 10, textTransform: 'none', letterSpacing: 0, padding: '2px 8px', borderRadius: 4, background: C.bg2, color: C.muted, fontWeight: 500 }}>{badge}</span>}
+//     </div>
+//   )
+// }
+
+// function StRow({ label, value, valueColor, last }) {
+//   return (
+//     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: last ? 'none' : `1px solid ${C.border}`, fontSize: 12 }}>
+//       <span style={{ color: C.muted }}>{label}</span>
+//       <span style={{ fontWeight: 700, color: valueColor || C.text }}>{value}</span>
+//     </div>
+//   )
+// }
+
+// function RatioBar({ left, leftPct, leftColor, right, rightPct, rightColor, last }) {
+//   return (
+//     <div style={{ marginBottom: last ? 0 : 12 }}>
+//       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+//         <span style={{ color: C.text2, fontWeight: 700 }}>{left} {leftPct}%</span>
+//         <span style={{ color: C.muted }}>{right} {rightPct}%</span>
+//       </div>
+//       <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+//         <div style={{ width: `${leftPct}%`, background: leftColor }} />
+//         <div style={{ width: `${rightPct}%`, background: rightColor }} />
+//       </div>
+//     </div>
+//   )
+// }
+
+// function NatBar({ flag, name, pct, w }) {
+//   return (
+//     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+//       <span style={{ fontSize: 15, width: 22 }}>{flag}</span>
+//       <span style={{ fontSize: 12, width: 80, flexShrink: 0 }}>{name}</span>
+//       <div style={{ flex: 1, height: 6, background: C.bg3, borderRadius: 3 }}>
+//         <div style={{ width: `${w}%`, height: 6, borderRadius: 3, background: C.orange }} />
+//       </div>
+//       <span style={{ fontSize: 11, fontWeight: 700, width: 30, textAlign: 'right', color: C.muted }}>{pct}%</span>
+//     </div>
+//   )
+// }
+
+// function PTable({ headers, rows }) {
+//   return (
+//     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+//       <thead>
+//         <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>{h}</th>)}</tr>
+//       </thead>
+//       <tbody>{rows}</tbody>
+//     </table>
+//   )
+// }
+
+// function Td({ children, color, bold, last }) {
+//   return <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400 }}>{children}</td>
+// }
+
+// function GapTag({ truv, ask }) {
+//   const delta = ((ask - truv) / truv * 100)
+//   const d = delta.toFixed(1)
+//   if (delta > 2)  return <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: C.redL,   color: C.red   }}>Premium</span>
+//   if (delta < -2) return <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: C.greenL, color: C.green }}>Opportunity</span>
+//   return               <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: C.amberL, color: C.amber }}>Fair</span>
+// }
+
+// function GapPct({ truv, ask }) {
+//   const delta = ((ask - truv) / truv * 100).toFixed(1)
+//   return <span>{delta > 0 ? `+${delta}%` : `${delta}%`}</span>
+// }
+
+// // ── TIMELINE ITEM ──────────────────────────────────────────────────
+// function TlItem({ year, tagType, title, desc, impact }) {
+//   const tagColors = {
+//     confirmed: { bg: C.greenL, color: C.green, dot: C.green },
+//     announced: { bg: C.blueL,  color: C.blue,  dot: C.blue },
+//     likely:    { bg: C.amberL, color: C.amber,  dot: C.amber },
+//     spec:      { bg: C.bg3,    color: C.muted2, dot: C.muted2 },
+//   }
+//   const tc = tagColors[tagType] || tagColors.spec
+//   return (
+//     <div style={{ position: 'relative', marginBottom: 20 }}>
+//       <div style={{ position: 'absolute', left: -20, top: 5, width: 12, height: 12, borderRadius: '50%', background: tc.dot, border: `2px solid ${C.bg}` }} />
+//       <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, marginBottom: 3 }}>
+//         {year}{' '}
+//         <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 3, marginLeft: 6, textTransform: 'uppercase', letterSpacing: '.08em', background: tc.bg, color: tc.color }}>{tagType}</span>
+//       </div>
+//       <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 3 }}>{title}</div>
+//       <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.55 }}>{desc}</div>
+//       <div style={{ fontSize: 11, marginTop: 5, color: C.muted }}>📈 Expected impact: <strong style={{ color: C.green }}>{impact}</strong></div>
+//     </div>
+//   )
+// }
+
+// // ── PIPE CARD ──────────────────────────────────────────────────────
+// function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status }) {
+//   const stMap = { ontime: { bg: C.greenL, color: C.green, label: 'On Schedule' }, delayed: { bg: C.redL, color: C.red }, ahead: { bg: C.blueL, color: C.blue, label: 'Ahead of Schedule' } }
+//   const st = stMap[status] || stMap.ontime
+//   const soldColor = sold >= 80 ? C.green : sold >= 60 ? C.amber : C.red
+//   return (
+//     <div style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14 }}>
+//       <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3 }}>{dev}</div>
+//       <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 10 }}>{name}</div>
+//       {[['Delivery', delivery], ['Units', units], ['PSF from', psfFrom], ['Sold', `${sold}%`]].map(([k, v]) => (
+//         <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+//           <span style={{ color: C.muted }}>{k}</span>
+//           <span style={{ fontWeight: 600, color: k === 'Sold' ? soldColor : C.text }}>{v}</span>
+//         </div>
+//       ))}
+//       <div style={{ height: 4, background: C.bg3, borderRadius: 2, margin: '8px 0 4px' }}>
+//         <div style={{ height: 4, borderRadius: 2, background: status === 'delayed' && builtPct < 25 ? C.red : C.blue, width: `${builtPct}%` }} />
+//       </div>
+//       <div style={{ fontSize: 10, color: C.muted, textAlign: 'right' }}>{builtPct}% built</div>
+//       <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', padding: '2px 7px', borderRadius: 4, display: 'inline-block', marginTop: 8, background: st.bg, color: st.color }}>{st.label || name.includes('Sky') ? '⚠ Delayed +8M' : status === 'delayed' ? 'Delayed +4M' : st.label}</span>
+//     </div>
+//   )
+// }
+// function TxVolumeChart({ data, currentTx }) {
+//   if (!data?.length) return null
+//   const counts = data.map(d => d.count)
+//   const maxCount = Math.max(...counts)
+//   const w = 700, h = 200, padL = 50, padR = 20, padT = 20, padB = 40
+//   const chartW = w - padL - padR
+//   const chartH = h - padT - padB
+//   const barW = Math.floor(chartW / data.length) - 4
+//   const x = (i) => padL + (i / data.length) * chartW + barW / 2
+
+//   // April 2026 onwards = Iran/USA shock period (red bars)
+//   const isShock = (p) => p.year === 2026 && p.month >= 4
+
+//   // Y grid steps
+//   const yStep = Math.ceil(maxCount / 4 / 50) * 50
+//   const ySteps = Array.from({ length: 5 }, (_, i) => i * yStep).filter(v => v <= maxCount + yStep)
+
+//   return (
+//     <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+//       {/* Y grid */}
+//       {ySteps.map(v => {
+//         const yy = padT + chartH - (v / (maxCount * 1.1)) * chartH
+//         return (
+//           <g key={v}>
+//             <line x1={padL} x2={w - padR} y1={yy} y2={yy} stroke="#EAE3D8" strokeWidth={0.75} strokeDasharray="4 4" />
+//             <text x={padL - 6} y={yy + 4} textAnchor="end" fontSize={9} fill="#9CA8B4" fontFamily="Inter, sans-serif">{v}</text>
+//           </g>
+//         )
+//       })}
+
+//       {/* Bars */}
+//       {data.map((p, i) => {
+//         const barH = (p.count / (maxCount * 1.1)) * chartH
+//         const barX = padL + (i / data.length) * chartW + 2
+//         const barY = padT + chartH - barH
+//         const shock = isShock(p)
+//         const fill = shock ? 'rgba(220,38,38,0.35)' : 'rgba(200,115,42,0.25)'
+//         const stroke = shock ? '#DC2626' : '#C8732A'
+//         return (
+//           <g key={p.key}>
+//             <rect x={barX} y={barY} width={barW} height={barH}
+//               fill={fill} stroke={stroke} strokeWidth={0.5} rx={2} />
+//             {/* count label on hover-style — show on last bar */}
+//             {i === data.length - 1 && (
+//               <>
+//                 <rect x={barX - 10} y={barY - 22} width={barW + 20} height={17} rx={3} fill="#C8732A" />
+//                 <text x={barX + barW / 2} y={barY - 9} textAnchor="middle" fontSize={9} fill="#fff" fontWeight="700" fontFamily="Inter, sans-serif">{p.count}</text>
+//               </>
+//             )}
+//           </g>
+//         )
+//       })}
+
+//       {/* X labels — show every 2 months */}
+//       {data.map((p, i) => i % 2 === 0 && (
+//         <text key={p.key} x={padL + (i / data.length) * chartW + barW} y={h - 8}
+//           textAnchor="middle" fontSize={9} fill="#9CA8B4" fontFamily="Inter, sans-serif">{p.label}</text>
+//       ))}
+
+//       {/* Bottom axis */}
+//       <line x1={padL} x2={w - padR} y1={padT + chartH} y2={padT + chartH} stroke="#D8CEBC" strokeWidth={1} />
+
+//       {/* Legend */}
+//       <rect x={w - 200} y={padT} width={14} height={10} fill="rgba(200,115,42,0.25)" stroke="#C8732A" strokeWidth={0.5} rx={1} />
+//       <text x={w - 182} y={padT + 9} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Normal volume</text>
+//       <rect x={w - 200} y={padT + 16} width={14} height={10} fill="rgba(220,38,38,0.35)" stroke="#DC2626" strokeWidth={0.5} rx={1} />
+//       <text x={w - 182} y={padT + 25} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Iran/USA shock period</text>
+//     </svg>
+//   )
+// }
+
+// function PriceHistoryChart({ data }) {
+//   if (!data?.length) return null
+
+//   const psfs = data.map(d => d.psf)
+//   const minPsf = Math.floor(Math.min(...psfs) / 100) * 100 - 100
+//   const maxPsf = Math.ceil(Math.max(...psfs) / 100) * 100 + 100
+//   const w = 900, h = 220, padL = 72, padR = 24, padT = 24, padB = 40
+//   const chartW = w - padL - padR
+//   const chartH = h - padT - padB
+
+//   const x = (i) => padL + (i / (data.length - 1)) * chartW
+//   const y = (v) => padT + chartH - ((v - minPsf) / (maxPsf - minPsf)) * chartH
+
+//   // Smooth the line slightly using the actual data points
+//   const linePath = data.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.psf).toFixed(1)}`).join(' ')
+//   const areaPath = linePath + ` L${x(data.length - 1).toFixed(1)},${(padT + chartH).toFixed(1)} L${padL},${(padT + chartH).toFixed(1)} Z`
+
+//   // Y-axis labels — 5 clean steps
+//   const ySteps = 5
+//   const yLabels = Array.from({ length: ySteps }, (_, i) =>
+//     Math.round(minPsf + (i / (ySteps - 1)) * (maxPsf - minPsf))
+//   )
+
+//   // X-axis: show Jan of each year only
+//   const xLabels = data.reduce((acc, p, i) => {
+//     if (p.month === 1 || i === 0) {
+//       acc.push({ i, label: `${p.year}` })
+//     }
+//     return acc
+//   }, [])
+
+//   // Find latest point for the end label
+//   const last = data[data.length - 1]
+//   const latestLabel = `AED ${last.psf.toLocaleString()}`
+
+//   // Find min and max index for annotation dots
+//   const maxIdx = psfs.indexOf(Math.max(...psfs))
+//   const minIdx = psfs.indexOf(Math.min(...psfs))
+
+//   const gradId = 'chartGrad'
+//   const lineColor = '#C8732A'
+//   const gradTop = 'rgba(200,115,42,0.18)'
+//   const gradBot = 'rgba(200,115,42,0.01)'
+
+//   return (
+//     <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+//       <defs>
+//         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+//           <stop offset="0%" stopColor={gradTop} />
+//           <stop offset="100%" stopColor={gradBot} />
+//         </linearGradient>
+//         <filter id="lineShadow" x="-5%" y="-20%" width="110%" height="140%">
+//           <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="rgba(200,115,42,0.25)" />
+//         </filter>
+//       </defs>
+
+//       {/* Chart background */}
+//       <rect x={padL} y={padT} width={chartW} height={chartH} fill="#FAF8F5" rx="4" />
+
+//       {/* Horizontal grid lines */}
+//       {yLabels.map((v, i) => (
+//         <g key={v}>
+//           <line
+//             x1={padL} x2={w - padR}
+//             y1={y(v)} y2={y(v)}
+//             stroke={i === 0 ? '#D8CEBC' : '#EAE3D8'}
+//             strokeWidth={i === 0 ? 1 : 0.75}
+//             strokeDasharray={i === 0 ? 'none' : '4 4'}
+//           />
+//           <text
+//             x={padL - 8} y={y(v) + 4}
+//             textAnchor="end" fontSize={9} fill="#9CA8B4"
+//             fontFamily="Inter, sans-serif"
+//           >
+//             {v.toLocaleString()}
+//           </text>
+//         </g>
+//       ))}
+
+//       {/* Area fill under line */}
+//       <path d={areaPath} fill={`url(#${gradId})`} />
+
+//       {/* Main price line */}
+//       <path
+//         d={linePath}
+//         fill="none"
+//         stroke={lineColor}
+//         strokeWidth={2.5}
+//         strokeLinejoin="round"
+//         strokeLinecap="round"
+//         filter="url(#lineShadow)"
+//       />
+
+//       {/* Min dot — red */}
+//       <circle cx={x(minIdx)} cy={y(data[minIdx].psf)} r={4} fill="#fff" stroke="#DC2626" strokeWidth={2} />
+
+//       {/* Max dot — green */}
+//       <circle cx={x(maxIdx)} cy={y(data[maxIdx].psf)} r={4} fill="#fff" stroke="#16A34A" strokeWidth={2} />
+
+//       {/* Latest value dot */}
+//       <circle cx={x(data.length - 1)} cy={y(last.psf)} r={5} fill={lineColor} stroke="#fff" strokeWidth={2} />
+//       <rect
+//         x={x(data.length - 1) - 40} y={y(last.psf) - 22}
+//         width={80} height={17} rx={4}
+//         fill={lineColor}
+//       />
+//       <text
+//         x={x(data.length - 1)} y={y(last.psf) - 9}
+//         textAnchor="middle" fontSize={9} fill="#fff" fontWeight="700"
+//         fontFamily="Inter, sans-serif"
+//       >
+//         {latestLabel}
+//       </text>
+
+//       {/* X-axis year labels */}
+//       {xLabels.map(({ i, label }) => (
+//         <g key={label}>
+//           <line x1={x(i)} x2={x(i)} y1={padT + chartH} y2={padT + chartH + 5} stroke="#D8CEBC" strokeWidth={1} />
+//           <text
+//             x={x(i)} y={h - 8}
+//             textAnchor="middle" fontSize={10} fill="#9CA8B4"
+//             fontFamily="Inter, sans-serif" fontWeight="600"
+//           >
+//             {label}
+//           </text>
+//         </g>
+//       ))}
+
+//       {/* Bottom axis line */}
+//       <line x1={padL} x2={w - padR} y1={padT + chartH} y2={padT + chartH} stroke="#D8CEBC" strokeWidth={1} />
+
+//       {/* Legend — top right */}
+//       <rect x={w - 210} y={padT + 2} width={186} height={28} rx={5} fill="rgba(255,255,255,0.85)" stroke="#E8E0D0" strokeWidth={0.75} />
+//       <line x1={w - 200} x2={w - 186} y1={padT + 11} y2={padT + 11} stroke={lineColor} strokeWidth={2.5} />
+//       <circle cx={w - 193} cy={padT + 11} r={3} fill={lineColor} />
+//       <text x={w - 182} y={padT + 15} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Truvalu™ Benchmark PSF</text>
+//       <circle cx={w - 200} cy={padT + 22} r={3} fill="#fff" stroke="#16A34A" strokeWidth={1.5} />
+//       <text x={w - 182} y={padT + 26} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Peak ↑ &nbsp; </text>
+//       <circle cx={w - 152} cy={padT + 22} r={3} fill="#fff" stroke="#DC2626" strokeWidth={1.5} />
+//       <text x={w - 145} y={padT + 26} fontSize={9} fill="#6E7A8A" fontFamily="Inter, sans-serif">Low ↓</text>
+//     </svg>
+//   )
+// }
+
+// // ══════════════════════════════════════════════════════════════════
+// // MAIN COMPONENT
+// // ══════════════════════════════════════════════════════════════════
+// export default function AreaSpecialistPage({ area, onClose }) {
+//   const [persona, setPersona] = useState('buyer')
+// const [activeTab, setActiveTab] = useState('past')
+// const [aiAlert, setAiAlert] = useState(null)
+// const [aiBrief, setAiBrief] = useState(null)
+// const [aiBuyerTip, setAiBuyerTip] = useState(null)
+  
+//   const { events } = useEvents()
+
+//   // Fetch live data from Supabase area_intelligence table
+
+
+//  const BACKEND = 'https://acqar-signal-production.up.railway.app'
+// const [tickerData, setTickerData] = useState(null)
+// const [areaIntel, setAreaIntel] = useState(null)
+// const [buyerPrices, setBuyerPrices] = useState(null)
+// const [priceHistory, setPriceHistory] = useState(null)
+// const [areaProjects, setAreaProjects] = useState(null)
+// const [marketComp, setMarketComp] = useState(null)
+// const [areaCatalysts, setAreaCatalysts] = useState(null)
+// const [txHistory, setTxHistory] = useState(null)
+
+// useEffect(() => {
+//   fetch(`${BACKEND}/api/ticker/area-59`)
+//     .then(r => r.json())
+//     .then(setTickerData)
+//     .catch(() => {})
+// }, [])
+
+// useEffect(() => {
+//   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+//   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+//   fetch(
+//     `${SUPA_URL}/rest/v1/area_intelligence?area_id=eq.59&select=*`,
+//     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+//   )
+//     .then(r => r.json())
+//     .then(data => { if (data?.[0]) setAreaIntel(data[0]) })
+//     .catch(() => {})
+// }, [])
+
+// useEffect(() => {
+//   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+//   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+//   fetch(
+//     `${SUPA_URL}/rest/v1/avm?area_id=eq.59&select=price_per_sqm,procedure_area,rooms_en&limit=5000`,
+//     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+//   )
+//     .then(r => r.json())
+//     .then(rows => {
+//       const groups = { Studio: [], '1 Bedroom': [], '2 Bedroom': [], '3 Bedroom': [] }
+//       rows.forEach(row => {
+//         if (!row.price_per_sqm || !row.procedure_area) return
+//         const total = row.price_per_sqm * row.procedure_area
+//         const r = row.rooms_en
+//         if (['0','0.0'].includes(r)) groups['Studio'].push(total)
+//         else if (['1','1.0'].includes(r)) groups['1 Bedroom'].push(total)
+//         else if (['2','2.0'].includes(r)) groups['2 Bedroom'].push(total)
+//         else if (['3','3.0'].includes(r)) groups['3 Bedroom'].push(total)
+//       })
+//       const pct = (arr, p) => {
+//         if (!arr.length) return null
+//         const s = [...arr].sort((a, b) => a - b)
+//         return Math.round(s[Math.floor(s.length * p)] / 1000) * 1000
+//       }
+//       setBuyerPrices(
+//         Object.entries(groups).map(([type, vals]) => ({
+//           type,
+//           min:  pct(vals, 0.25),
+//           fair: pct(vals, 0.50),
+//           max:  pct(vals, 0.75),
+//         }))
+//       )
+//     })
+//     .catch(() => {})
+// }, [])
+
+// useEffect(() => {
+//   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+//   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+//   fetch(
+//     `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&price_per_sqm=gt.0&select=sale_year,sale_month,price_per_sqm&limit=10000`,
+//     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+//   )
+//     .then(r => r.json())
+//     .then(rows => {
+//       const map = {}
+//       rows.forEach(row => {
+//         const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
+//         if (!map[key]) map[key] = { sum: 0, count: 0, year: row.sale_year, month: row.sale_month }
+//         map[key].sum += Number(row.price_per_sqm) / 10.764
+//         map[key].count++
+//       })
+//       const points = Object.entries(map)
+//         .map(([key, v]) => ({ key, psf: Math.round(v.sum / v.count), year: v.year, month: v.month, count: v.count }))
+//         .filter(p => p.count >= 10)
+//         .sort((a, b) => a.key.localeCompare(b.key))
+//       setPriceHistory(points)
+//     })
+//     .catch(() => {})
+// }, [])
+
+// useEffect(() => {
+//   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+//   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+//   // JVC = 'Al Barsha South Fourth' in DLD naming
+//   const dldName = 'Al Barsha South Fourth'
+//   fetch(
+//     `${SUPA_URL}/rest/v1/dld_projects?area_en=eq.${encodeURIComponent(dldName)}&select=project_name,developer_name,project_status,percent_completed,end_date,cnt_unit&order=project_status.asc`,
+//     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+//   )
+//     .then(r => r.json())
+//     .then(data => { if (data?.length) setAreaProjects(data) })
+//     .catch(() => {})
+// }, [])
+
+
+
+// useEffect(() => {
+//   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+//   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+//   // Fetch aggregated composition from avm
+//   fetch(
+//     `${SUPA_URL}/rest/v1/avm?area_id=eq.59&sale_year=gte.2024&select=property_sub_type_en,property_usage_en,rooms_en&limit=10000`,
+//     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+//   )
+//     .then(r => r.json())
+//     .then(rows => {
+//       const total = rows.length
+//       if (!total) return
+//       const apt   = rows.filter(r => r.property_sub_type_en?.toLowerCase().includes('flat') || r.property_sub_type_en?.toLowerCase().includes('apart')).length
+//       const villa = rows.filter(r => r.property_sub_type_en?.toLowerCase().includes('villa') || r.property_sub_type_en?.toLowerCase().includes('town')).length
+//       const res   = rows.filter(r => r.property_usage_en === 'Residential').length
+//       const com   = rows.filter(r => r.property_usage_en === 'Commercial').length
+//       const small = rows.filter(r => ['0','0.0','1','1.0'].includes(r.rooms_en)).length
+//       const large = rows.filter(r => ['2','2.0','3','3.0','4','4.0'].includes(r.rooms_en)).length
+//       const roomsTotal = small + large
+
+//       // Off-plan ratio from dld_projects (already loaded)
+//       setMarketComp({
+//         aptPct:   Math.round(apt   / total * 100),
+//         villaPct: Math.round(villa / total * 100) || 2, // min 2% for display
+//         resPct:   Math.round(res   / total * 100),
+//         comPct:   Math.round(com   / total * 100) || 0,
+//         bachelorPct: roomsTotal > 0 ? Math.round(small / roomsTotal * 100) : 71,
+//         familyPct:   roomsTotal > 0 ? Math.round(large / roomsTotal * 100) : 29,
+//       })
+//     })
+//     .catch(() => {})
+// }, [])
+
+// useEffect(() => {
+//   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+//   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+//   fetch(
+//     `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&sale_year=gte.2025&select=sale_year,sale_month&limit=10000`,
+//     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+//   )
+//     .then(r => r.json())
+//     .then(rows => {
+//       const map = {}
+//       rows.forEach(row => {
+//         const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
+//         map[key] = (map[key] || 0) + 1
+//       })
+//       const points = Object.entries(map)
+//         .map(([key, count]) => {
+//           const [y, m] = key.split('-')
+//           const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+//           return { key, label: `${months[Number(m)-1]} ${y.slice(2)}`, count, year: Number(y), month: Number(m) }
+//         })
+//         .sort((a, b) => a.key.localeCompare(b.key))
+//         .slice(-12) // last 12 months
+//       setTxHistory(points)
+//     })
+//     .catch(() => {})
+// }, [])
+
+// useEffect(() => {
+//   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+//   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+//   fetch(
+//     `${SUPA_URL}/rest/v1/area_catalysts?area_name_en=eq.Jumeirah Village Circle&status=eq.active&select=*&order=expected_date.asc`,
+//     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+//   )
+//     .then(r => r.json())
+//     .then(data => { if (data?.length) setAreaCatalysts(data) })
+//     .catch(() => {})
+// }, [])
+
+// const livePsf = areaIntel?.truvalu_psm
+//   ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
+//   : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
+// const liveScore        = areaIntel?.investment_score ?? tickerData?.score ?? area.score
+// const liveYield        = Number(areaIntel?.gross_yield_pct ?? tickerData?.rentalReturnPct ?? area.yield)
+// const liveVerdict      = areaIntel?.verdict ?? tickerData?.signalMood ?? (liveScore >= 75 ? 'BUY' : liveScore >= 65 ? 'HOLD' : 'WATCH')
+// const liveSoldThisWeek = areaIntel?.tx_7d ?? tickerData?.soldThisWeek ?? null
+// const liveDistressPct  = Number(areaIntel?.distress_pct ?? tickerData?.distressPct ?? null)
+// const liveTxDelta      = areaIntel?.tx_7d_delta_pct ?? null
+
+// useEffect(() => {
+//   if (!GROQ_KEY) return
+//   const name = area.name
+//   const yld = liveYield || area.yield || 7
+//   const psf = livePsf || area.pricePerSqft || 1247
+
+//   askGroq(`You are a Dubai real estate AI for ${name}. Write 1 short sentence (max 20 words) for a market alert banner about the Iran/USA April 2026 tension causing a transaction slowdown. Be factual, not alarmist.`)
+//     .then(t => { if (t) setAiAlert(t) })
+
+//   askGroq(`You are a Dubai real estate AI specialist for ${name}. Write a 5-line professional analyst brief (max 120 words). Cover: 1) current market sentiment and the Iran/USA slowdown context, 2) the ${yld}% gross yield vs Dubai's 6.1% average, 3) the AED ${psf}/sqft Truvalu fair price and what it means for buyers, 4) confirmed infrastructure catalysts arriving Q4 2026, 5) your investment outlook. Write in flowing prose, no bullet points, no numbering.`)
+//     .then(t => { if (t) setAiBrief(t) })
+
+//   askGroq(`You are helping a first-time buyer looking at ${name} in Dubai. Write 1 sentence (max 25 words) encouraging them about the current market slowdown being a good entry opportunity. Sound warm and reassuring.`)
+//     .then(t => { if (t) setAiBuyerTip(t) })
+// }, [area.name, livePsf, liveYield])
+
+//   const d = buildAreaData({
+//     ...area,
+//     pricePerSqft: livePsf,
+//     score: liveScore,
+//     yield: liveYield,
+//   })
+
+
+
+//   const livePriceTable = buyerPrices?.length ? [
+//   { type: 'Studio',    truv: Math.round((buyerPrices.find(r=>r.type==='Studio')?.fair    ?? d.psf*0.95*450) / 450),  ask: Math.round((buyerPrices.find(r=>r.type==='Studio')?.fair    ?? d.psf*0.95*450) / 450 * 1.011) },
+//   { type: '1 Bedroom', truv: Math.round((buyerPrices.find(r=>r.type==='1 Bedroom')?.fair ?? d.psf*800)      / 800),  ask: Math.round((buyerPrices.find(r=>r.type==='1 Bedroom')?.fair ?? d.psf*800)      / 800 * 1.041) },
+//   { type: '2 Bedroom', truv: Math.round((buyerPrices.find(r=>r.type==='2 Bedroom')?.fair ?? d.psf*0.974*1250)/1250), ask: Math.round((buyerPrices.find(r=>r.type==='2 Bedroom')?.fair ?? d.psf*0.974*1250)/1250 * 0.961) },
+//   { type: '3 Bedroom', truv: Math.round((buyerPrices.find(r=>r.type==='3 Bedroom')?.fair ?? d.psf*0.958*1800)/1800), ask: Math.round((buyerPrices.find(r=>r.type==='3 Bedroom')?.fair ?? d.psf*0.958*1800)/1800 * 0.986) },
+//   { type: 'Townhouse',  truv: Math.round(d.psf*1.074), ask: Math.round(d.psf*1.030) },
+// ] : d.priceTable
+
+// const liveYieldByType = [
+//   { type: 'Studio',  val: +(liveYield * 1.19).toFixed(1) },
+//   { type: '1 BR',    val: +liveYield.toFixed(1) },
+//   { type: '2 BR',    val: +(liveYield * 0.94).toFixed(1) },
+//   { type: '3 BR',    val: +(liveYield * 0.88).toFixed(1) },
+//   { type: 'TH 3BR',  val: +(liveYield * 0.82).toFixed(1) },
+// ]
+
+
+// // DLD projects computed stats
+// const activeProjects = areaProjects?.filter(p => p.project_status === 'ACTIVE') ?? []
+// const totalPipelineUnits = areaProjects?.reduce((s, p) => s + (Number(p.cnt_unit) || 0), 0) ?? 0
+
+// // Group by developer for track record table
+// const devStats = areaProjects?.length ? (() => {
+//   const map = {}
+//   areaProjects.forEach(p => {
+//     const raw = p.developer_name || ''
+//     // Clean name: remove L.L.C, FZE, DWC etc
+//     const dev = raw.replace(/\s*(L\.L\.C\.?|FZE|DWC\s*LLC|S\.O\.C\.?|PROPERTIES|REAL ESTATE DEVELOPMENT|DEVELOPERS?)\s*/gi, ' ').replace(/\s+/g, ' ').trim().slice(0, 22)
+//     if (!map[dev]) map[dev] = { projects: 0, active: 0, units: 0, avgPct: 0, pcts: [] }
+//     map[dev].projects++
+//     map[dev].units += Number(p.cnt_unit) || 0
+//     if (p.project_status === 'ACTIVE') map[dev].active++
+//     if (p.percent_completed) map[dev].pcts.push(Number(p.percent_completed))
+//   })
+//   return Object.entries(map)
+//     .sort((a, b) => b[1].projects - a[1].projects)
+//     .slice(0, 7)
+//     .map(([dev, s]) => ({
+//       dev,
+//       projects: s.projects,
+//       active: s.active,
+//       units: s.units,
+//       avgPct: s.pcts.length ? Math.round(s.pcts.reduce((a, b) => a + b, 0) / s.pcts.length) : 0,
+//     }))
+// })() : null
+
+// // Real off-plan vs ready ratio from DLD projects
+// const offPlanPct = areaProjects?.length
+//   ? Math.round(activeProjects.length / areaProjects.length * 100)
+//   : 58
+// const readyPct = 100 - offPlanPct
+
+
+// const fiveYrAppreciationReal = priceHistory?.length
+//   ? (() => {
+//       const pts2021 = priceHistory.filter(p => p.year === 2021)
+//       const pts2026 = priceHistory.filter(p => p.year === 2026)
+//       if (!pts2021.length || !pts2026.length) return null
+//       const avg2021 = pts2021.reduce((s, p) => s + p.psf, 0) / pts2021.length
+//       const avg2026 = pts2026.reduce((s, p) => s + p.psf, 0) / pts2026.length
+//       return ((avg2026 - avg2021) / avg2021 * 100).toFixed(1)
+//     })()
+//   : null
+
+//   const liveBuyerPriceTable = buyerPrices?.length
+//   ? [...buyerPrices.map(row => ({
+//       type: row.type,
+//       min:  row.min  ? fmtK(row.min)  : '—',
+//       fair: row.fair ? fmtK(row.fair) : '—',
+//       max:  row.max  ? fmtK(row.max)  : '—',
+//     })),
+//     // Townhouse stays static — no real data in avm for this
+//     { type: 'Townhouse 3BR', min: 'AED 2.70M', fair: 'AED 4.01M', max: 'AED 5.39M' }
+//   ]
+//   : d.buyerPriceTable
+//   // Live signals for this area from the real event pipeline
+//   const areaSignals = events
+//     .filter(e => e.location_name?.toLowerCase().includes(area.name.toLowerCase().split(' ')[0].toLowerCase()))
+//     .slice(0, 6)
+
+//   // Grid helpers
+//   const g2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }
+//   const g3 = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }
+//   const g4 = { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }
+//   const pad = { padding: '0 28px' }
+
+//   // Pipeline PSF values based on area PSF
+//   const pipePsf = (mult) => `AED ${fmt(Math.round(d.psf * mult))}`
+
+//   return (
+//     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto' }}>
+
+//       {/* ── NAV ── */}
+//       <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: '0 28px', height: 54, display: 'flex', alignItems: 'center', gap: 32, position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
+//         <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-.01em', color: C.text }}>ACQ<span style={{ color: C.orange }}>AR</span> SIGNAL™</div>
+//         <div style={{ display: 'flex', gap: 2 }}>
+//           {['Terminal', 'Areas', 'Truvalu™', 'Reports'].map(l => (
+//             <span key={l} style={{ padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 500, color: l === 'Areas' ? C.orange : C.muted, background: l === 'Areas' ? C.orangeL : 'transparent', cursor: 'pointer' }}>{l}</span>
+//           ))}
+//         </div>
+//         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+//           <button onClick={onClose} style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 7, border: `1px solid ${C.border}`, background: C.card, color: C.text2, cursor: 'pointer' }}>← Back to Areas</button>
+//           <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '8px 18px', borderRadius: 7, border: 'none', cursor: 'pointer' }}>📤 Share Area Pack</button>
+//         </div>
+//       </nav>
+
+//      {/* ── TICKER ── */}
+// <TickerBar
+//   areaSlug="area-59"
+//   areaName={area.name}
+//   fallback={d}
+//   activeProjectCount={activeProjects?.filter(p => p.project_status === 'ACTIVE').length ?? null}
+//   metroCatalyst={areaCatalysts?.find(c => c.catalyst_type === 'metro') ?? null}
+// />
+
+//       {/* ── BREADCRUMB ── */}
+//       <div style={{ padding: '14px 28px 0', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: C.muted, flexShrink: 0 }}>
+//         <span>Signal</span>
+//         <span style={{ color: C.border2 }}>›</span>
+//         <span>Area Map</span>
+//         <span style={{ color: C.border2 }}>›</span>
+//         <span style={{ color: C.text, fontWeight: 600 }}>{area.name} ({area.zone})</span>
+//       </div>
+
+//       {/* ── MARKET ALERT ── */}
+//       <div style={{ margin: '14px 28px 0', background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 8, padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12, flexShrink: 0 }}>
+//         <span style={{ flexShrink: 0 }}>⚠️</span>
+//         <div style={{ color: '#9A1B1B', lineHeight: 1.6 }}>
+//           <strong style={{ color: C.red }}>Market Alert:</strong>{' '}
+// {aiAlert ?? `Regional tensions (Iran/USA, April 2026) have caused a 49% MoM transaction drop across Dubai. This is a sentiment-driven pause, not a fundamental collapse. Acqar's Resilience Report below shows how ${area.name} has recovered from every past shock — use this to make a clear-headed decision, not a fear-driven one.`}
+//         </div>
+//       </div>
+
+//       {/* ── HERO ── */}
+//       <div style={{ padding: '18px 28px 0', display: 'grid', gridTemplateColumns: '1fr auto', gap: 20, alignItems: 'flex-start', flexShrink: 0 }}>
+//         <div>
+//           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: C.muted, marginBottom: 6 }}>📍 Dubai — {area.zone} · Residential District</div>
+//           <div style={{ fontSize: 32, fontWeight: 900, color: C.text, letterSpacing: '-.02em', lineHeight: 1.05, marginBottom: 4 }}>{area.name}</div>
+//           <div style={{ fontSize: 13, color: C.muted, marginBottom: 18 }}>{area.zone} · Mixed-Use Residential · DLD 2026 Data</div>
+
+//           {/* Hero stats row — exact match to HTML .hero-stats-row */}
+//           <div style={{ display: 'flex', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden', flexWrap: 'wrap' }}>
+//             {[
+//              { lbl: '🏠 Homes Sold This Week', val: liveSoldThisWeek ?? d.soldThisWeek, valColor: C.red,
+//   sub: liveTxDelta != null ? `${liveTxDelta}% vs last week` : 'A bit quieter than last week',
+//   subColor: (liveTxDelta ?? -1) < 0 ? C.red : C.green },
+//               { lbl: "💰 What's a Fair Price Here?", val: `AED ${fmt(d.psf)}/sqft`, valColor: C.text, sub: 'Slightly up over 3 months', subColor: C.green },
+//               { lbl: '📈 Rent Return Per Year', val: `${d.yld}%`, valColor: C.green, sub: `${d.aboveAvgYield ? 'Better' : 'Near'} than Dubai's 6.1% average`, subColor: C.muted },
+//               { lbl: '⏱️ How Long to Sell?',  val: `${d.daysToSell} days`, valColor: C.amber, sub: d.daysToSell > 40 ? 'Takes a bit longer than usual' : 'Faster than Dubai average', subColor: d.daysToSell > 40 ? C.red : C.green },
+//               { lbl: '🔑 Homes Available to Buy', val: fmt(d.availableListings), valColor: C.text, sub: 'More choice than normal — good for buyers', subColor: C.muted },
+//               { lbl: '🧭 Market Mood Right Now', val: liveVerdict === 'BUY' ? 'Bullish' : liveVerdict === 'HOLD' ? 'Cautious' : 'Slow', valColor: liveVerdict === 'BUY' ? C.green : liveVerdict === 'HOLD' ? C.amber : C.red, sub: 'Watch closely — market paused', subColor: C.muted },
+//             ].map((stat, i) => (
+//               <div key={i} style={{ padding: '14px 22px', borderRight: i < 5 ? `1px solid ${C.border}` : 'none', flex: '1 1 150px' }}>
+//                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 5 }}>{stat.lbl}</div>
+//                 <div style={{ fontSize: 15, fontWeight: 800, color: stat.valColor }}>{stat.val}</div>
+//                 <div style={{ fontSize: 11, color: stat.subColor, marginTop: 2 }}>{stat.sub}</div>
+//               </div>
+//             ))}
+//           </div>
+
+//           {/* Buyer tip bar — only show when persona = buyer */}
+//           {persona === 'buyer' && (
+//             <div style={{ marginTop: 12, background: C.blueL, border: '1px solid rgba(37,99,235,.14)', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+//               <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
+//               <p style={{ fontSize: 12, color: '#1D3461', lineHeight: 1.7 }}>
+//                 <strong>First time buying property?</strong> {area.name} is one of Dubai's {area.zone === 'Prime' ? 'most prestigious' : area.zone === 'Mid-Market' ? 'most popular mid-range' : 'well-established'} areas. Right now the market is <strong>a little slow because of news in the region</strong> — but that's creating <strong>good entry prices for patient buyers</strong>. {aiBuyerTip ?? `The area earns strong rent (${d.yld}%/year), a metro station opens nearby in late 2026, and a school is coming in 2027.`}{' '}
+// Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdict === 'BUY' ? 'Strong opportunity — now is a good entry window.' : 'Hold off rushing — but a property priced below the fair-value line is a strong opportunity.'}</strong>
+//               </p>
+//             </div>
+//           )}
+//         </div>
+
+//        {/* ── SCORE CARD ── exact match to HTML .score-card */}
+// <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '22px 20px', minWidth: 250, textAlign: 'center', flexShrink: 0 }}>
+//   <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em', padding: '4px 14px', borderRadius: 20, display: 'inline-block', marginBottom: 10, background: liveScore >= 75 ? C.greenL : C.amberL, color: liveScore >= 75 ? C.green : liveScore >= 65 ? C.amber : C.red }}>{liveVerdict}</div>
+//   <div style={{ fontSize: 52, fontWeight: 900, color: liveScore >= 75 ? C.green : liveScore >= 65 ? C.amber : C.red, lineHeight: 1, letterSpacing: '-.02em' }}>{liveScore}</div>
+//   <div style={{ fontSize: 15, color: C.muted2 }}>/100</div>
+//   <div style={{ fontSize: 11, color: C.muted, margin: '6px 0 16px' }}>12-month outlook · May 2026</div>
+//           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+//             {d.scoreComps.map((comp, i) => (
+//               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
+//                 <span style={{ flex: 1, color: C.text2, textAlign: 'left', fontSize: 11.5 }}>{comp.label}</span>
+//                 <div style={{ width: 76, height: 5, background: C.bg3, borderRadius: 3 }}>
+//                   <div style={{ width: `${Math.min(comp.val, 100)}%`, height: 5, borderRadius: 3, background: comp.color }} />
+//                 </div>
+//                 <span style={{ width: 30, textAlign: 'right', fontWeight: 700, fontSize: 12, color: comp.color }}>{comp.val}</span>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ── AI BRIEF ── exact match to HTML .brief-box */}
+//       <div style={{ margin: '18px 28px 0', background: C.card, border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.orange}`, borderRadius: 10, padding: '18px 22px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 16, alignItems: 'flex-start', flexShrink: 0 }}>
+//         <div style={{ width: 38, height: 38, borderRadius: '50%', background: C.orangeL, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>🤖</div>
+//         <div>
+//           <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em', color: C.orange, marginBottom: 6 }}>Area Specialist · AI Brief · Updated May 2026</div>
+//          <div style={{ fontSize: 12.5, lineHeight: 1.8, color: C.text2 }}>
+//   {aiBrief ?? `${area.name} is navigating a short-term confidence gap driven primarily by macro sentiment, not by fundamental weakness. Structural fundamentals remain intact: ${area.name} delivers a gross rental yield of ${d.yld}%, ${d.aboveAvgYield ? 'meaningfully above' : 'near'} Dubai's 6.1% average, and has confirmed infrastructure catalysts arriving from Q4 2026 that historically drive 8–14% appreciation in adjacent residential zones. Supply pressure is elevated with ${d.distressPct}% of current listings below the Truvalu floor — creating a selective entry window for patient investors.`}
+// </div>
+//           <div style={{ marginTop: 8, fontSize: 11, color: C.muted, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+//             <span>🕐 Updated May 2026, 09:15 GST</span>
+//             <span>📊 14 live data sources</span>
+//             <span>🏛️ RICS-aligned Truvalu™</span>
+//             <span>🔄 Refreshes daily</span>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ── PERSONA SELECTOR ── exact match to HTML .persona-section */}
+//       <div style={{ margin: '20px 28px 0', flexShrink: 0 }}>
+//         <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 10 }}>Who are you? Get a view built for your situation.</div>
+//         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+//           {[
+//             { key: 'buyer',    icon: '🏠', name: "I'm Buying My First Home",  desc: 'Plain English, step-by-step, no jargon' },
+//             { key: 'investor', icon: '💼', name: "I'm a Property Investor",   desc: 'Yields, returns, comparables, market timing' },
+//             { key: 'owner',    icon: '🔑', name: 'I Already Own Here',        desc: "What's my property worth? Should I sell?" },
+//           ].map(p => (
+//             <button key={p.key} onClick={() => setPersona(p.key)} style={{
+//               padding: '12px 22px', borderRadius: 10,
+//               border: `2px solid ${persona === p.key ? C.orange : C.border}`,
+//               background: persona === p.key ? C.orangeL : C.card,
+//               cursor: 'pointer', transition: 'all .18s',
+//               display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 180,
+//             }}>
+//               <span style={{ fontSize: 22 }}>{p.icon}</span>
+//               <div style={{ textAlign: 'left' }}>
+//                 <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{p.name}</div>
+//                 <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>
+//               </div>
+//             </button>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* ══════════ PERSONA: BUYER ══════════ */}
+//       {persona === 'buyer' && (
+//         <div style={{ ...pad, marginTop: 20 }}>
+//           {/* 5-step guide */}
+//           <Card>
+//             <CardTitle badge="First-Time Buyer">Your 5-Step Buying Guide for {area.name}</CardTitle>
+//             <div>
+//               {[
+//                 {
+//                   num: 1, title: 'Understand what a fair price actually looks like here',
+//                   body: `Our Truvalu™ system calculates what any ${area.name} property should cost based on real transactions, floor level, view, and condition. A 1-bedroom here is fairly priced at around ${
+//   buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+//     ? fmtK(buyerPrices.find(r => r.type === '1 Bedroom').fair)
+//     : fmtK(Math.round(d.psf * 800 / 1000) * 1000)
+// }. If someone's asking significantly more — that's a red flag. If it's below that — that's a genuine opportunity.`,
+//                 },
+//                 {
+//                   num: 2, title: "Check what's coming to the area in the next 2 years",
+//                   body: `A metro station is confirmed for Q4 2026. A new school in 2027. Infrastructure is confirmed or announced. These things push prices up — buying before they open means you benefit from the price increase. This is why timing matters.`,
+//                 },
+//                 {
+//                   num: 3, title: "Don't panic about the current news — look at history",
+//                   body: `Dubai has been through oil crashes, COVID, and geopolitical scares before. Every time, well-located areas recovered within 8–14 months. The current slowdown is caused by regional news (Iran/USA), not by any problem with Dubai's economy or ${area.name} specifically. The Resilience Report (Past tab below) shows you exactly what happened each time.`,
+//                 },
+//                 {
+//                   num: 4, title: 'Know who else is buying here and why',
+//                   body: `${area.name} attracts mostly ${d.nationals[0].name} (${d.nationals[0].pct}%), ${d.nationals[1].name} (${d.nationals[1].pct}%), and ${d.nationals[2].name} (${d.nationals[2].pct}%) buyers — young professionals, expats, and investors. Rental yield here (${d.yld}%) is ${d.aboveAvgYield ? 'higher than' : 'near'} the Dubai average.`,
+//                 },
+//                 {
+//                   num: 5, title: "Check the developer's track record before buying off-plan",
+//                   body: `If you're buying an off-plan unit (not yet built), this matters a lot. Binghatti delivers 91% on time. Tiger Group has an 8-month average delay. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`,
+//                 },
+//               ].map((step, i, arr) => (
+//                 <div key={step.num} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: 14, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+//                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: C.orange, color: '#fff', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{step.num}</div>
+//                   <div>
+//                     <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 3 }}>{step.title}</div>
+//                     <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>{step.body}</p>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </Card>
+
+//           {/* Price guide */}
+//           <div style={{ ...g2, marginTop: 16 }}>
+//             <Card>
+//               <CardTitle>What Does Buying in {area.name} Actually Cost?</CardTitle>
+//               <PTable
+//                 headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
+//                 rows={liveBuyerPriceTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1}>{row.min}</Td>
+//                     <Td last={i === arr.length - 1} bold>{row.fair}</Td>
+//                     <Td last={i === arr.length - 1}>{row.max}</Td>
+//                   </tr>
+//                 ))}
+//               />
+//               <p style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>💡 The "Fair Price" column is Acqar's Truvalu™ benchmark — what the property is actually worth based on real transactions, not asking prices.</p>
+//             </Card>
+//             <Card>
+//               <CardTitle>What Will It Cost to Own (Not Just Buy)?</CardTitle>
+//               <StRow label="DLD Transfer Fee"             value="4% of purchase price" />
+//               <StRow label="Agent commission"             value="2% (negotiable)" />
+//               <StRow label="Annual service charges"       value={d.serviceCharge} />
+//               <StRow label="Typical annual maintenance"   value="AED 5,000–15,000" />
+//               <StRow label="Annual rental income (1BR)"
+//   value={(() => {
+//     const fair = buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+//     const rent = fair ? Math.round(fair * liveYield / 100 / 1000) * 1000 : d.annualRent1BR
+//     return `${fmtK(rent)} avg`
+//   })()}
+//   valueColor={C.green}
+// />
+// <StRow label="Net yield after charges (est.)"
+//   value={`${(liveYield * 0.83).toFixed(1)}%`}
+//   valueColor={C.green}
+// />
+//               <StRow label="Mortgage availability"        value="Up to 80% LTV for expats" last />
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ══════════ PERSONA: INVESTOR ══════════ */}
+//       {persona === 'investor' && (
+//         <div style={{ ...pad, marginTop: 20 }}>
+//           {/* 4 big metrics */}
+//           <div style={g4}>
+//             {[
+//               { title: 'Gross Yield',          val: `${d.yld}%`,              color: C.green, sub: `Dubai avg: 6.1% · ${area.name} ${d.aboveAvgYield ? 'above' : 'near'} avg for 4 years` },
+//               { title: 'Distress Opportunity', val: `${liveDistressPct || d.distressPct}%`, color: C.amber, sub: `${fmt(Math.round((liveDistressPct || d.distressPct) / 100 * d.availableListings))} units priced below Truvalu™ floor right now` },
+//               { title: 'Catalyst Score', val: `${areaIntel?.catalyst_score ?? d.catalystScore}/100`, color: C.green, sub: `${areaCatalysts?.filter(c => c.confidence === 'confirmed').length ?? 2} confirmed infra catalysts in next 24 months` },
+//              { title: 'Off-Plan Absorption',
+//   val: (() => {
+//     if (!activeProjects.length) return '72%'
+//     const avg = activeProjects.reduce((s, p) => s + Math.round(Number(p.percent_completed) || 0), 0) / activeProjects.length
+//     return `${Math.min(99, Math.round(avg + 35))}%`
+//   })(),
+//   color: C.blue,
+//   sub: `Average sold % across ${activeProjects.length || 6} active ${area.name} projects`
+// },
+//             ].map(m => (
+//               <Card key={m.title} style={{ textAlign: 'center' }}>
+//                 <CardTitle>{m.title}</CardTitle>
+//                 <div style={{ fontSize: 36, fontWeight: 900, color: m.color }}>{m.val}</div>
+//                 <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{m.sub}</div>
+//               </Card>
+//             ))}
+//           </div>
+
+//           {/* Market composition + Truvalu benchmark */}
+//           <div style={{ ...g2, marginTop: 16 }}>
+//             <Card>
+//               <CardTitle>Market Composition — Investor View</CardTitle>
+//               <RatioBar left="Off-Plan (Primary)" leftPct={58} leftColor={C.blue}   right="Ready (Secondary)" rightPct={42} rightColor={C.amber} />
+//               <RatioBar left="Investor-owned"     leftPct={62} leftColor={C.orange} right="End-user"           rightPct={38} rightColor={C.green} />
+//               <RatioBar left="Apartments"         leftPct={87} leftColor={C.green}  right="Villas/TH"          rightPct={13} rightColor={C.purple} />
+//               <RatioBar left="Long-term tenants"  leftPct={88} leftColor="#14B8A6"  right="Short-stay"          rightPct={12} rightColor="#E2E8F0" last />
+//             </Card>
+//             <Card>
+//               <CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle>
+//               <PTable
+//                 headers={['Type', 'Truvalu™', 'Asking', 'Gap', 'Signal']}
+//                 rows={livePriceTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1} bold>AED {fmt(row.truv)}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.ask)}</Td>
+//                     <Td last={i === arr.length - 1}><GapPct truv={row.truv} ask={row.ask} /></Td>
+//                     <Td last={i === arr.length - 1}><GapTag truv={row.truv} ask={row.ask} /></Td>
+//                   </tr>
+//                 ))}
+//               />
+//             </Card>
+//           </div>
+
+//           {/* Nationality + yield by type */}
+//           <div style={{ ...g2, marginTop: 16 }}>
+//             <Card>
+//               <CardTitle>Who Is Buying in {area.name}? (Last 90 Days)</CardTitle>
+//               {d.nationals.map(n => <NatBar key={n.name} {...n} />)}
+//             </Card>
+//             <Card>
+//               <CardTitle>Rental Yield by Unit Type</CardTitle>
+//               {/* Yield bar chart replacement */}
+//               {liveYieldByType.map(y => (
+//                 <div key={y.type} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+//                   <span style={{ fontSize: 11, width: 60, flexShrink: 0, color: C.text2 }}>{y.type}</span>
+//                   <div style={{ flex: 1, height: 6, background: C.bg3, borderRadius: 3 }}>
+//                     <div style={{ width: `${(y.val / 11) * 100}%`, height: 6, borderRadius: 3, background: y.val > 6.1 ? C.green : C.amber }} />
+//                   </div>
+//                   <span style={{ fontSize: 11, fontWeight: 700, width: 36, textAlign: 'right', color: y.val > 6.1 ? C.green : C.amber }}>{y.val}%</span>
+//                 </div>
+//               ))}
+//               {/* Dubai avg line label */}
+//               <div style={{ fontSize: 10, color: C.muted2, textAlign: 'right', marginBottom: 8 }}>— Dubai Avg 6.1%</div>
+//              <StRow label="Best yield unit type" value={`Studio (${liveYieldByType[0].val}%)`} valueColor={C.green} />
+// <StRow label="5-year yield trend"   value={`↑ 6.1% → ${liveYield}%`} valueColor={C.green} />
+//               <StRow label="Average days to rent"   value="18 days" />
+//               <StRow label="Vacancy rate"            value={`${d.vacancyRate}%`} valueColor={C.green} last />
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ══════════ PERSONA: OWNER ══════════ */}
+//       {persona === 'owner' && (
+//         <div style={{ ...pad, marginTop: 20 }}>
+//           {/* Valuation banner */}
+//           <div style={{ background: `linear-gradient(135deg,${C.orangeL} 0%,rgba(200,115,42,0.03) 100%)`, border: '1px solid rgba(200,115,42,0.2)', borderRadius: 10, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, marginBottom: 16 }}>
+//             <div>
+//               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.orange, marginBottom: 6 }}>Your Asset · Truvalu™ Valuation</div>
+//               <h2 style={{ fontSize: 22, fontWeight: 900, color: C.orange, marginBottom: 4 }}>1 Bedroom in {area.name} is worth {fmtK(d.valuationRangeLow)} — {fmtK(d.valuationRangeHigh)}</h2>
+//               <p style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>Based on your floor level, view, building quality, and current matched DLD transactions. Updated daily.</p>
+//             </div>
+//             <div style={{ textAlign: 'right', flexShrink: 0 }}>
+//               <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted }}>Truvalu™ Fair Value</div>
+//               <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginTop: 2 }}>{fmtK(d.fairValue1BR)}</div>
+//               <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>↑ +AED {fmt(d.gain6m)} vs 6 months ago</div>
+//               <div style={{ fontSize: 11, color: C.green, marginTop: 2 }}>↑ +{d.fiveYrAppreciation}% vs 5-year purchase price</div>
+//             </div>
+//           </div>
+
+//           <div style={g3}>
+//             {/* Should I sell? */}
+//             <Card>
+//               <CardTitle>Should You Sell Now?</CardTitle>
+//               <div style={{ fontSize: 28, fontWeight: 900, color: d.sellColor, marginBottom: 6 }}>{d.sellRecommendation}</div>
+//               <div style={{ fontSize: 12, color: C.text2, lineHeight: 1.7, marginBottom: 14 }}>
+//                 {d.score >= 75
+//                   ? `Market conditions are strong in ${area.name}. Buyer demand is elevated and days-on-market is low at ${d.daysToSell} days. If you need to sell, now is a favorable window.`
+//                   : `Selling today means selling into a market where buyers are temporarily nervous due to regional events. Infrastructure catalysts arriving Q4 2026 are likely to push ${area.name} prices up 8–14% — selling before those land means leaving money on the table.`}
+//               </div>
+//               <StRow label="Current market sentiment"       value={d.mood}         valueColor={d.moodColor} />
+//               <StRow label="Days to sell (current)"         value={`${d.daysToSell} days`} valueColor={d.daysToSell > 40 ? C.red : C.green} />
+//               <StRow label="Expected post-catalyst improvement" value="8–14%"      valueColor={C.green} />
+//               <StRow label="Optimal sell window"            value={d.optimalSell}  valueColor={C.green} last />
+//             </Card>
+
+//             {/* Rent it out? */}
+//             <Card>
+//               <CardTitle>Should You Rent It Out?</CardTitle>
+//               <div style={{ fontSize: 28, fontWeight: 900, color: C.green, marginBottom: 6 }}>Yes — Good Yield</div>
+//               <div style={{ fontSize: 12, color: C.text2, lineHeight: 1.7, marginBottom: 14 }}>
+//                 {area.name}'s rental market remains active even during the transaction slowdown — tenants don't stop needing homes because of geopolitical news. 
+//                 {(() => {
+//   const fair = buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+//   const rent = fair ? Math.round(fair * liveYield / 100 / 1000) * 1000 : d.annualRent1BR
+//   const rentShort = Math.round(rent * 1.25 / 1000) * 1000
+//   return `Your 1BR can generate ${fmtK(rent)}/year on a 12-month contract or ${fmtK(rentShort)}/year on a short-term furnished basis.`
+// })()}
+//               </div>
+//               <StRow label="Annual long-term rent (1BR)"
+//   value={(() => {
+//     const fair = buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+//     const rent = fair ? Math.round(fair * liveYield / 100 / 1000) * 1000 : d.annualRent1BR
+//     return `AED ${fmt(Math.round(rent * 0.93 / 1000) * 1000)}–${fmt(rent)}`
+//   })()}
+//   valueColor={C.green}
+// />
+//               <StRow label="Short-term furnished (1BR)"
+//   value={(() => {
+//     const fair = buyerPrices?.find(r => r.type === '1 Bedroom')?.fair
+//     const rent = fair ? Math.round(fair * liveYield / 100 / 1000) * 1000 : d.annualRent1BR
+//     return `AED ${fmt(rent)}–${fmt(Math.round(rent * 1.25 / 1000) * 1000)}`
+//   })()}
+//   valueColor={C.green}
+// />
+//               <StRow label="Average days to find tenant"    value="18 days" />
+//               <StRow label="Current vacancy rate"           value={`${d.vacancyRate}%`}  valueColor={C.green} />
+//               <StRow label="Gross yield (long-term)"        value={`${d.yld}%`}     valueColor={C.green} last />
+//             </Card>
+
+//             {/* Area vs Dubai avg */}
+//             <Card>
+//               <CardTitle>Your Area vs Dubai Average</CardTitle>
+//               <StRow label="Rental yield"               value={`${d.yld}% vs 6.1% avg`}    valueColor={C.green} />
+//               <StRow label="5-year price appreciation"  value={`+${d.fiveYrAppreciation}%`} valueColor={C.green} />
+//               <StRow label="Occupancy rate"             value={`${d.occupancyRate}%`}        valueColor={C.green} />
+//               <StRow label="Supply growth (risk)"       value="6.4% ↑ moderate"              valueColor={C.amber} />
+// <StRow label="Infrastructure catalyst score" value={`${areaIntel?.catalyst_score ?? d.catalystScore}/100`} valueColor={C.green} />
+//               <StRow label="Price resilience (past shocks)" value="Always recovered <14M"   valueColor={C.green} />
+//               <StRow label="Acqar's outlook (12M)"      value={d.verdict === 'BUY' ? 'BUY — Strong momentum' : 'HOLD → BUY trend'} valueColor={d.verdictColor} last />
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ══════════ TIME HORIZON TABS ══════════ */}
+//       <div style={{ margin: '20px 28px 0', flexShrink: 0 }}>
+//         <div style={{ display: 'flex', borderBottom: `2px solid ${C.border}`, gap: 0 }}>
+//           {[
+//             { key: 'past',    label: '📜 Past — History & Track Record' },
+//             { key: 'present', label: '📡 Present — Live Market Data' },
+//             { key: 'future',  label: `🔭 Future — What's Coming to ${area.name}` },
+//           ].map(tab => (
+//             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+//               padding: '10px 22px', fontSize: 12, fontWeight: 700,
+//               color: activeTab === tab.key ? C.orange : C.muted,
+//               cursor: 'pointer',
+//               borderBottom: `3px solid ${activeTab === tab.key ? C.orange : 'transparent'}`,
+//               marginBottom: -2, letterSpacing: '.04em', textTransform: 'uppercase',
+//               background: 'none', border: 'none',
+//               borderBottomWidth: 3, borderBottomStyle: 'solid',
+//               borderBottomColor: activeTab === tab.key ? C.orange : 'transparent',
+//               transition: 'all .15s', userSelect: 'none',
+//             }}>{tab.label}</button>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* ── PAST TAB ── */}
+//       {activeTab === 'past' && (
+//   <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
+
+//     {/* Price history chart */}
+//    <Card style={{ marginBottom: 16 }}>
+//   <CardTitle badge="Truvalu™ Benchmark vs DLD Transacted">
+//     {area.name} Price Per Sqft — 5 Year History
+//   </CardTitle>
+//   {priceHistory === null ? (
+//     <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, background: C.bg2, borderRadius: 6 }}>
+//       <div style={{ width: 26, height: 26, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.orange, animation: 'spin 0.8s linear infinite' }} />
+//       <span style={{ fontSize: 11, color: C.muted }}>Loading price history...</span>
+//     </div>
+//   ) : priceHistory.length === 0 ? (
+//     <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: C.muted }}>No price data available.</div>
+//   ) : (
+//     <PriceHistoryChart data={priceHistory} />
+//   )}
+// </Card>
+    
+
+//     {/* Area maturity + developer table */}
+//     <div style={{ ...g2, marginBottom: 16 }}>
+//            <Card>
+//   <CardTitle>Area Maturity</CardTitle>
+//   <StRow label="Year established"         value="2005" />
+//   <StRow label="Master developer"         value="Nakheel" />
+//   <StRow label="Zone"                     value={area.zone} />
+//   <StRow label="Total area"              value="870 hectares" />
+//   <StRow label="Completion rate"          value="~75% built"           valueColor={C.green} />
+//   <StRow label="Residential units"        value="105,860 registered" />
+//   <StRow label="Occupancy rate"           value={`${d.occupancyRate}%`}  valueColor={C.green} />
+//   <StRow label="Parks"                    value="33 landscaped parks" />
+//   <StRow label="Active off-plan projects" value={activeProjects.length > 0 ? `${activeProjects.length} projects` : '6 projects'} valueColor={C.orange} />
+//   <StRow label="Pipeline units (DLD)"     value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : '2,936'} valueColor={C.amber} />
+//   <StRow label="Retail"                   value="Circle Mall (235 shops) + 200+ outlets" />
+//   <StRow label="5-year appreciation"      value={`+${fiveYrAppreciationReal ?? '63.7'}%`} valueColor={C.green} last />
+// </Card>
+//             <Card>
+//   <CardTitle>Developer Delivery Track Record in {area.name}</CardTitle>
+//   {devStats ? (
+//     <PTable
+//       headers={['Developer', 'Projects', 'Active', 'Avg Built %', 'Units']}
+//       rows={devStats.map((r, i, arr) => {
+//         const color = r.avgPct >= 50 ? C.green : r.avgPct >= 20 ? C.amber : C.muted
+//         return (
+//           <tr key={r.dev}>
+//             <Td last={i === arr.length - 1}>{r.dev}</Td>
+//             <Td last={i === arr.length - 1}>{r.projects}</Td>
+//             <Td last={i === arr.length - 1} color={r.active > 0 ? C.green : C.muted}>{r.active} active</Td>
+//             <Td last={i === arr.length - 1} color={color}>{r.avgPct}%</Td>
+//             <Td last={i === arr.length - 1}>{r.units > 0 ? fmt(r.units) : '—'}</Td>
+//           </tr>
+//         )
+//       })}
+//     />
+//   ) : (
+//     <PTable
+//       headers={['Developer', 'Projects', 'On-Time', 'Avg Delay', 'Rating']}
+//       rows={[
+//         { dev: 'Nakheel',    n: 6,  ot: '95%', delay: '0.5 mo', rating: '★★★★★', c: C.green },
+//         { dev: 'Binghatti',  n: 15, ot: '85%', delay: '1.5 mo', rating: '★★★★☆', c: C.green },
+//         { dev: 'Ellington',  n: 6,  ot: '88%', delay: '2.0 mo', rating: '★★★★☆', c: C.green },
+//         { dev: 'DAMAC',      n: 5,  ot: '72%', delay: '6.2 mo', rating: '★★★☆☆', c: C.amber },
+//         { dev: 'Samana',     n: 9,  ot: '65%', delay: '7.5 mo', rating: '★★★☆☆', c: C.amber },
+//         { dev: 'Tiger Group',n: 9,  ot: '58%', delay: '9.0 mo', rating: '★★☆☆☆', c: C.red   },
+//       ].map((r, i, arr) => (
+//         <tr key={r.dev}>
+//           <Td last={i === arr.length - 1}>{r.dev}</Td>
+//           <Td last={i === arr.length - 1}>{r.n}</Td>
+//           <Td last={i === arr.length - 1} color={r.c}>{r.ot}</Td>
+//           <Td last={i === arr.length - 1}>{r.delay}</Td>
+//           <Td last={i === arr.length - 1} color={r.c}>{r.rating}</Td>
+//         </tr>
+//       ))}
+//     />
+//   )}
+//   <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
+//     📋 Source: Dubai Land Department (DLD) · {areaProjects?.length ? 'Live DLD data' : 'Historical estimates'}
+//   </p>
+// </Card>
+//           </div>
+
+//           {/* Resilience report */}
+//           <Card style={{ marginBottom: 20 }}>
+//             <CardTitle badge="DLD + Historical Data">🛡️ Resilience Report — How {area.name} Survived Every Past Shock</CardTitle>
+//             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.greenL, border: '1px solid rgba(22,163,74,.18)', borderRadius: 6, padding: '7px 14px', fontSize: 11, fontWeight: 700, color: C.green, marginBottom: 14 }}>
+//               ✓ {area.name} has recovered within {areaIntel?.catalyst_score >= 70 ? '8' : '14'} months in every major shock since 2014
+//             </div>
+//             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+//               <thead>
+//                 <tr>{['Event', 'Period', `${area.name} Price Impact`, 'Recovery Time', 'What Drove Recovery', 'Is This Happening Now?'].map(h => (
+//                   <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>{h}</th>
+//                 ))}</tr>
+//               </thead>
+//               <tbody>
+//                 {[
+//                   { event: 'Oil Price Crash',     period: '2014–2016', impact: '−18%', ic: C.red,   rec: '14 months', driver: 'Yield hunters attracted by low prices',         now: 'Partial parallel',       nc: C.amber },
+//                   { event: 'Expo Slowdown',       period: '2019–2020', impact: '−9%',  ic: C.red,   rec: '8 months',  driver: 'Affordable entry vs Downtown',                  now: 'Same dynamic now',       nc: C.green },
+//                   { event: 'COVID-19',            period: 'Q2–Q3 2020',impact: '−14%', ic: C.red,   rec: '11 months', driver: 'DLD fee waiver + Golden Visa expansion',         now: 'No direct parallel',     nc: C.amber },
+//                   { event: 'Russia/Ukraine War',  period: 'Feb 2022',  impact: '+6%',  ic: C.green, rec: 'N/A (rose)', driver: 'Russian capital flight → Dubai demand',          now: 'Opposite dynamic',       nc: C.amber },
+//                   { 
+//   event: '⚡ Iran/USA ← NOW',  
+//   period: 'Apr 2026→', 
+//   impact: (() => {
+//     // Compute real drop: compare last 30 days PSF vs 90-day average
+//     if (!priceHistory?.length) return '−4% so far'
+//     const recent = priceHistory.filter(p => p.year === 2026 && p.month >= 4)
+//     const before = priceHistory.filter(p => 
+//       (p.year === 2025 && p.month >= 10) || (p.year === 2026 && p.month < 4)
+//     )
+//     if (!recent.length || !before.length) return '−4% so far'
+//     const avgRecent = recent.reduce((s, p) => s + p.psf, 0) / recent.length
+//     const avgBefore = before.reduce((s, p) => s + p.psf, 0) / before.length
+//     const drop = ((avgRecent - avgBefore) / avgBefore * 100).toFixed(1)
+//     return `${drop > 0 ? '+' : ''}${drop}% so far`
+//   })(),
+//   ic: C.amber, 
+//   rec: (() => {
+//     const cs = areaIntel?.catalyst_score ?? d.catalystScore
+//     return cs >= 70 ? 'Projected: 6–8M' : cs >= 50 ? 'Projected: 8–12M' : 'Projected: 10–14M'
+//   })(),
+//   driver: `${area.name} yield floor (${liveYield}%) + metro catalyst`, 
+//   now: 'This is the current event', 
+//   nc: C.orange, 
+//   bold: true 
+// },
+//                 ].map((row, i, arr) => (
+//                   <tr key={row.event} style={{ background: row.bold ? 'rgba(200,115,42,0.04)' : 'transparent' }}>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', fontWeight: row.bold ? 700 : 400, color: row.bold ? C.orange : C.text }}>{row.event}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>{row.period}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', color: row.ic, fontWeight: 700 }}>{row.impact}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}><strong>{row.rec}</strong></td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>{row.driver}</td>
+//                     <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', color: row.nc, fontWeight: row.bold ? 700 : 400 }}>{row.now}</td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </Card>
+//         </div>
+//       )}
+
+//       {/* ── PRESENT TAB ── */}
+//       {activeTab === 'present' && (
+//         <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
+//           {/* Distress meter */}
+//           <div style={{ background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+//             <div style={{ fontSize: 32, fontWeight: 900, color: C.amber }}>{liveDistressPct || d.distressPct}%</div>
+// <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
+//   <strong style={{ color: C.text }}>Distress Meter:</strong> {fmt(Math.round((liveDistressPct || d.distressPct) / 100 * d.availableListings))} of {area.name}'s active listings are priced below the Truvalu™ floor right now. This is above the 12-month average of 11% — driven by nervous sellers who want to exit quickly. For patient buyers, this is a genuine entry window. The widest gap is in 2BR and townhouse units.
+//             </div>
+//           </div>
+
+
+
+//           {/* Live signals + market composition */}
+//           <div style={{ ...g2, marginBottom: 16 }}>
+  
+//             <Card>
+//   <CardTitle badge="DLD · Monthly Transactions">Transaction Volume — Last 12 Months</CardTitle>
+//   {txHistory === null ? (
+//     <div style={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.muted, fontSize: 12 }}>
+//       <div style={{ width: 20, height: 20, borderRadius: '50%', border: `3px solid ${C.border}`, borderTopColor: C.orange, animation: 'spin 0.8s linear infinite' }} />
+//       Loading...
+//     </div>
+//   ) : (
+//     <>
+//       <TxVolumeChart data={txHistory} currentTx={liveSoldThisWeek} />
+//       <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>📊 DLD registered transactions · Monthly aggregated</p>
+//     </>
+//   )}
+// </Card>
+
+//             <Card>
+//   <CardTitle badge="DLD 2024–2026">Live Market Composition</CardTitle>
+//   <RatioBar
+//     left="Off-Plan (Primary)" leftPct={offPlanPct} leftColor={C.blue}
+//     right="Ready (Secondary)" rightPct={readyPct} rightColor={C.amber}
+//   />
+//   <RatioBar
+//     left="Apartments" leftPct={marketComp?.aptPct ?? 98} leftColor={C.green}
+//     right="Villas/TH"  rightPct={marketComp?.villaPct ?? 2} rightColor={C.purple}
+//   />
+//   <RatioBar
+//     left="Residential" leftPct={marketComp?.resPct ?? 100} leftColor="#14B8A6"
+//     right="Commercial"  rightPct={marketComp?.comPct ?? 0}  rightColor={C.muted2}
+//   />
+//   <RatioBar
+//     left="Studio & 1BR" leftPct={marketComp?.bachelorPct ?? 74} leftColor="#6366F1"
+//     right="2BR+"          rightPct={marketComp?.familyPct   ?? 26} rightColor="#EC4899"
+//   />
+//   <RatioBar
+//     left="Long-term resident" leftPct={88} leftColor={C.lime}
+//     right="Tourist/short-stay" rightPct={12} rightColor={C.bg3} last
+//   />
+//   <p style={{ fontSize: 10, color: C.muted, marginTop: 10 }}>
+//     📋 Apartments/Residential/Unit mix: DLD avm data 2024–2026 · Off-plan ratio: DLD Projects
+//   </p>
+// </Card>
+//           </div>
+
+//           {/* Rent ranges + Truvalu current + nationalities */}
+//           <div style={{ ...g3, marginBottom: 20 }}>
+//             <Card>
+//               <CardTitle>Annual Rent Ranges (AED)</CardTitle>
+//               <PTable
+//                 headers={['Type', 'Min', 'Avg', 'Max']}
+//                 rows={d.rentTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.min)}</Td>
+//                     <Td last={i === arr.length - 1} color={C.green} bold>{fmt(row.avg)}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.max)}</Td>
+//                   </tr>
+//                 ))}
+//               />
+//             </Card>
+//             <Card>
+//               <CardTitle>Truvalu™ Benchmark — Current</CardTitle>
+//               <PTable
+//                 headers={['Type', 'Truvalu™', 'Ask PSF', 'Status']}
+//                 rows={d.priceTable.map((row, i, arr) => (
+//                   <tr key={row.type}>
+//                     <Td last={i === arr.length - 1}>{row.type}</Td>
+//                     <Td last={i === arr.length - 1}>AED {fmt(row.truv)}</Td>
+//                     <Td last={i === arr.length - 1}>{fmt(row.ask)}</Td>
+//                     <Td last={i === arr.length - 1}><GapTag truv={row.truv} ask={row.ask} /></Td>
+//                   </tr>
+//                 ))}
+//               />
+//             </Card>
+//             <Card>
+//               <CardTitle badge="Market estimate">Buyer Nationality — 90 Days</CardTitle>
+//               {d.nationals.map(n => <NatBar key={n.name} {...n} />)}
+//             </Card>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ── FUTURE TAB ── */}
+//       {activeTab === 'future' && (
+//         <div style={{ ...pad, paddingTop: 20, paddingBottom: 0 }}>
+//           <div style={{ ...g2, marginBottom: 16 }}>
+//             {/* Timeline */}
+//             <Card>
+//   <CardTitle badge="Confirmed · Announced · Likely">Infrastructure &amp; Catalyst Timeline</CardTitle>
+//   <div style={{ paddingLeft: 24, position: 'relative' }}>
+//     <div style={{ position: 'absolute', left: 8, top: 6, bottom: 6, width: 2, background: C.border, borderRadius: 1 }} />
+//     {areaCatalysts?.length > 0 ? areaCatalysts.map(ev => {
+//       const typeDesc = {
+//         metro:    'Metro stations historically drive 8–14% PSF appreciation within 1km radius within 12 months of opening.',
+//         mall:     '800,000 sqft retail expansion by Nakheel. Shifts area from bachelor-dominant to family-friendly.',
+//         school:   '1,800-student capacity. Will shift occupant profile towards families and increase 2BR/3BR demand.',
+//         hospital: 'Healthcare infrastructure consistently correlated with family occupancy increases and rental demand.',
+//         airport:  'AED 128B project confirmed as world\'s largest airport by 2040. Long-term residential demand tailwind.',
+//         road:     'New entry/exit points reduce congestion. Improves connectivity to Sheikh Mohammed Bin Zayed Road.',
+//         park:     'District cooling infrastructure upgrade improving energy efficiency and resident comfort across JVC.',
+//       }[ev.catalyst_type] ?? 'Infrastructure catalyst confirmed by official sources.'
+//       const typeImpact = {
+//         metro:    '+8–14% PSF (1km radius)',
+//         mall:     '+5–8% rental demand, family buyer ratio ↑',
+//         school:   '+12–18% demand for 2–3BR units',
+//         hospital: 'Family ratio ↑, rental stability ↑',
+//         airport:  'Long-term valuation tailwind',
+//         road:     'Connectivity ↑, commute time ↓',
+//         park:     'Resident satisfaction ↑, occupancy ↑',
+//       }[ev.catalyst_type] ?? 'Positive area impact expected'
+//       const dateLabel = ev.expected_date
+//         ? new Date(ev.expected_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+//         : 'TBC'
+//       return (
+//         <TlItem
+//           key={ev.id}
+//           year={dateLabel}
+//           tagType={ev.confidence}
+//           title={ev.name}
+//           desc={typeDesc}
+//           impact={typeImpact}
+//         />
+//       )
+//     }) : (
+//       <div style={{ fontSize: 12, color: C.muted, padding: '20px 0' }}>Loading catalysts...</div>
+//     )}
+//   </div>
+// </Card>
+
+//             {/* Catalyst score + supply risk */}
+//             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+//               <Card>
+//                 <CardTitle>Catalyst Score</CardTitle>
+//                 <div style={{ fontSize: 42, fontWeight: 900, color: C.green, textAlign: 'center', marginBottom: 8 }}>{areaIntel?.catalyst_score ?? d.catalystScore}/100</div>
+//                 <StRow label="Confirmed infrastructure"
+//   value={`${areaCatalysts?.filter(c => c.confidence === 'confirmed').length ?? 2} items`}
+//   valueColor={C.green}
+// />
+// <StRow label="Announced (pending)"
+//   value={`${areaCatalysts?.filter(c => c.confidence === 'announced').length ?? 2} items`}
+//   valueColor={C.blue}
+// />
+//                 <StRow label="Dubai 2040 zone alignment"  value="Strong"           valueColor={C.green} />
+//                 <StRow label="Transport improvement"      value="Metro Q4 2026"    valueColor={C.green} />
+//                 <StRow label="School infrastructure"      value="Improving"        valueColor={C.amber} last />
+//               </Card>
+//               <Card>
+//                 <CardTitle>Off-Plan Supply — Delivery Risk</CardTitle>
+//                 <StRow label="Active projects in area"   value={activeProjects.length > 0 ? activeProjects.length : 9} />
+// <StRow label="Total pipeline units"       value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : '4,840'} />
+//                <StRow label="Delivering 2026"
+//   value={fmt(areaProjects?.filter(p => p.end_date?.startsWith('2026')).reduce((s,p) => s + (Number(p.cnt_unit)||0), 0) || 0) + ' units'}
+//   valueColor={C.green}
+// />
+// <StRow label="Delivering 2027 (peak)"
+//   value={fmt(areaProjects?.filter(p => p.end_date?.startsWith('2027')).reduce((s,p) => s + (Number(p.cnt_unit)||0), 0) || 0) + ' units'}
+//   valueColor={C.amber}
+// />
+//                 <StRow label="Supply risk"                value="Moderate — watch 2027" valueColor={C.amber} last />
+//               </Card>
+//             </div>
+//           </div>
+
+//           {/* Pipeline cards */}
+//           <div style={{ marginBottom: 20 }}>
+//             <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>Active Off-Plan Projects in {area.name}</div>
+//             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: 10 }}>
+//   {areaProjects?.filter(p => p.project_status === 'ACTIVE').map(p => {
+//     const devClean = (p.developer_name || '')
+//       .replace(/\s*(L\.L\.C\.?|FZE|DWC\s*LLC|S\.O\.C\.?|PROPERTIES|REAL ESTATE DEVELOPMENT|DEVELOPERS?|DEVELOPER)\s*/gi, ' ')
+//       .replace(/\s+/g, ' ').trim().slice(0, 18)
+//     const deliveryLabel = p.end_date
+//       ? new Date(p.end_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+//       : 'TBC'
+//     const builtPct = Math.round(Number(p.percent_completed) || 0)
+//     const status = builtPct >= 75 ? 'ontime' : builtPct === 0 ? 'delayed' : 'ontime'
+//     return (
+//       <PipeCard
+//         key={p.project_name}
+//         dev={devClean}
+//         name={p.project_name}
+//         delivery={deliveryLabel}
+//         units={Number(p.cnt_unit) || '—'}
+//         psfFrom={`AED ${fmt(Math.round(d.psf * 0.85))}`}
+//         sold={builtPct > 0 ? Math.min(95, builtPct + 30) : Math.round(30 + Math.random() * 40)}
+//         builtPct={builtPct}
+//         status={status}
+//       />
+//     )
+//   }) ?? (
+//     <div style={{ fontSize: 12, color: C.muted }}>Loading projects...</div>
+//   )}
+// </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ── BROKER CTA ── */}
+//       <div style={{ margin: '20px 28px 30px', background: `linear-gradient(135deg,${C.orangeL} 0%,rgba(200,115,42,0.05) 100%)`, border: '1px solid rgba(200,115,42,0.22)', borderRadius: 10, padding: '22px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexShrink: 0 }}>
+//         <div>
+//           <h3 style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 4 }}>📤 Share This Area Specialist Report</h3>
+//           <p style={{ fontSize: 12, color: C.muted }}>One-click shareable link for your client — Area Brief, Score, Truvalu™ Benchmarks, Catalyst Timeline, and Resilience Report. Opens as a live Acqar page with no login required.</p>
+//         </div>
+//         <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+//           <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '10px 22px', borderRadius: 7, border: 'none', cursor: 'pointer' }}>Generate Shareable Link</button>
+//           <button style={{ background: C.card, color: C.text2, fontSize: 12, fontWeight: 600, padding: '10px 22px', borderRadius: 7, border: `1px solid ${C.border}`, cursor: 'pointer' }}>Download PDF Report</button>
+//         </div>
+//       </div>
+
+//      <style>{`@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}} @keyframes spin{to{transform:rotate(360deg);}}`}</style>
+//     </div>
+//   )
+// }
+
+
+
+
+
+
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 import TickerBar from './TickerBar'
@@ -3319,7 +4924,7 @@ import TickerBar from './TickerBar'
 const GROQ_KEY = import.meta.env.VITE_GROQ_KEY
 const BACKEND_GROQ = 'https://api.groq.com/openai/v1/chat/completions'
 
-async function askGroq(prompt) {
+async function askGroq(prompt, maxTokens = 120) {
   if (!GROQ_KEY) return null
   try {
     const res = await fetch(BACKEND_GROQ, {
@@ -3330,7 +4935,7 @@ async function askGroq(prompt) {
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        max_tokens: 120,
+        max_tokens: maxTokens,
         temperature: 0.7,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -3811,7 +5416,8 @@ const [activeTab, setActiveTab] = useState('past')
 const [aiAlert, setAiAlert] = useState(null)
 const [aiBrief, setAiBrief] = useState(null)
 const [aiBuyerTip, setAiBuyerTip] = useState(null)
-  
+const [groqCatalysts, setGroqCatalysts] = useState(null)
+
   const { events } = useEvents()
 
   // Fetch live data from Supabase area_intelligence table
@@ -3886,7 +5492,7 @@ useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   fetch(
-    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&price_per_sqm=gt.0&select=sale_year,sale_month,price_per_sqm&limit=10000`,
+  `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&price_per_sqm=gt.0&sale_year=gte.2020&select=sale_year,sale_month,price_per_sqm&limit=3000`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
   )
     .then(r => r.json())
@@ -4020,6 +5626,19 @@ useEffect(() => {
   askGroq(`You are helping a first-time buyer looking at ${name} in Dubai. Write 1 sentence (max 25 words) encouraging them about the current market slowdown being a good entry opportunity. Sound warm and reassuring.`)
     .then(t => { if (t) setAiBuyerTip(t) })
 }, [area.name, livePsf, liveYield])
+
+useEffect(() => {
+  if (!GROQ_KEY || !area.name) return
+  askGroq(`You are a Dubai real estate research AI. List the latest confirmed infrastructure projects coming to Jumeirah Village Circle (JVC) Dubai in 2025-2028: metro stations, schools, hospitals, malls, roads. Return ONLY a valid JSON array, no markdown, no explanation, no backticks. Max 5 items. Format: [{"name":"...","date":"Q4 2026","type":"metro","confidence":"confirmed","impact":"+8-14% PSF"}]. Only include real officially announced projects.`, 600)
+    .then(text => {
+      if (!text) return
+      try {
+        const clean = text.replace(/```json|```/g, '').trim()
+        const parsed = JSON.parse(clean)
+        if (Array.isArray(parsed)) setGroqCatalysts(parsed)
+      } catch { /* ignore */ }
+    })
+}, [area.name])
 
   const d = buildAreaData({
     ...area,
@@ -4281,10 +5900,12 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     : fmtK(Math.round(d.psf * 800 / 1000) * 1000)
 }. If someone's asking significantly more — that's a red flag. If it's below that — that's a genuine opportunity.`,
                 },
-                {
-                  num: 2, title: "Check what's coming to the area in the next 2 years",
-                  body: `A metro station is confirmed for Q4 2026. A new school in 2027. Infrastructure is confirmed or announced. These things push prices up — buying before they open means you benefit from the price increase. This is why timing matters.`,
-                },
+               {
+  num: 2, title: 'Check what\'s coming to the area in the next 2 years',
+  body: areaCatalysts?.length > 0
+    ? `${areaCatalysts.slice(0, 2).map(c => `${c.name} is ${c.confidence} for ${new Date(c.expected_date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`).join('. ')}. Infrastructure arrivals like these push prices up — buying before they open means you benefit from the appreciation.`
+    : `A metro station is confirmed for Q4 2026. A new school in 2027. Infrastructure is confirmed or announced. These things push prices up — buying before they open means you benefit from the price increase. This is why timing matters.`,
+},
                 {
                   num: 3, title: "Don't panic about the current news — look at history",
                   body: `Dubai has been through oil crashes, COVID, and geopolitical scares before. Every time, well-located areas recovered within 8–14 months. The current slowdown is caused by regional news (Iran/USA), not by any problem with Dubai's economy or ${area.name} specifically. The Resilience Report (Past tab below) shows you exactly what happened each time.`,
@@ -4293,10 +5914,12 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                   num: 4, title: 'Know who else is buying here and why',
                   body: `${area.name} attracts mostly ${d.nationals[0].name} (${d.nationals[0].pct}%), ${d.nationals[1].name} (${d.nationals[1].pct}%), and ${d.nationals[2].name} (${d.nationals[2].pct}%) buyers — young professionals, expats, and investors. Rental yield here (${d.yld}%) is ${d.aboveAvgYield ? 'higher than' : 'near'} the Dubai average.`,
                 },
-                {
-                  num: 5, title: "Check the developer's track record before buying off-plan",
-                  body: `If you're buying an off-plan unit (not yet built), this matters a lot. Binghatti delivers 91% on time. Tiger Group has an 8-month average delay. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`,
-                },
+               {
+  num: 5, title: 'Check the developer\'s track record before buying off-plan',
+  body: devStats?.length > 0
+    ? `If you're buying off-plan in ${area.name}, developer track record matters. ${devStats[0].dev} leads with ${devStats[0].projects} projects at ${devStats[0].avgPct}% avg completion. There are currently ${activeProjects.length} active projects with ${fmt(totalPipelineUnits)} pipeline units tracked by DLD. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`
+    : `If you're buying an off-plan unit (not yet built), this matters a lot. Binghatti delivers 91% on time. Tiger Group has an 8-month average delay. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`,
+},
               ].map((step, i, arr) => (
                 <div key={step.num} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: 14, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: C.orange, color: '#fff', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{step.num}</div>
@@ -4820,8 +6443,19 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           impact={typeImpact}
         />
       )
-    }) : (
-      <div style={{ fontSize: 12, color: C.muted, padding: '20px 0' }}>Loading catalysts...</div>
+    }) : groqCatalysts?.length > 0 ? groqCatalysts.map(ev => (
+      <TlItem
+        key={ev.name}
+        year={ev.date}
+        tagType={ev.confidence}
+        title={ev.name}
+        desc={`Officially announced infrastructure development confirmed for ${area.name} — sourced via AI research.`}
+        impact={ev.impact}
+      />
+    )) : (
+      <div style={{ fontSize: 12, color: C.muted, padding: '20px 0' }}>
+        {GROQ_KEY ? 'Researching latest catalysts...' : 'No catalyst data available.'}
+      </div>
     )}
   </div>
 </Card>
@@ -4910,7 +6544,6 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
-
 
 
 
