@@ -8343,8 +8343,8 @@ function fmtK(n) {
 }
 
 // ── SHARED COMPONENTS ──────────────────────────────────────────────
-function Card({ children, style = {} }) {
-  return <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 18, ...style }}>{children}</div>
+function Card({ children, style = {}, noPad }) {
+  return <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: noPad ? 0 : 18, overflow: 'hidden', ...style }}>{children}</div>
 }
 
 function CardTitle({ children, badge }) {
@@ -8395,10 +8395,10 @@ function NatBar({ flag, name, pct, w }) {
 
 function PTable({ headers, rows, minWidth }) {
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'thin', scrollbarColor: '#E8E0D0 transparent', borderRadius: 4 }}>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'auto', margin: '-18px', padding: '0 0 2px 0' }}>
       <table style={{ minWidth: minWidth || 380, borderCollapse: 'collapse', width: '100%' }}>
         <thead>
-          <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+          <tr>{headers.map(h => <th key={h} style={{ padding: '7px 18px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
         </thead>
         <tbody>{rows}</tbody>
       </table>
@@ -8406,9 +8406,8 @@ function PTable({ headers, rows, minWidth }) {
   )
 }
 
-
 function Td({ children, color, bold, last }) {
-  return <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400 }}>{children}</td>
+  return <td style={{ padding: '9px 18px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
 }
 
 function GapTag({ truv, ask }) {
@@ -9222,8 +9221,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 
           {/* Price guide */}
           <div style={{ ...g2, marginTop: 16 }}>
-            <Card>
-              <CardTitle>What Does Buying in {area.name} Actually Cost?</CardTitle>
+            <Card noPad>
+              <div style={{ padding: '18px 18px 0' }}><CardTitle>What Does Buying in {area.name} Actually Cost?</CardTitle></div>
               <PTable
                 minWidth={380}
                 headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
@@ -9236,7 +9235,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                   </tr>
                 ))}
               />
-              <p style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>💡 The "Fair Price" column is Acqar's Truvalu™ benchmark — what the property is actually worth based on real transactions, not asking prices.</p>
+              <div style={{ padding: '0 18px 18px' }}><p style={{ fontSize: 11, color: C.muted, marginTop: 10 }}>💡 The "Fair Price" column is Acqar's Truvalu™ benchmark — what the property is actually worth based on real transactions, not asking prices.</p>
+              </div>
             </Card>
             <Card>
               <CardTitle>What Will It Cost to Own (Not Just Buy)?</CardTitle>
@@ -9298,9 +9298,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               <RatioBar left="Apartments"         leftPct={87} leftColor={C.green}  right="Villas/TH"          rightPct={13} rightColor={C.purple} />
               <RatioBar left="Long-term tenants"  leftPct={88} leftColor="#14B8A6"  right="Short-stay"          rightPct={12} rightColor="#E2E8F0" last />
             </Card>
-            <Card>
-             <CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle>
-              
+            <Card noPad>
+              <div style={{ padding: '18px 18px 0' }}><CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle></div>
              <PTable
                 minWidth={420}
                 headers={['Type', 'Truvalu™', 'Asking', 'Gap', 'Signal']}
@@ -9492,8 +9491,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
   <StRow label="Retail"                   value="Circle Mall (235 shops) + 200+ outlets" />
   <StRow label="5-year appreciation"      value={`+${fiveYrAppreciationReal ?? '63.7'}%`} valueColor={C.green} last />
 </Card>
-            <Card>
-  <CardTitle>Developer Delivery Track Record in {area.name}</CardTitle>
+            <Card noPad>
+  <div style={{ padding: '18px 18px 0' }}><CardTitle>Developer Delivery Track Record in {area.name}</CardTitle></div>
   {devStats ? (
     <PTable
       minWidth={380}
@@ -9536,9 +9535,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
    />
   
   )}
-  <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
+  <div style={{ padding: '0 18px 18px' }}><p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
     📋 Source: Dubai Land Department · {areaProjects?.length ? 'Live DLD data' : 'Historical estimates'}
-  </p>
+</p></div>
 </Card>
           </div>
 
@@ -9665,8 +9664,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 
           {/* Rent ranges + Truvalu current + nationalities */}
           <div style={{ ...g3, marginBottom: 20 }}>
-            <Card>
-              <CardTitle>Annual Rent Ranges (AED)</CardTitle>
+            <Card noPad>
+              <div style={{ padding: '18px 18px 0' }}><CardTitle>Annual Rent Ranges (AED)</CardTitle></div>
               <PTable
                 minWidth={300}
                 headers={['Type', 'Min', 'Avg', 'Max']}
@@ -9680,8 +9679,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 ))}
               />
             </Card>
-            <Card>
-              <CardTitle>Truvalu™ Benchmark — Current</CardTitle>
+            <Card noPad>
+              <div style={{ padding: '18px 18px 0' }}><CardTitle>Truvalu™ Benchmark — Current</CardTitle></div>
               <PTable
                 minWidth={320}
                 headers={['Type', 'Truvalu™', 'Ask PSF', 'Status']}
