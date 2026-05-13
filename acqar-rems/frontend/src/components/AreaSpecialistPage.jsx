@@ -9297,7 +9297,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               <RatioBar left="Long-term tenants"  leftPct={88} leftColor="#14B8A6"  right="Short-stay"          rightPct={12} rightColor="#E2E8F0" last />
             </Card>
             <Card>
-              <CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle>
+             <CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle>
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <PTable
                 headers={['Type', 'Truvalu™', 'Asking', 'Gap', 'Signal']}
                 rows={livePriceTable.map((row, i, arr) => (
@@ -9308,8 +9309,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                     <Td last={i === arr.length - 1}><GapPct truv={row.truv} ask={row.ask} /></Td>
                     <Td last={i === arr.length - 1}><GapTag truv={row.truv} ask={row.ask} /></Td>
                   </tr>
-                ))}
+               ))}
               />
+              </div>
             </Card>
           </div>
 
@@ -9490,6 +9492,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <Card>
   <CardTitle>Developer Delivery Track Record in {area.name}</CardTitle>
   {devStats ? (
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
     <PTable
       headers={['Developer', 'Projects', 'Active', 'Avg Built %', 'Units']}
       rows={devStats.map((r, i, arr) => {
@@ -9505,7 +9508,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         )
       })}
     />
+    </div>
   ) : (
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
     <PTable
       headers={['Developer', 'Projects', 'On-Time', 'Avg Delay', 'Rating']}
       rows={[
@@ -9524,10 +9529,11 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           <Td last={i === arr.length - 1} color={r.c}>{r.rating}</Td>
         </tr>
       ))}
-    />
+   />
+    </div>
   )}
   <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
-    📋 Source: Dubai Land Department (DLD) · {areaProjects?.length ? 'Live DLD data' : 'Historical estimates'}
+    📋 Source: Dubai Land Department · {areaProjects?.length ? 'Live DLD data' : 'Historical estimates'}
   </p>
 </Card>
           </div>
@@ -9538,9 +9544,10 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: C.greenL, border: '1px solid rgba(22,163,74,.18)', borderRadius: 6, padding: '7px 14px', fontSize: 11, fontWeight: 700, color: C.green, marginBottom: 14 }}>
               ✓ {area.name} has recovered within {areaIntel?.catalyst_score >= 70 ? '8' : '14'} months in every major shock since 2014
             </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>{['Event', 'Period', `${area.name} Price Impact`, 'Recovery Time', 'What Drove Recovery', 'Is This Happening Now?'].map(h => (
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+<table style={{ width: isMobile ? 700 : '100%', borderCollapse: 'collapse' }}>
+  <thead>
+    <tr>{['Event', 'Period', `${area.name} Price Impact`, 'Recovery Time', 'What Drove Recovery', 'Is This Happening Now?'].map(h => (
                   <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>{h}</th>
                 ))}</tr>
               </thead>
@@ -9588,6 +9595,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 ))}
               </tbody>
             </table>
+            </div>
           </Card>
         </div>
       )}
@@ -9821,9 +9829,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           <h3 style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 4 }}>📤 Share This Area Specialist Report</h3>
           <p style={{ fontSize: 12, color: C.muted }}>One-click shareable link for your client — Area Brief, Score, Truvalu™ Benchmarks, Catalyst Timeline, and Resilience Report. Opens as a live Acqar page with no login required.</p>
         </div>
-        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-          <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '10px 22px', borderRadius: 7, border: 'none', cursor: 'pointer' }}>Generate Shareable Link</button>
-          <button style={{ background: C.card, color: C.text2, fontSize: 12, fontWeight: 600, padding: '10px 22px', borderRadius: 7, border: `1px solid ${C.border}`, cursor: 'pointer' }}>Download PDF Report</button>
+       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10, flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
+          <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '10px 22px', borderRadius: 7, border: 'none', cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}>Generate Shareable Link</button>
+          <button style={{ background: C.card, color: C.text2, fontSize: 12, fontWeight: 600, padding: '10px 22px', borderRadius: 7, border: `1px solid ${C.border}`, cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}>Download PDF Report</button>
         </div>
       </div>
 
