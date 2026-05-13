@@ -8396,16 +8396,21 @@ function NatBar({ flag, name, pct, w }) {
 
 function PTable({ headers, rows, minWidth }) {
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -2px' }}>
-      <table style={{ width: '100%', minWidth: minWidth || 'auto', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </table>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+      <style>{`.ptable-scroll::-webkit-scrollbar{display:none}`}</style>
+      <div className="ptable-scroll" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table style={{ width: '100%', minWidth: minWidth || 380, borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+          </thead>
+          <tbody>{rows}</tbody>
+        </table>
+      </div>
     </div>
   )
 }
+
+
 function Td({ children, color, bold, last }) {
   return <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400 }}>{children}</td>
 }
@@ -9025,8 +9030,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
   const pipePsf = (mult) => `AED ${fmt(Math.round(d.psf * mult))}`
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto' }}>
-
+<div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto', overflowX: 'hidden' }}>
       {/* ── NAV ── */}
       <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: isMobile ? '0 12px' : '0 28px', height: 54, display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 32, position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
         <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-.01em', color: C.text }}>ACQ<span style={{ color: C.orange }}>AR</span> SIGNAL™</div>
@@ -9225,6 +9229,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <Card>
               <CardTitle>What Does Buying in {area.name} Actually Cost?</CardTitle>
               <PTable
+                minWidth={380}
                 headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
                 rows={liveBuyerPriceTable.map((row, i, arr) => (
                   <tr key={row.type}>
@@ -9494,7 +9499,6 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <Card>
   <CardTitle>Developer Delivery Track Record in {area.name}</CardTitle>
   {devStats ? (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
     <PTable
       minWidth={380}
       headers={['Developer', 'Projects', 'Active', 'Avg Built %', 'Units']}
@@ -9511,7 +9515,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         )
       })}
     />
-    </div>
+    
   ) : (
     
     <PTable
@@ -9668,6 +9672,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <Card>
               <CardTitle>Annual Rent Ranges (AED)</CardTitle>
               <PTable
+                minWidth={300}
                 headers={['Type', 'Min', 'Avg', 'Max']}
                 rows={d.rentTable.map((row, i, arr) => (
                   <tr key={row.type}>
@@ -9682,6 +9687,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <Card>
               <CardTitle>Truvalu™ Benchmark — Current</CardTitle>
               <PTable
+                minWidth={320}
                 headers={['Type', 'Truvalu™', 'Ask PSF', 'Status']}
                 rows={d.priceTable.map((row, i, arr) => (
                   <tr key={row.type}>
@@ -9839,7 +9845,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         </div>
       </div>
 
-     <style>{`@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}} @keyframes spin{to{transform:rotate(360deg);}}`}</style>
+     <style>{`@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}} @keyframes spin{to{transform:rotate(360deg);}} @media(max-width:767px){body{overflow-x:hidden;} .scroll-table{overflow-x:auto;-webkit-overflow-scrolling:touch;} .scroll-table table{min-width:420px;border-collapse:collapse;}}`}</style>
     </div>
   )
 }
