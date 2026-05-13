@@ -9027,19 +9027,23 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
   return (
 <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto', maxWidth: '100vw' }}>
       {/* ── NAV ── */}
-      <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: isMobile ? '0 12px' : '0 28px', height: 54, display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 32, position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
-        <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-.01em', color: C.text }}>ACQ<span style={{ color: C.orange }}>AR</span> SIGNAL™</div>
-        {!isMobile && (
-  <div style={{ display: 'flex', gap: 2 }}>
-    {['Terminal', 'Areas', 'Truvalu™', 'Reports'].map(l => (
-      <span key={l} style={{ padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 500, color: l === 'Areas' ? C.orange : C.muted, background: l === 'Areas' ? C.orangeL : 'transparent', cursor: 'pointer' }}>{l}</span>
-    ))}
-  </div>
-)}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-  <button onClick={onClose} style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 7, border: `1px solid ${C.border}`, background: C.card, color: C.text2, cursor: 'pointer' }}>← Back</button>
-  {!isMobile && <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '8px 18px', borderRadius: 7, border: 'none', cursor: 'pointer' }}>📤 Share Area Pack</button>}
-</div>
+     <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: isMobile ? '0 12px' : '0 28px', height: 54, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
+        {/* Logo — matches dashboard style */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.12em', lineHeight: 1 }}>
+            <span style={{ color: C.orange }}>ACQ</span>
+            <span style={{ color: C.text }}>AR</span>
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', padding: isMobile ? '2px 6px' : '3px 10px', borderRadius: 4, background: C.orangeL, border: `1px solid rgba(200,115,42,0.35)` }}>
+            <span style={{ fontSize: isMobile ? 9 : 11, fontWeight: 700, color: C.orange, letterSpacing: '1.5px', textTransform: 'uppercase' }}>SIGNAL™</span>
+          </span>
+          {!isMobile && <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>· Area Specialist · Jumeirah Village Circle</span>}
+        </div>
+        {/* Right side */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {!isMobile && <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '8px 18px', borderRadius: 7, border: 'none', cursor: 'pointer' }}>📤 Share Area Pack</button>}
+          <button onClick={onClose} style={{ width: 32, height: 32, background: '#F5F5F5', border: `1px solid ${C.border}`, borderRadius: 8, cursor: 'pointer', fontWeight: 900, fontSize: 14, color: C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        </div>
       </nav>
 
      {/* ── TICKER ── */}
