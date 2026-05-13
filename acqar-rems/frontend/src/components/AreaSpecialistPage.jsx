@@ -8359,9 +8359,9 @@ function CardTitle({ children, badge }) {
 
 function StRow({ label, value, valueColor, last }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: last ? 'none' : `1px solid ${C.border}`, fontSize: 12 }}>
-      <span style={{ color: C.muted }}>{label}</span>
-      <span style={{ fontWeight: 700, color: valueColor || C.text }}>{value}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '7px 0', borderBottom: last ? 'none' : `1px solid ${C.border}`, fontSize: 12, gap: 8 }}>
+      <span style={{ color: C.muted, flexShrink: 0, maxWidth: '55%' }}>{label}</span>
+      <span style={{ fontWeight: 700, color: valueColor || C.text, textAlign: 'right', wordBreak: 'break-word', minWidth: 0 }}>{value}</span>
     </div>
   )
 }
@@ -8396,16 +8396,13 @@ function NatBar({ flag, name, pct, w }) {
 
 function PTable({ headers, rows, minWidth }) {
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-      <style>{`.ptable-scroll::-webkit-scrollbar{display:none}`}</style>
-      <div className="ptable-scroll" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <table style={{ width: '100%', minWidth: minWidth || 380, borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
-          </thead>
-          <tbody>{rows}</tbody>
-        </table>
-      </div>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'thin', scrollbarColor: '#E8E0D0 transparent', borderRadius: 4 }}>
+      <table style={{ minWidth: minWidth || 380, borderCollapse: 'collapse', width: '100%' }}>
+        <thead>
+          <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
     </div>
   )
 }
@@ -9030,7 +9027,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
   const pipePsf = (mult) => `AED ${fmt(Math.round(d.psf * mult))}`
 
   return (
-<div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto', overflowX: 'hidden' }}>
+<div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto', maxWidth: '100vw' }}>
       {/* ── NAV ── */}
       <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: isMobile ? '0 12px' : '0 28px', height: 54, display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 32, position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
         <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-.01em', color: C.text }}>ACQ<span style={{ color: C.orange }}>AR</span> SIGNAL™</div>
