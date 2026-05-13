@@ -8369,9 +8369,9 @@ function StRow({ label, value, valueColor, last }) {
 function RatioBar({ left, leftPct, leftColor, right, rightPct, rightColor, last }) {
   return (
     <div style={{ marginBottom: last ? 0 : 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
-        <span style={{ color: C.text2, fontWeight: 700 }}>{left} {leftPct}%</span>
-        <span style={{ color: C.muted }}>{right} {rightPct}%</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4, gap: 4 }}>
+        <span style={{ color: C.text2, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{left} {leftPct}%</span>
+        <span style={{ color: C.muted, flexShrink: 0, whiteSpace: 'nowrap' }}>{right} {rightPct}%</span>
       </div>
       <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
         <div style={{ width: `${leftPct}%`, background: leftColor }} />
@@ -8394,17 +8394,18 @@ function NatBar({ flag, name, pct, w }) {
   )
 }
 
-function PTable({ headers, rows }) {
+function PTable({ headers, rows, minWidth }) {
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-      <thead>
-        <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>{h}</th>)}</tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </table>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -2px' }}>
+      <table style={{ width: '100%', minWidth: minWidth || 'auto', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>{headers.map(h => <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
   )
 }
-
 function Td({ children, color, bold, last }) {
   return <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400 }}>{children}</td>
 }
@@ -9298,8 +9299,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             </Card>
             <Card>
              <CardTitle badge="RICS-aligned">Truvalu™ Benchmark vs Asking Price</CardTitle>
-              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-              <PTable
+              
+             <PTable
+                minWidth={420}
                 headers={['Type', 'Truvalu™', 'Asking', 'Gap', 'Signal']}
                 rows={livePriceTable.map((row, i, arr) => (
                   <tr key={row.type}>
@@ -9311,7 +9313,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                   </tr>
                ))}
               />
-              </div>
+              
             </Card>
           </div>
 
@@ -9494,6 +9496,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
   {devStats ? (
     <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
     <PTable
+      minWidth={380}
       headers={['Developer', 'Projects', 'Active', 'Avg Built %', 'Units']}
       rows={devStats.map((r, i, arr) => {
         const color = r.avgPct >= 50 ? C.green : r.avgPct >= 20 ? C.amber : C.muted
@@ -9510,8 +9513,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     />
     </div>
   ) : (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+    
     <PTable
+      minWidth={380}
       headers={['Developer', 'Projects', 'On-Time', 'Avg Delay', 'Rating']}
       rows={[
         { dev: 'Nakheel',    n: 6,  ot: '95%', delay: '0.5 mo', rating: '★★★★★', c: C.green },
@@ -9530,7 +9534,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         </tr>
       ))}
    />
-    </div>
+  
   )}
   <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
     📋 Source: Dubai Land Department · {areaProjects?.length ? 'Live DLD data' : 'Historical estimates'}
