@@ -8395,10 +8395,10 @@ function NatBar({ flag, name, pct, w }) {
 
 function PTable({ headers, rows, minWidth }) {
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'auto', margin: '-18px', padding: '0 0 2px 0' }}>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'auto', margin: '0 -18px', padding: '0 0 2px 0' }}>
       <table style={{ minWidth: minWidth || 380, borderCollapse: 'collapse', width: '100%' }}>
         <thead>
-          <tr>{headers.map(h => <th key={h} style={{ padding: '7px 18px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+          <tr>{headers.map((h, hi) => <th key={h} style={{ padding: hi === 0 ? '7px 12px 7px 18px' : '7px 18px 7px 12px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
         </thead>
         <tbody>{rows}</tbody>
       </table>
@@ -8406,8 +8406,8 @@ function PTable({ headers, rows, minWidth }) {
   )
 }
 
-function Td({ children, color, bold, last }) {
-  return <td style={{ padding: '9px 18px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
+function Td({ children, color, bold, last, first }) {
+  return <td style={{ padding: first ? '9px 12px 9px 18px' : '9px 18px 9px 12px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
 }
 
 function GapTag({ truv, ask }) {
@@ -9228,7 +9228,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
                 rows={liveBuyerPriceTable.map((row, i, arr) => (
                   <tr key={row.type}>
-                    <Td last={i === arr.length - 1}>{row.type}</Td>
+                    <Td last={i === arr.length - 1} first>{row.type}</Td>
                     <Td last={i === arr.length - 1}>{row.min}</Td>
                     <Td last={i === arr.length - 1} bold>{row.fair}</Td>
                     <Td last={i === arr.length - 1}>{row.max}</Td>
@@ -9304,8 +9304,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 minWidth={420}
                 headers={['Type', 'Truvalu™', 'Asking', 'Gap', 'Signal']}
                 rows={livePriceTable.map((row, i, arr) => (
-                  <tr key={row.type}>
-                    <Td last={i === arr.length - 1}>{row.type}</Td>
+                 <tr key={row.type}>
+                    <Td last={i === arr.length - 1} first>{row.type}</Td>
                     <Td last={i === arr.length - 1} bold>AED {fmt(row.truv)}</Td>
                     <Td last={i === arr.length - 1}>{fmt(row.ask)}</Td>
                     <Td last={i === arr.length - 1}><GapPct truv={row.truv} ask={row.ask} /></Td>
@@ -9500,8 +9500,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
       rows={devStats.map((r, i, arr) => {
         const color = r.avgPct >= 50 ? C.green : r.avgPct >= 20 ? C.amber : C.muted
         return (
-          <tr key={r.dev}>
-            <Td last={i === arr.length - 1}>{r.dev}</Td>
+        <tr key={r.dev}>
+            <Td last={i === arr.length - 1} first>{r.dev}</Td>
             <Td last={i === arr.length - 1}>{r.projects}</Td>
             <Td last={i === arr.length - 1} color={r.active > 0 ? C.green : C.muted}>{r.active} active</Td>
             <Td last={i === arr.length - 1} color={color}>{r.avgPct}%</Td>
@@ -9525,7 +9525,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
         { dev: 'Tiger Group',n: 9,  ot: '58%', delay: '9.0 mo', rating: '★★☆☆☆', c: C.red   },
       ].map((r, i, arr) => (
         <tr key={r.dev}>
-          <Td last={i === arr.length - 1}>{r.dev}</Td>
+          <Td last={i === arr.length - 1} first>{r.dev}</Td>
           <Td last={i === arr.length - 1}>{r.n}</Td>
           <Td last={i === arr.length - 1} color={r.c}>{r.ot}</Td>
           <Td last={i === arr.length - 1}>{r.delay}</Td>
@@ -9670,8 +9670,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 minWidth={300}
                 headers={['Type', 'Min', 'Avg', 'Max']}
                 rows={d.rentTable.map((row, i, arr) => (
-                  <tr key={row.type}>
-                    <Td last={i === arr.length - 1}>{row.type}</Td>
+                <tr key={row.type}>
+                    <Td last={i === arr.length - 1} first>{row.type}</Td>
                     <Td last={i === arr.length - 1}>{fmt(row.min)}</Td>
                     <Td last={i === arr.length - 1} color={C.green} bold>{fmt(row.avg)}</Td>
                     <Td last={i === arr.length - 1}>{fmt(row.max)}</Td>
@@ -9686,7 +9686,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 headers={['Type', 'Truvalu™', 'Ask PSF', 'Status']}
                 rows={d.priceTable.map((row, i, arr) => (
                   <tr key={row.type}>
-                    <Td last={i === arr.length - 1}>{row.type}</Td>
+                    <Td last={i === arr.length - 1} first>{row.type}</Td>
                     <Td last={i === arr.length - 1}>AED {fmt(row.truv)}</Td>
                     <Td last={i === arr.length - 1}>{fmt(row.ask)}</Td>
                     <Td last={i === arr.length - 1}><GapTag truv={row.truv} ask={row.ask} /></Td>
