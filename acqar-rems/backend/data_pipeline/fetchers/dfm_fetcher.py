@@ -672,9 +672,9 @@ TRACKED_STOCKS = {
     "UPP.AE":      {"name": "Union P.",   "fullname": "Union Properties",   "currency": "AED", "exchange": "DFM"},
     "ALDAR.AE":    {"name": "Aldar",      "fullname": "Aldar Properties",   "currency": "AED", "exchange": "ADX"},
     "DIC.AE":      {"name": "Dubai Inv.", "fullname": "Dubai Investments",  "currency": "AED", "exchange": "DFM"},
-    "DAMAC.AE":    {"name": "DAMAC",      "fullname": "DAMAC Real Estate",  "currency": "AED", "exchange": "DFM"},
-    "NAKHEEL.AE":  {"name": "Nakheel",    "fullname": "Nakheel PJSC",       "currency": "AED", "exchange": "DFM"},
-    "SOBHA.AE":    {"name": "Sobha",      "fullname": "Sobha Realty",       "currency": "AED", "exchange": "DFM"},
+    "EMFD.AE":   {"name": "Emaar Malls", "fullname": "Emaar Malls PJSC",     "currency": "AED", "exchange": "DFM"},
+    "AMLAK.AE":  {"name": "Amlak",       "fullname": "Amlak Finance",         "currency": "AED", "exchange": "DFM"},
+    "DEYAAR.AE": {"name": "Deyaar",      "fullname": "Deyaar Development",    "currency": "AED", "exchange": "DFM"},
 }
 
 BASE_PRICES = {
