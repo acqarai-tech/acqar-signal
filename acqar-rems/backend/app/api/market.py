@@ -2341,3 +2341,19 @@ async def get_forecasts(request: Request):
         "methodology": "Signal-derived from live event store. Not a regulated prediction market.",
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
+
+@router.get("/debug/stocks")
+async def debug_stocks():
+    import asyncio
+    try:
+        import yfinance as yf
+        ticker = yf.Ticker("EMAAR.AE")
+        hist = ticker.history(period="5d")
+        return {
+            "installed": True,
+            "empty": hist.empty,
+            "rows": len(hist),
+            "last_price": float(hist["Close"].iloc[-1]) if not hist.empty else None
+        }
+    except Exception as e:
+        return {"installed": False, "error": str(e)}
