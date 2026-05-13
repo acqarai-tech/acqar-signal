@@ -8179,7 +8179,6 @@
 
 
 
-
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 import TickerBar from './TickerBar'
