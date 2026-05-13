@@ -511,26 +511,170 @@
 
 
 
+# import asyncio
+# import logging
+# import time
+# import math
+# import os
+# from datetime import datetime, timezone
+# from typing import Dict
+
+# logger = logging.getLogger(__name__)
+
+# TRACKED_STOCKS = {
+#     "EMAAR.AE":    {"name": "Emaar",     "fullname": "Emaar Properties",   "currency": "AED", "exchange": "DFM"},
+#     "EMAARDEV.AE": {"name": "EmaarDev",  "fullname": "Emaar Development",  "currency": "AED", "exchange": "DFM"},
+#     "DEYAAR.AE":   {"name": "Deyaar",    "fullname": "Deyaar Development", "currency": "AED", "exchange": "DFM"},
+#     "UPP.AE":      {"name": "Union P.",  "fullname": "Union Properties",   "currency": "AED", "exchange": "DFM"},
+#     "ALDAR.AE":    {"name": "Aldar",     "fullname": "Aldar Properties",   "currency": "AED", "exchange": "ADX"},
+#     "DIC.AE":      {"name": "Dubai Inv.","fullname": "Dubai Investments",  "currency": "AED", "exchange": "DFM"},
+#     "DAMAC.AE":    {"name": "DAMAC",     "fullname": "DAMAC Real Estate",  "currency": "AED", "exchange": "DFM"},
+#     "NAKHEEL.AE":  {"name": "Nakheel",   "fullname": "Nakheel PJSC",       "currency": "AED", "exchange": "DFM"},
+#     "SOBHA.AE":    {"name": "Sobha",     "fullname": "Sobha Realty",       "currency": "AED", "exchange": "DFM"},
+# }
+
+# BASE_PRICES = {
+#     "EMAAR.AE": 8.45, "EMAARDEV.AE": 4.20, "DEYAAR.AE": 0.72,
+#     "UPP.AE": 0.38,   "ALDAR.AE": 3.18,    "DIC.AE": 2.85,
+#     "DAMAC.AE": 0.41, "NAKHEEL.AE": 1.85,  "SOBHA.AE": 1.22,
+# }
+
+# _cache: Dict = {}
+# _cache_ts: float = 0.0
+# _CACHE_TTL = 300  # 5 minutes
+
+
+# def _micro_drift(symbol: str, base: float):
+#     phase = (hash(symbol) % 1000) / 1000.0
+#     cycle = math.sin(time.time() / 14400 * 2 * math.pi + phase * 2 * math.pi)
+#     drift_pct = cycle * 0.8
+#     price = round(base * (1 + drift_pct / 100), 3)
+#     return price, round(drift_pct, 2)
+
+
+# def _fetch_yahoo_sync(symbols: list) -> dict:
+#     """Fetch real prices from Yahoo Finance using yfinance (sync)."""
+#     try:
+#         import yfinance as yf
+#     except ImportError:
+#         logger.warning("yfinance not installed — run: pip install yfinance")
+#         return {}
+
+#     results = {}
+#     for symbol in symbols:
+#         try:
+#             ticker = yf.Ticker(symbol)
+#             hist = ticker.history(period="5d")
+#             if hist.empty:
+#                 logger.warning(f"{symbol}: no data from Yahoo Finance")
+#                 continue
+#             price = float(hist["Close"].iloc[-1])
+#             prev  = float(hist["Close"].iloc[-2]) if len(hist) > 1 else price
+#             change = round(price - prev, 4)
+#             change_pct = round((change / prev * 100) if prev else 0.0, 2)
+#             results[symbol] = {"price": price, "change": change, "change_pct": change_pct}
+#             logger.info(f"{symbol}: AED {price:.3f} ({change_pct:+.2f}%)")
+#         except Exception as e:
+#             logger.warning(f"{symbol} Yahoo Finance error: {e}")
+#     return results
+
+
+# def _fallback(symbol: str, meta: dict) -> dict:
+#     base = BASE_PRICES.get(symbol, 1.0)
+#     p, dp = _micro_drift(symbol, base)
+#     return {
+#         "symbol": symbol,
+#         "name": meta["name"],
+#         "fullname": meta["fullname"],
+#         "price": p,
+#         "change": round(p - base, 4),
+#         "change_pct": dp,
+#         "currency": meta["currency"],
+#         "exchange": meta["exchange"],
+#         "is_real": False,
+#         "source": "Calibrated estimate",
+#         "fetched_at": datetime.now(timezone.utc).isoformat(),
+#     }
+
+
+# class DFMFetcher:
+#     async def fetch_all_stocks(self) -> Dict:
+#         global _cache, _cache_ts
+
+#         now = time.time()
+#         if _cache and (now - _cache_ts) < _CACHE_TTL:
+#             result = dict(_cache)
+#             for sym, meta in TRACKED_STOCKS.items():
+#                 if sym in result and not result[sym]["is_real"]:
+#                     p, dp = _micro_drift(sym, BASE_PRICES.get(sym, 1.0))
+#                     result[sym] = {**result[sym], "price": p, "change_pct": dp}
+#             return result
+
+#         # Fetch from Yahoo Finance in thread (yfinance is sync)
+#         symbols = list(TRACKED_STOCKS.keys())
+#         try:
+#             yahoo_data = await asyncio.to_thread(_fetch_yahoo_sync, symbols)
+#         except Exception as e:
+#             logger.warning(f"Yahoo Finance thread failed: {e}")
+#             yahoo_data = {}
+
+#         result = {}
+#         live_count = 0
+#         for sym, meta in TRACKED_STOCKS.items():
+#             if sym in yahoo_data:
+#                 d = yahoo_data[sym]
+#                 result[sym] = {
+#                     "symbol": sym,
+#                     "name": meta["name"],
+#                     "fullname": meta["fullname"],
+#                     "price": round(d["price"], 3),
+#                     "change": d["change"],
+#                     "change_pct": d["change_pct"],
+#                     "currency": meta["currency"],
+#                     "exchange": meta["exchange"],
+#                     "is_real": True,
+#                     "source": "Yahoo Finance",
+#                     "fetched_at": datetime.now(timezone.utc).isoformat(),
+#                 }
+#                 live_count += 1
+#             else:
+#                 result[sym] = _fallback(sym, meta)
+
+#         _cache = result
+#         _cache_ts = now
+#         logger.info(f"DFMFetcher: {live_count} live + {len(result) - live_count} estimated")
+#         return result
+
+
+
+
+
+
+
+
+
+
+
 import asyncio
 import logging
 import time
 import math
-import os
+import httpx
 from datetime import datetime, timezone
 from typing import Dict
 
 logger = logging.getLogger(__name__)
 
 TRACKED_STOCKS = {
-    "EMAAR.AE":    {"name": "Emaar",     "fullname": "Emaar Properties",   "currency": "AED", "exchange": "DFM"},
-    "EMAARDEV.AE": {"name": "EmaarDev",  "fullname": "Emaar Development",  "currency": "AED", "exchange": "DFM"},
-    "DEYAAR.AE":   {"name": "Deyaar",    "fullname": "Deyaar Development", "currency": "AED", "exchange": "DFM"},
-    "UPP.AE":      {"name": "Union P.",  "fullname": "Union Properties",   "currency": "AED", "exchange": "DFM"},
-    "ALDAR.AE":    {"name": "Aldar",     "fullname": "Aldar Properties",   "currency": "AED", "exchange": "ADX"},
-    "DIC.AE":      {"name": "Dubai Inv.","fullname": "Dubai Investments",  "currency": "AED", "exchange": "DFM"},
-    "DAMAC.AE":    {"name": "DAMAC",     "fullname": "DAMAC Real Estate",  "currency": "AED", "exchange": "DFM"},
-    "NAKHEEL.AE":  {"name": "Nakheel",   "fullname": "Nakheel PJSC",       "currency": "AED", "exchange": "DFM"},
-    "SOBHA.AE":    {"name": "Sobha",     "fullname": "Sobha Realty",       "currency": "AED", "exchange": "DFM"},
+    "EMAAR.AE":    {"name": "Emaar",      "fullname": "Emaar Properties",   "currency": "AED", "exchange": "DFM"},
+    "EMAARDEV.AE": {"name": "EmaarDev",   "fullname": "Emaar Development",  "currency": "AED", "exchange": "DFM"},
+    "DEYAAR.AE":   {"name": "Deyaar",     "fullname": "Deyaar Development", "currency": "AED", "exchange": "DFM"},
+    "UPP.AE":      {"name": "Union P.",   "fullname": "Union Properties",   "currency": "AED", "exchange": "DFM"},
+    "ALDAR.AE":    {"name": "Aldar",      "fullname": "Aldar Properties",   "currency": "AED", "exchange": "ADX"},
+    "DIC.AE":      {"name": "Dubai Inv.", "fullname": "Dubai Investments",  "currency": "AED", "exchange": "DFM"},
+    "DAMAC.AE":    {"name": "DAMAC",      "fullname": "DAMAC Real Estate",  "currency": "AED", "exchange": "DFM"},
+    "NAKHEEL.AE":  {"name": "Nakheel",    "fullname": "Nakheel PJSC",       "currency": "AED", "exchange": "DFM"},
+    "SOBHA.AE":    {"name": "Sobha",      "fullname": "Sobha Realty",       "currency": "AED", "exchange": "DFM"},
 }
 
 BASE_PRICES = {
@@ -543,6 +687,13 @@ _cache: Dict = {}
 _cache_ts: float = 0.0
 _CACHE_TTL = 300  # 5 minutes
 
+YAHOO_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://finance.yahoo.com/",
+}
+
 
 def _micro_drift(symbol: str, base: float):
     phase = (hash(symbol) % 1000) / 1000.0
@@ -552,31 +703,45 @@ def _micro_drift(symbol: str, base: float):
     return price, round(drift_pct, 2)
 
 
-def _fetch_yahoo_sync(symbols: list) -> dict:
-    """Fetch real prices from Yahoo Finance using yfinance (sync)."""
+async def _fetch_yahoo_price(client: httpx.AsyncClient, symbol: str) -> dict | None:
+    """Fetch real price from Yahoo Finance v8 API using httpx."""
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
     try:
-        import yfinance as yf
-    except ImportError:
-        logger.warning("yfinance not installed — run: pip install yfinance")
-        return {}
+        resp = await client.get(
+            url,
+            params={"interval": "1d", "range": "5d"},
+            headers=YAHOO_HEADERS,
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            logger.warning(f"{symbol}: Yahoo returned {resp.status_code}")
+            return None
 
-    results = {}
-    for symbol in symbols:
-        try:
-            ticker = yf.Ticker(symbol)
-            hist = ticker.history(period="5d")
-            if hist.empty:
-                logger.warning(f"{symbol}: no data from Yahoo Finance")
-                continue
-            price = float(hist["Close"].iloc[-1])
-            prev  = float(hist["Close"].iloc[-2]) if len(hist) > 1 else price
-            change = round(price - prev, 4)
-            change_pct = round((change / prev * 100) if prev else 0.0, 2)
-            results[symbol] = {"price": price, "change": change, "change_pct": change_pct}
-            logger.info(f"{symbol}: AED {price:.3f} ({change_pct:+.2f}%)")
-        except Exception as e:
-            logger.warning(f"{symbol} Yahoo Finance error: {e}")
-    return results
+        data = resp.json()
+        result = data.get("chart", {}).get("result", [])
+        if not result:
+            logger.warning(f"{symbol}: no result in Yahoo response")
+            return None
+
+        meta = result[0].get("meta", {})
+        price = meta.get("regularMarketPrice")
+        prev  = meta.get("chartPreviousClose") or meta.get("previousClose")
+
+        if not price:
+            logger.warning(f"{symbol}: price missing in meta")
+            return None
+
+        price = round(float(price), 3)
+        prev  = round(float(prev), 3) if prev else price
+        change = round(price - prev, 4)
+        change_pct = round((change / prev * 100) if prev else 0.0, 2)
+
+        logger.info(f"{symbol}: AED {price:.3f} ({change_pct:+.2f}%)")
+        return {"price": price, "change": change, "change_pct": change_pct}
+
+    except Exception as e:
+        logger.warning(f"{symbol} Yahoo fetch error: {e}")
+        return None
 
 
 def _fallback(symbol: str, meta: dict) -> dict:
@@ -610,26 +775,29 @@ class DFMFetcher:
                     result[sym] = {**result[sym], "price": p, "change_pct": dp}
             return result
 
-        # Fetch from Yahoo Finance in thread (yfinance is sync)
-        symbols = list(TRACKED_STOCKS.keys())
-        try:
-            yahoo_data = await asyncio.to_thread(_fetch_yahoo_sync, symbols)
-        except Exception as e:
-            logger.warning(f"Yahoo Finance thread failed: {e}")
-            yahoo_data = {}
+        # Fetch all concurrently via httpx
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+            tasks = {
+                sym: _fetch_yahoo_price(client, sym)
+                for sym in TRACKED_STOCKS
+            }
+            results_raw = await asyncio.gather(*tasks.values(), return_exceptions=True)
+
+        yahoo_data = dict(zip(tasks.keys(), results_raw))
 
         result = {}
         live_count = 0
+
         for sym, meta in TRACKED_STOCKS.items():
-            if sym in yahoo_data:
-                d = yahoo_data[sym]
+            data = yahoo_data.get(sym)
+            if isinstance(data, dict) and data:
                 result[sym] = {
                     "symbol": sym,
                     "name": meta["name"],
                     "fullname": meta["fullname"],
-                    "price": round(d["price"], 3),
-                    "change": d["change"],
-                    "change_pct": d["change_pct"],
+                    "price": data["price"],
+                    "change": data["change"],
+                    "change_pct": data["change_pct"],
                     "currency": meta["currency"],
                     "exchange": meta["exchange"],
                     "is_real": True,
