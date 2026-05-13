@@ -2344,16 +2344,30 @@ async def get_forecasts(request: Request):
 
 @router.get("/debug/stocks")
 async def debug_stocks():
-    import asyncio
+    import httpx
     try:
-        import yfinance as yf
-        ticker = yf.Ticker("EMAAR.AE")
-        hist = ticker.history(period="5d")
-        return {
-            "installed": True,
-            "empty": hist.empty,
-            "rows": len(hist),
-            "last_price": float(hist["Close"].iloc[-1]) if not hist.empty else None
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json",
+            "Referer": "https://finance.yahoo.com/",
         }
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+            resp = await client.get(
+                "https://query1.finance.yahoo.com/v8/finance/chart/EMAAR.AE",
+                params={"interval": "1d", "range": "5d"},
+                headers=headers,
+            )
+            data = resp.json()
+            result = data.get("chart", {}).get("result", [])
+            if not result:
+                return {"success": False, "status": resp.status_code, "raw": data}
+            meta = result[0].get("meta", {})
+            price = meta.get("regularMarketPrice")
+            return {
+                "success": True,
+                "symbol": "EMAAR.AE",
+                "price": price,
+                "status": resp.status_code,
+            }
     except Exception as e:
-        return {"installed": False, "error": str(e)}
+        return {"success": False, "error": str(e)}
