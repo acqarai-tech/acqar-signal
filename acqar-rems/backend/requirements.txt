@@ -13,6 +13,7 @@ APScheduler
 beautifulsoup4
 lxml
 beautifulsoup4
+# force rebuild 2026-05-13
 yfinance>=0.2.36
 pandas>=2.0.0
 supabase==2.6.0
