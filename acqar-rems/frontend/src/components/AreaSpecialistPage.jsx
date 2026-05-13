@@ -5492,22 +5492,18 @@ useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   fetch(
-  `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&price_per_sqm=gt.0&sale_year=gte.2020&select=sale_year,sale_month,price_per_sqm&limit=3000`,
+    `${SUPA_URL}/rest/v1/price_history_monthly?area_id=eq.59&sale_year=gte.2020&select=sale_year,sale_month,psf,cnt&order=sale_year.asc,sale_month.asc`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
   )
     .then(r => r.json())
     .then(rows => {
-      const map = {}
-      rows.forEach(row => {
-        const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
-        if (!map[key]) map[key] = { sum: 0, count: 0, year: row.sale_year, month: row.sale_month }
-        map[key].sum += Number(row.price_per_sqm) / 10.764
-        map[key].count++
-      })
-      const points = Object.entries(map)
-        .map(([key, v]) => ({ key, psf: Math.round(v.sum / v.count), year: v.year, month: v.month, count: v.count }))
-        .filter(p => p.count >= 10)
-        .sort((a, b) => a.key.localeCompare(b.key))
+      const points = rows.map(row => ({
+        key: `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`,
+        psf: Math.round(row.psf),
+        year: row.sale_year,
+        month: row.sale_month,
+        count: row.cnt,
+      }))
       setPriceHistory(points)
     })
     .catch(() => {})
@@ -5566,24 +5562,19 @@ useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   fetch(
-    `${SUPA_URL}/rest/v1/avm?area_id=eq.59&property_type_en=eq.Residential&sale_year=gte.2025&select=sale_year,sale_month&limit=10000`,
+    `${SUPA_URL}/rest/v1/tx_volume_monthly?area_id=eq.59&sale_year=gte.2025&select=sale_year,sale_month,tx_count&order=sale_year.asc,sale_month.asc`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
   )
     .then(r => r.json())
     .then(rows => {
-      const map = {}
-      rows.forEach(row => {
-        const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
-        map[key] = (map[key] || 0) + 1
-      })
-      const points = Object.entries(map)
-        .map(([key, count]) => {
-          const [y, m] = key.split('-')
-          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-          return { key, label: `${months[Number(m)-1]} ${y.slice(2)}`, count, year: Number(y), month: Number(m) }
-        })
-        .sort((a, b) => a.key.localeCompare(b.key))
-        .slice(-12) // last 12 months
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+      const points = rows.map(row => ({
+        key: `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`,
+        label: `${months[row.sale_month - 1]} ${String(row.sale_year).slice(2)}`,
+        count: row.tx_count,
+        year: row.sale_year,
+        month: row.sale_month,
+      })).slice(-12)
       setTxHistory(points)
     })
     .catch(() => {})
@@ -6544,6 +6535,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     </div>
   )
 }
+
 
 
 
