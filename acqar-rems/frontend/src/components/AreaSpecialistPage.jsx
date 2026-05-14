@@ -10838,25 +10838,31 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 10 }}>Who are you? Get a view built for your situation.</div>
 <div style={{ display: 'flex', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
   {[
-    { key: 'buyer',    icon: '🏠', name: "I'm Buying My First Home",  desc: 'Plain English, step-by-step, no jargon' },
-    { key: 'investor', icon: '💼', name: "I'm a Property Investor",   desc: 'Yields, returns, comparables, market timing' },
-    { key: 'owner',    icon: '🔑', name: 'I Already Own Here',        desc: "What's my property worth? Should I sell?" },
+   { key: 'buyer',    icon: '🏠', name: "I'm Buying My First Home",  short: 'Buying',   desc: 'Plain English, step-by-step, no jargon' },
+{ key: 'investor', icon: '💼', name: "I'm a Property Investor",   short: 'Investing', desc: 'Yields, returns, comparables, market timing' },
+{ key: 'owner',    icon: '🔑', name: 'I Already Own Here',        short: 'I Own Here', desc: "What's my property worth? Should I sell?" },
   ].map((p, i) => (
     <button key={p.key} onClick={() => setPersona(p.key)} style={{
-      padding: isMobile ? '10px 8px' : '14px 22px',
-      background: persona === p.key ? C.orangeL : C.card,
-      cursor: 'pointer', transition: 'all .18s',
-      display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10,
-      flex: 1, border: 'none',
-      borderRight: i < 2 ? `1px solid ${C.border}` : 'none',
-      borderBottom: `3px solid ${persona === p.key ? C.orange : 'transparent'}`,
-    }}>
-      <span style={{ fontSize: isMobile ? 18 : 22, flexShrink: 0 }}>{p.icon}</span>
-      <div style={{ textAlign: 'left' }}>
-        <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: persona === p.key ? C.orange : C.text }}>{p.name}</div>
-        {!isMobile && <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>}
-      </div>
-    </button>
+  padding: isMobile ? '12px 6px' : '14px 22px',
+  background: persona === p.key ? C.orangeL : C.card,
+  cursor: 'pointer', transition: 'all .18s',
+  display: 'flex',
+  flexDirection: isMobile ? 'column' : 'row',
+  alignItems: 'center',
+  justifyContent: isMobile ? 'center' : 'flex-start',
+  gap: isMobile ? 4 : 10,
+  flex: 1, border: 'none',
+  borderRight: i < 2 ? `1px solid ${C.border}` : 'none',
+  borderBottom: `3px solid ${persona === p.key ? C.orange : 'transparent'}`,
+}}>
+  <span style={{ fontSize: isMobile ? 20 : 22, flexShrink: 0 }}>{p.icon}</span>
+  <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
+    <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: persona === p.key ? C.orange : C.text }}>
+      {isMobile ? p.short : p.name}
+    </div>
+    {!isMobile && <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>}
+  </div>
+</button>
   ))}
 </div>
     
