@@ -10082,7 +10082,7 @@ function PTable({ headers, rows, minWidth }) {
     <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'auto', margin: '0 -18px', padding: '0 0 2px 0' }}>
       <table style={{ minWidth: minWidth || 380, borderCollapse: 'collapse', width: '100%' }}>
         <thead>
-          <tr>{headers.map((h, hi) => <th key={h} style={{ padding: hi === 0 ? '7px 12px 7px 18px' : '7px 18px 7px 12px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+          <tr>{headers.map((h, hi) => <th key={h} style={{ padding: hi === 0 ? '7px 12px 7px 22px' : '7px 22px 7px 12px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
         </thead>
         <tbody>{rows}</tbody>
       </table>
@@ -10091,7 +10091,7 @@ function PTable({ headers, rows, minWidth }) {
 }
 
 function Td({ children, color, bold, last, first }) {
-  return <td style={{ padding: first ? '9px 12px 9px 18px' : '9px 18px 9px 12px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
+  return <td style={{ padding: first ? '9px 12px 9px 22px' : '9px 22px 9px 12px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
 }
 
 function GapTag({ truv, ask }) {
@@ -10767,7 +10767,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
           <div style={{ fontSize: 13, color: C.muted, marginBottom: 18 }}>{area.zone} · Mixed-Use Residential · DLD 2026 Data</div>
 
           {/* Hero stats row — exact match to HTML .hero-stats-row */}
-          <div style={{ display: 'flex', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden', flexWrap: 'wrap' }}>
+         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(6,1fr)', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
             {[
              { lbl: '🏠 Homes Sold This Week', val: liveSoldThisWeek ?? d.soldThisWeek, valColor: C.red,
   sub: liveTxDelta != null ? `${liveTxDelta}% vs last week` : 'A bit quieter than last week',
@@ -10778,7 +10778,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
               { lbl: '🔑 Homes Available to Buy', val: fmt(d.availableListings), valColor: C.text, sub: 'More choice than normal — good for buyers', subColor: C.muted },
               { lbl: '🧭 Market Mood Right Now', val: liveVerdict === 'BUY' ? 'Bullish' : liveVerdict === 'HOLD' ? 'Cautious' : 'Slow', valColor: liveVerdict === 'BUY' ? C.green : liveVerdict === 'HOLD' ? C.amber : C.red, sub: 'Watch closely — market paused', subColor: C.muted },
             ].map((stat, i) => (
-              <div key={i} style={{ padding: '14px 22px', borderRight: i < 5 ? `1px solid ${C.border}` : 'none', flex: '1 1 150px' }}>
+              <div key={i} style={{ padding: '14px 16px', borderRight: `1px solid ${C.border}`, borderBottom: isMobile && i < 4 ? `1px solid ${C.border}` : 'none' }}>
                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 5 }}>{stat.lbl}</div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: stat.valColor }}>{stat.val}</div>
                 <div style={{ fontSize: 11, color: stat.subColor, marginTop: 2 }}>{stat.sub}</div>
@@ -10836,30 +10836,31 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
       </div>
 
       {/* ── PERSONA SELECTOR ── exact match to HTML .persona-section */}
-      <div style={{ margin: `20px ${isMobile ? '12px' : '28px'} 0`, flexShrink: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 10 }}>Who are you? Get a view built for your situation.</div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {[
-            { key: 'buyer',    icon: '🏠', name: "I'm Buying My First Home",  desc: 'Plain English, step-by-step, no jargon' },
-            { key: 'investor', icon: '💼', name: "I'm a Property Investor",   desc: 'Yields, returns, comparables, market timing' },
-            { key: 'owner',    icon: '🔑', name: 'I Already Own Here',        desc: "What's my property worth? Should I sell?" },
-          ].map(p => (
-            <button key={p.key} onClick={() => setPersona(p.key)} style={{
-              padding: '12px 22px', borderRadius: 10,
-              border: `2px solid ${persona === p.key ? C.orange : C.border}`,
-              background: persona === p.key ? C.orangeL : C.card,
-              cursor: 'pointer', transition: 'all .18s',
-              display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 180,
-            }}>
-              <span style={{ fontSize: 22 }}>{p.icon}</span>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>
-              </div>
-            </button>
-          ))}
-        </div>
+   <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 10 }}>Who are you? Get a view built for your situation.</div>
+<div style={{ display: 'flex', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
+  {[
+    { key: 'buyer',    icon: '🏠', name: "I'm Buying My First Home",  desc: 'Plain English, step-by-step, no jargon' },
+    { key: 'investor', icon: '💼', name: "I'm a Property Investor",   desc: 'Yields, returns, comparables, market timing' },
+    { key: 'owner',    icon: '🔑', name: 'I Already Own Here',        desc: "What's my property worth? Should I sell?" },
+  ].map((p, i) => (
+    <button key={p.key} onClick={() => setPersona(p.key)} style={{
+      padding: isMobile ? '10px 8px' : '14px 22px',
+      background: persona === p.key ? C.orangeL : C.card,
+      cursor: 'pointer', transition: 'all .18s',
+      display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 10,
+      flex: 1, border: 'none',
+      borderRight: i < 2 ? `1px solid ${C.border}` : 'none',
+      borderBottom: `3px solid ${persona === p.key ? C.orange : 'transparent'}`,
+    }}>
+      <span style={{ fontSize: isMobile ? 18 : 22, flexShrink: 0 }}>{p.icon}</span>
+      <div style={{ textAlign: 'left' }}>
+        <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: persona === p.key ? C.orange : C.text }}>{p.name}</div>
+        {!isMobile && <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>}
       </div>
+    </button>
+  ))}
+</div>
+    
 
       {/* ══════════ PERSONA: BUYER ══════════ */}
       {persona === 'buyer' && (
@@ -10913,12 +10914,12 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           <div style={{ ...g2, marginTop: 16 }}>
             <Card noPad>
               <div style={{ padding: '18px 18px 0' }}><CardTitle>What Does Buying in {area.name} Actually Cost?</CardTitle></div>
-              <PTable
-                minWidth={380}
-                headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
+             <PTable
+  minWidth={480}
+  headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
                 rows={liveBuyerPriceTable.map((row, i, arr) => (
                   <tr key={row.type}>
-                    <Td last={i === arr.length - 1} first>{row.type}</Td>
+                   <Td last={i === arr.length - 1} first><span style={{ display: 'inline-block', minWidth: 110 }}>{row.type}</span></Td>
                     <Td last={i === arr.length - 1}>{row.min}</Td>
                     <Td last={i === arr.length - 1} bold>{row.fair}</Td>
                     <Td last={i === arr.length - 1}>{row.max}</Td>
@@ -11525,8 +11526,76 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           <p style={{ fontSize: 12, color: C.muted }}>One-click shareable link for your client — Area Brief, Score, Truvalu™ Benchmarks, Catalyst Timeline, and Resilience Report. Opens as a live Acqar page with no login required.</p>
         </div>
        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10, flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
-          <button style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '10px 22px', borderRadius: 7, border: 'none', cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}>Generate Shareable Link</button>
-          <button style={{ background: C.card, color: C.text2, fontSize: 12, fontWeight: 600, padding: '10px 22px', borderRadius: 7, border: `1px solid ${C.border}`, cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}>Download PDF Report</button>
+          <button
+  onClick={() => {
+    const url = `${window.location.origin}${window.location.pathname}?area=${encodeURIComponent(area.name)}&zone=${encodeURIComponent(area.zone)}`
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(() => alert('✅ Link copied to clipboard!\n\n' + url))
+    } else {
+      window.prompt('Copy this shareable link:', url)
+    }
+  }}
+  style={{ background: C.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '10px 22px', borderRadius: 7, border: 'none', cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}
+>Generate Shareable Link</button>
+
+<button
+  onClick={() => {
+    const printContent = `
+      <html><head><title>${area.name} — Acqar Signal Report</title>
+      <style>
+        body { font-family: Inter, sans-serif; padding: 40px; color: #1C1C28; }
+        h1 { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+        .sub { color: #6E7A8A; font-size: 12px; margin-bottom: 24px; }
+        .grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 28px; }
+        .box { border: 1px solid #E8E0D0; border-radius: 8px; padding: 14px; }
+        .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #6E7A8A; margin-bottom: 4px; }
+        .val { font-size: 20px; font-weight: 900; }
+        .sub2 { font-size: 10px; color: #6E7A8A; margin-top: 2px; }
+        h2 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #6E7A8A; margin: 24px 0 10px; border-bottom: 1px solid #E8E0D0; padding-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+        th { padding: 7px 12px; text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; color: #6E7A8A; border-bottom: 1px solid #E8E0D0; font-weight: 700; }
+        td { padding: 8px 12px; border-bottom: 1px solid #E8E0D0; }
+        .footer { margin-top: 40px; font-size: 9px; color: #9CA8B4; border-top: 1px solid #E8E0D0; padding-top: 12px; }
+        @media print { body { padding: 20px; } }
+      </style></head><body>
+      <h1>${area.name} — Area Specialist Report</h1>
+      <div class="sub">${area.zone} · Residential District · ACQAR SIGNAL™ · ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+
+      <div class="grid">
+        <div class="box"><div class="lbl">Investment Score</div><div class="val" style="color:${liveScore >= 75 ? '#16A34A' : liveScore >= 65 ? '#D97706' : '#DC2626'}">${liveScore}/100</div><div class="sub2">${liveVerdict}</div></div>
+        <div class="box"><div class="lbl">Fair Price (Truvalu™)</div><div class="val" style="color:#C8732A">AED ${d.psf.toLocaleString()}/sqft</div></div>
+        <div class="box"><div class="lbl">Gross Rental Yield</div><div class="val" style="color:#16A34A">${liveYield}%</div><div class="sub2">Dubai avg: 6.1%</div></div>
+        <div class="box"><div class="lbl">Homes Sold This Week</div><div class="val" style="color:#DC2626">${liveSoldThisWeek ?? d.soldThisWeek}</div></div>
+        <div class="box"><div class="lbl">Days to Sell</div><div class="val" style="color:#D97706">${d.daysToSell} days</div></div>
+        <div class="box"><div class="lbl">5-Year Appreciation</div><div class="val" style="color:#16A34A">+${fiveYrAppreciationReal ?? d.fiveYrAppreciation}%</div></div>
+      </div>
+
+      <h2>Buyer Price Guide (Truvalu™)</h2>
+      <table><thead><tr><th>Property Type</th><th>Cheapest</th><th>Fair Price</th><th>Most Expensive</th></tr></thead><tbody>
+      ${liveBuyerPriceTable.map(r => `<tr><td><b>${r.type}</b></td><td>${r.min}</td><td><b style="color:#C8732A">${r.fair}</b></td><td>${r.max}</td></tr>`).join('')}
+      </tbody></table>
+
+      <h2>Annual Rent Ranges (AED)</h2>
+      <table><thead><tr><th>Type</th><th>Min</th><th>Avg</th><th>Max</th></tr></thead><tbody>
+      ${d.rentTable.map(r => `<tr><td>${r.type}</td><td>${r.min.toLocaleString()}</td><td><b style="color:#16A34A">${r.avg.toLocaleString()}</b></td><td>${r.max.toLocaleString()}</td></tr>`).join('')}
+      </tbody></table>
+
+      <h2>Investment Score Breakdown</h2>
+      ${d.scoreComps.map(c => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E8E0D0;font-size:12px"><span style="color:#3D3D50">${c.label}</span><b style="color:${c.color}">${c.val}/100</b></div>`).join('')}
+
+      <div class="footer">Generated by ACQAR SIGNAL™ · ${new Date().toISOString()} · Source: Dubai Land Department · Truvalu™ RICS-aligned valuation · acqar.com</div>
+      </body></html>
+    `
+    const w = window.open('', '_blank', 'width=900,height=700')
+    if (w) {
+      w.document.write(printContent)
+      w.document.close()
+      w.focus()
+      setTimeout(() => { w.print() }, 800)
+    }
+  }}
+  style={{ background: C.card, color: C.text2, fontSize: 12, fontWeight: 600, padding: '10px 22px', borderRadius: 7, border: `1px solid ${C.border}`, cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}
+>Download PDF Report</button>
         </div>
       </div>
 
