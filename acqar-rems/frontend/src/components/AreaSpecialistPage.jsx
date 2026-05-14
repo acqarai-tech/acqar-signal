@@ -10079,10 +10079,10 @@ function NatBar({ flag, name, pct, w }) {
 
 function PTable({ headers, rows, minWidth }) {
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'auto', margin: '0 -18px', padding: '0 0 2px 0' }}>
-      <table style={{ minWidth: minWidth || 380, borderCollapse: 'collapse', width: '100%' }}>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'thin', margin: '0 -18px', padding: '0 0 4px 0' }}>
+      <table style={{ minWidth: minWidth || 320, borderCollapse: 'collapse', width: '100%' }}>
         <thead>
-          <tr>{headers.map((h, hi) => <th key={h} style={{ padding: hi === 0 ? '7px 12px 7px 22px' : '7px 22px 7px 12px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+          <tr>{headers.map((h, hi) => <th key={h} style={{ padding: hi === 0 ? '7px 8px 7px 14px' : '7px 14px 7px 8px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
         </thead>
         <tbody>{rows}</tbody>
       </table>
@@ -10091,7 +10091,7 @@ function PTable({ headers, rows, minWidth }) {
 }
 
 function Td({ children, color, bold, last, first }) {
-  return <td style={{ padding: first ? '9px 12px 9px 22px' : '9px 22px 9px 12px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
+  return <td style={{ padding: first ? '9px 8px 9px 14px' : '9px 14px 9px 8px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
 }
 
 function GapTag({ truv, ask }) {
