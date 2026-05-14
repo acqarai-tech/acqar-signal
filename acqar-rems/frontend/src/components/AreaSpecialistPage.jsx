@@ -10711,7 +10711,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
   return (
 <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, fontFamily: "'Inter',sans-serif", fontSize: 13, lineHeight: 1.6, color: C.text, overflowY: 'auto', maxWidth: '100vw' }}>
       {/* ── NAV ── */}
-     <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: isMobile ? '0 12px' : '0 28px', height: 54, display: 'none', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
+     <nav style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: isMobile ? '0 12px' : '0 28px', height: 0, display: 'none', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100, flexShrink: 0 }}>
         {/* Logo — matches dashboard style */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.12em', lineHeight: 1 }}>
@@ -10731,13 +10731,15 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
       </nav>
 
      {/* ── TICKER ── */}
-<TickerBar
-  areaSlug="area-59"
-  areaName={area.name}
-  fallback={d}
-  activeProjectCount={activeProjects?.filter(p => p.project_status === 'ACTIVE').length ?? null}
-  metroCatalyst={areaCatalysts?.find(c => c.catalyst_type === 'metro') ?? null}
-/>
+<div style={{ position: 'sticky', top: 0, zIndex: 99 }}>
+  <TickerBar
+    areaSlug="area-59"
+    areaName={area.name}
+    fallback={d}
+    activeProjectCount={activeProjects?.filter(p => p.project_status === 'ACTIVE').length ?? null}
+    metroCatalyst={areaCatalysts?.find(c => c.catalyst_type === 'metro') ?? null}
+  />
+</div>
 
       {/* ── BREADCRUMB ── */}
       <div style={{ padding: `14px ${isMobile ? '12px' : '28px'} 0`, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: C.muted, flexShrink: 0 }}>
