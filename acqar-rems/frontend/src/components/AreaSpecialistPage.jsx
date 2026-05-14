@@ -10079,19 +10079,18 @@ function NatBar({ flag, name, pct, w }) {
 
 function PTable({ headers, rows, minWidth }) {
   return (
-    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'thin', margin: '0 -18px', padding: '0 0 4px 0' }}>
+    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'thin', margin: '0 0', padding: '0 0 4px 0' }}>
       <table style={{ minWidth: minWidth || 320, borderCollapse: 'collapse', width: '100%' }}>
         <thead>
-          <tr>{headers.map((h, hi) => <th key={h} style={{ padding: hi === 0 ? '7px 8px 7px 14px' : '7px 14px 7px 8px', textAlign: 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.06em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+          <tr>{headers.map((h, hi) => <th key={h} style={{ padding: hi === 0 ? '7px 6px 7px 12px' : '7px 12px 7px 6px', textAlign: 'left', fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.05em', color: C.muted, borderBottom: `1px solid ${C.border}`, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
         </thead>
         <tbody>{rows}</tbody>
       </table>
     </div>
   )
 }
-
 function Td({ children, color, bold, last, first }) {
-  return <td style={{ padding: first ? '9px 8px 9px 14px' : '9px 14px 9px 8px', fontSize: 12, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
+  return <td style={{ padding: first ? '8px 6px 8px 12px' : '8px 12px 8px 6px', fontSize: 11.5, borderBottom: last ? 'none' : `1px solid ${C.border}`, color: color || C.text, fontWeight: bold ? 700 : 400, whiteSpace: 'nowrap' }}>{children}</td>
 }
 
 function GapTag({ truv, ask }) {
@@ -10915,11 +10914,11 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
             <Card noPad>
               <div style={{ padding: '18px 18px 0' }}><CardTitle>What Does Buying in {area.name} Actually Cost?</CardTitle></div>
              <PTable
-  minWidth={480}
+  minWidth={360}
   headers={['Property Type', 'Cheapest', 'Fair Price', 'Most Expensive']}
                 rows={liveBuyerPriceTable.map((row, i, arr) => (
                   <tr key={row.type}>
-                   <Td last={i === arr.length - 1} first><span style={{ display: 'inline-block', minWidth: 110 }}>{row.type}</span></Td>
+                   <Td last={i === arr.length - 1} first>{row.type}</Td>
                     <Td last={i === arr.length - 1}>{row.min}</Td>
                     <Td last={i === arr.length - 1} bold>{row.fair}</Td>
                     <Td last={i === arr.length - 1}>{row.max}</Td>
