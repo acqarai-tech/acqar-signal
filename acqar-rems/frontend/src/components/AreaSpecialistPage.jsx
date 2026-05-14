@@ -10767,7 +10767,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
           <div style={{ fontSize: 13, color: C.muted, marginBottom: 18 }}>{area.zone} · Mixed-Use Residential · DLD 2026 Data</div>
 
           {/* Hero stats row — exact match to HTML .hero-stats-row */}
-         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(6,1fr)', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
+         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(6,1fr)', gap: 12, background: 'transparent' }}>
             {[
              { lbl: '🏠 Homes Sold This Week', val: liveSoldThisWeek ?? d.soldThisWeek, valColor: C.red,
   sub: liveTxDelta != null ? `${liveTxDelta}% vs last week` : 'A bit quieter than last week',
@@ -10778,10 +10778,10 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
               { lbl: '🔑 Homes Available to Buy', val: fmt(d.availableListings), valColor: C.text, sub: 'More choice than normal — good for buyers', subColor: C.muted },
               { lbl: '🧭 Market Mood Right Now', val: liveVerdict === 'BUY' ? 'Bullish' : liveVerdict === 'HOLD' ? 'Cautious' : 'Slow', valColor: liveVerdict === 'BUY' ? C.green : liveVerdict === 'HOLD' ? C.amber : C.red, sub: 'Watch closely — market paused', subColor: C.muted },
             ].map((stat, i) => (
-              <div key={i} style={{ padding: '14px 16px', borderRight: i < 5 ? `1px solid ${C.border}` : 'none', borderBottom: isMobile && i < 4 ? `1px solid ${C.border}` : 'none' }}>
-                <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 5 }}>{stat.lbl}</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: stat.valColor }}>{stat.val}</div>
-                <div style={{ fontSize: 11, color: stat.subColor, marginTop: 2 }}>{stat.sub}</div>
+              <div key={i} style={{ padding: '18px 14px', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+               <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, marginBottom: 8, lineHeight: 1.4, textAlign: 'center' }}>{stat.lbl}</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: stat.valColor, letterSpacing: '-.01em' }}>{stat.val}</div>
+                <div style={{ fontSize: 11, color: stat.subColor, marginTop: 4, lineHeight: 1.4, textAlign: 'center' }}>{stat.sub}</div>
               </div>
             ))}
           </div>
