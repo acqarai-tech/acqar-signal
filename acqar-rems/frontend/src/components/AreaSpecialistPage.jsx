@@ -10844,22 +10844,22 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 { key: 'owner',    icon: '🔑', name: 'I Already Own Here',        short: 'I Own Here', desc: "What's my property worth? Should I sell?" },
   ].map((p, i) => (
     <button key={p.key} onClick={() => setPersona(p.key)} style={{
-  padding: '14px 16px',
+  padding: isMobile ? '12px 8px' : '14px 16px',
   background: persona === p.key ? C.orangeL : C.card,
   cursor: 'pointer', transition: 'all .18s',
   display: 'flex',
-  flexDirection: 'row',
+  flexDirection: isMobile ? 'column' : 'row',
   alignItems: 'center',
-  justifyContent: 'flex-start',
-  gap: 10,
+  justifyContent: isMobile ? 'center' : 'flex-start',
+  gap: isMobile ? 6 : 10,
   flex: 1,
   border: `1px solid ${persona === p.key ? C.orange : C.border}`,
   borderRadius: 10,
   borderBottom: `3px solid ${persona === p.key ? C.orange : C.border}`,
 }}>
   <span style={{ fontSize: 22, flexShrink: 0 }}>{p.icon}</span>
-  <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-    <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: persona === p.key ? C.orange : C.text }}>
+  <div style={{ textAlign: 'center' }}>
+    <div style={{ fontSize: isMobile ? 10 : 13, fontWeight: 700, color: persona === p.key ? C.orange : C.text }}>
       {p.name}
     </div>
     <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>
