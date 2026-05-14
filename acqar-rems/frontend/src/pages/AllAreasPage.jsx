@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { EventsProvider } from '../context/EventsContext'
-import AllAreaSpecialistPage from './AllAreaSpecialistPage'
+import AllAreaSpecialistPage from '../components/AllAreaSpecialistPage'
 
 const C = {
   bg: '#FAF8F5', bg2: '#F2EDE5', bg3: '#EAE3D8',
