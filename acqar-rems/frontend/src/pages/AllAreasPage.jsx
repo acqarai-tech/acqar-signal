@@ -76,9 +76,11 @@ export default function AllAreasPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: C.bg,
-      fontFamily: "'Inter', sans-serif", color: C.text,
-    }}>
+  height: '100vh', background: C.bg,
+  fontFamily: "'Inter', sans-serif", color: C.text,
+  display: 'flex', flexDirection: 'column',
+  overflowY: 'auto',
+}}>
 
       {/* ── HEADER ── */}
       <div style={{
