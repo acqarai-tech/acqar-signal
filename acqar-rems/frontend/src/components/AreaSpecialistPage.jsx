@@ -10778,7 +10778,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
               { lbl: '🔑 Homes Available to Buy', val: fmt(d.availableListings), valColor: C.text, sub: 'More choice than normal — good for buyers', subColor: C.muted },
               { lbl: '🧭 Market Mood Right Now', val: liveVerdict === 'BUY' ? 'Bullish' : liveVerdict === 'HOLD' ? 'Cautious' : 'Slow', valColor: liveVerdict === 'BUY' ? C.green : liveVerdict === 'HOLD' ? C.amber : C.red, sub: 'Watch closely — market paused', subColor: C.muted },
             ].map((stat, i) => (
-              <div key={i} style={{ padding: '14px 16px', borderRight: `1px solid ${C.border}`, borderBottom: isMobile && i < 4 ? `1px solid ${C.border}` : 'none' }}>
+              <div key={i} style={{ padding: '14px 16px', borderRight: i < 5 ? `1px solid ${C.border}` : 'none', borderBottom: isMobile && i < 4 ? `1px solid ${C.border}` : 'none' }}>
                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 5 }}>{stat.lbl}</div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: stat.valColor }}>{stat.val}</div>
                 <div style={{ fontSize: 11, color: stat.subColor, marginTop: 2 }}>{stat.sub}</div>
