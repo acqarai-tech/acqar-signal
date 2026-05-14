@@ -10837,31 +10837,32 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
       {/* ── PERSONA SELECTOR ── exact match to HTML .persona-section */}
       <div style={{ ...pad, marginTop: 20 }}>
    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 10 }}>Who are you? Get a view built for your situation.</div>
-<div style={{ display: 'flex', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
+<div style={{ display: 'flex', gap: 10, flexWrap: 'nowrap' }}>
   {[
    { key: 'buyer',    icon: '🏠', name: "I'm Buying My First Home",  short: 'Buying',   desc: 'Plain English, step-by-step, no jargon' },
 { key: 'investor', icon: '💼', name: "I'm a Property Investor",   short: 'Investing', desc: 'Yields, returns, comparables, market timing' },
 { key: 'owner',    icon: '🔑', name: 'I Already Own Here',        short: 'I Own Here', desc: "What's my property worth? Should I sell?" },
   ].map((p, i) => (
     <button key={p.key} onClick={() => setPersona(p.key)} style={{
-  padding: isMobile ? '12px 6px' : '14px 22px',
+  padding: '14px 16px',
   background: persona === p.key ? C.orangeL : C.card,
   cursor: 'pointer', transition: 'all .18s',
   display: 'flex',
-  flexDirection: isMobile ? 'column' : 'row',
+  flexDirection: 'row',
   alignItems: 'center',
-  justifyContent: isMobile ? 'center' : 'flex-start',
-  gap: isMobile ? 4 : 10,
-  flex: 1, border: 'none',
-  borderRight: i < 2 ? `1px solid ${C.border}` : 'none',
-  borderBottom: `3px solid ${persona === p.key ? C.orange : 'transparent'}`,
+  justifyContent: 'flex-start',
+  gap: 10,
+  flex: 1,
+  border: `1px solid ${persona === p.key ? C.orange : C.border}`,
+  borderRadius: 10,
+  borderBottom: `3px solid ${persona === p.key ? C.orange : C.border}`,
 }}>
-  <span style={{ fontSize: isMobile ? 20 : 22, flexShrink: 0 }}>{p.icon}</span>
+  <span style={{ fontSize: 22, flexShrink: 0 }}>{p.icon}</span>
   <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
     <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: persona === p.key ? C.orange : C.text }}>
-      {isMobile ? p.short : p.name}
+      {p.name}
     </div>
-    {!isMobile && <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>}
+    <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>{p.desc}</div>
   </div>
 </button>
   ))}
@@ -11047,13 +11048,13 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
       {persona === 'owner' && (
         <div style={{ ...pad, marginTop: 20 }}>
           {/* Valuation banner */}
-          <div style={{ background: `linear-gradient(135deg,${C.orangeL} 0%,rgba(200,115,42,0.03) 100%)`, border: '1px solid rgba(200,115,42,0.2)', borderRadius: 10, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, marginBottom: 16 }}>
+          <div style={{ background: `linear-gradient(135deg,${C.orangeL} 0%,rgba(200,115,42,0.03) 100%)`, border: '1px solid rgba(200,115,42,0.2)', borderRadius: 10, padding: '20px 24px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.orange, marginBottom: 6 }}>Your Asset · Truvalu™ Valuation</div>
-              <h2 style={{ fontSize: 22, fontWeight: 900, color: C.orange, marginBottom: 4 }}>1 Bedroom in {area.name} is worth {fmtK(d.valuationRangeLow)} — {fmtK(d.valuationRangeHigh)}</h2>
+              <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 900, color: C.orange, marginBottom: 4, lineHeight: 1.3 }}>1 Bedroom in {area.name} is worth {fmtK(d.valuationRangeLow)} — {fmtK(d.valuationRangeHigh)}</h2>
               <p style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>Based on your floor level, view, building quality, and current matched DLD transactions. Updated daily.</p>
             </div>
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ textAlign: isMobile ? 'left' : 'right', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
               <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted }}>Truvalu™ Fair Value</div>
               <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginTop: 2 }}>{fmtK(d.fairValue1BR)}</div>
               <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>↑ +AED {fmt(d.gain6m)} vs 6 months ago</div>
