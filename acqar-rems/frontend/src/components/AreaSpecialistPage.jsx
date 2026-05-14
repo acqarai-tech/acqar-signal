@@ -13303,7 +13303,7 @@ modal.style.cssText = `
 modal.innerHTML = `
   <div style="background:#fff; border-radius:14px; padding:24px; max-width:420px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.3); font-family:Inter,sans-serif;">
     <div style="font-size:11px;font-weight:800;color:#C8732A;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">✅ Shareable Link Ready</div>
-    <div style="font-size:13px;font-weight:700;color:#1C1C28;margin-bottom:16px;">Share this link with your client — no login required.</div>
+    
     <div style="background:#F5F5F5;border:1px solid #E8E0D0;border-radius:8px;padding:10px 14px;font-size:11px;color:#6E7A8A;word-break:break-all;margin-bottom:16px;">${url}</div>
     <div style="display:flex;gap:10px;">
       <button id="acqar-copy-btn" style="flex:1;padding:12px;background:#C8732A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Copy Link</button>
@@ -13354,10 +13354,7 @@ modal.addEventListener('click', e => { if (e.target === modal) modal.remove() })
     </span>
     <span style="font-size:10px;font-weight:700;color:#C8732A;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:4px;background:rgba(200,115,42,0.09);border:1px solid rgba(200,115,42,0.35);">SIGNAL™</span>
   </div>
-  <div style="text-align:right;">
-    <div style="font-size:9px;font-weight:700;color:#6E7A8A;text-transform:uppercase;letter-spacing:0.1em;">${area.zone} · Residential District</div>
-    <div style="font-size:9px;color:#6E7A8A;margin-top:2px;">${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
-  </div>
+ 
 </div>
 <h1>${area.name} — Area Specialist Report</h1>
 
