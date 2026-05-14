@@ -523,7 +523,7 @@ const [areaCatalysts, setAreaCatalysts] = useState(null)
 const [txHistory, setTxHistory] = useState(null)
 
 useEffect(() => {
-  fetch(`${BACKEND}/api/ticker/area-59`)
+  fetch(`${BACKEND}/api/ticker/area-${area.area_id}`)
     .then(r => r.json())
     .then(setTickerData)
     .catch(() => {})
@@ -1794,4 +1794,3 @@ modal.addEventListener('click', e => { if (e.target === modal) modal.remove() })
     </div>
   )
 }
-
