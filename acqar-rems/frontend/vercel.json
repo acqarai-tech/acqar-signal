@@ -2,10 +2,19 @@
   "github": {
     "autoAlias": true
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "X-Frame-Options", "value": "ALLOWALL" }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "www.signal.acqar.com" }],
+      "has": [{ "type": "host", "value": "[www.signal.acqar.com](https://www.signal.acqar.com)" }],
       "destination": "https://acqar.com",
       "permanent": false
     }
