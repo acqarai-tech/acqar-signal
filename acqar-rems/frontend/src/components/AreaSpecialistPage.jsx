@@ -9074,7 +9074,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
       </div>
 
       {/* ── HERO ── */}
-      <div style={{ padding: isMobile ? '12px 12px 0' : '18px 28px 0', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto', gap: 20, alignItems: 'flex-start', flexShrink: 0 }}>
+      <div style={{ padding: isMobile ? '12px 12px 0' : '18px 28px 0', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: 20, alignItems: 'flex-start', flexShrink: 0 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: C.muted, marginBottom: 6 }}>📍 Dubai — {area.zone} · Residential District</div>
           <div style={{ fontSize: 32, fontWeight: 900, color: C.text, letterSpacing: '-.02em', lineHeight: 1.05, marginBottom: 4 }}>{area.name}</div>
