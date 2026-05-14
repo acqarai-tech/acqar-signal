@@ -10835,6 +10835,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
       </div>
 
       {/* ── PERSONA SELECTOR ── exact match to HTML .persona-section */}
+      <div style={{ ...pad, marginTop: 20 }}>
    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 10 }}>Who are you? Get a view built for your situation.</div>
 <div style={{ display: 'flex', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
   {[
@@ -10865,7 +10866,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 </button>
   ))}
 </div>
-    
+  </div>  
 
       {/* ══════════ PERSONA: BUYER ══════════ */}
       {persona === 'buyer' && (
