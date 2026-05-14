@@ -11617,6 +11617,9 @@
 
 
 
+
+
+
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 import TickerBar from './TickerBar'
@@ -12522,14 +12525,14 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
           {/* Hero stats row — exact match to HTML .hero-stats-row */}
          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(6,1fr)', gap: 12, background: 'transparent' }}>
             {[
-             { lbl: '🏠 Homes Sold This Week', val: liveSoldThisWeek ?? d.soldThisWeek, valColor: C.red,
+             { lbl: 'Homes Sold This Week', val: liveSoldThisWeek ?? d.soldThisWeek, valColor: C.red,
   sub: liveTxDelta != null ? `${liveTxDelta}% vs last week` : 'A bit quieter than last week',
   subColor: (liveTxDelta ?? -1) < 0 ? C.red : C.green },
-              { lbl: "💰 What's a Fair Price Here?", val: `AED ${fmt(d.psf)}/sqft`, valColor: C.text, sub: 'Slightly up over 3 months', subColor: C.green },
-              { lbl: '📈 Rent Return Per Year', val: `${d.yld}%`, valColor: C.green, sub: `${d.aboveAvgYield ? 'Better' : 'Near'} than Dubai's 6.1% average`, subColor: C.muted },
-              { lbl: '⏱️ How Long to Sell?',  val: `${d.daysToSell} days`, valColor: C.amber, sub: d.daysToSell > 40 ? 'Takes a bit longer than usual' : 'Faster than Dubai average', subColor: d.daysToSell > 40 ? C.red : C.green },
-              { lbl: '🔑 Homes Available to Buy', val: fmt(d.availableListings), valColor: C.text, sub: 'More choice than normal — good for buyers', subColor: C.muted },
-              { lbl: '🧭 Market Mood Right Now', val: liveVerdict === 'BUY' ? 'Bullish' : liveVerdict === 'HOLD' ? 'Cautious' : 'Slow', valColor: liveVerdict === 'BUY' ? C.green : liveVerdict === 'HOLD' ? C.amber : C.red, sub: 'Watch closely — market paused', subColor: C.muted },
+              { lbl: "What's a Fair Price Here?", val: `AED ${fmt(d.psf)}/sqft`, valColor: C.text, sub: 'Slightly up over 3 months', subColor: C.green },
+              { lbl: 'Rent Return Per Year', val: `${d.yld}%`, valColor: C.green, sub: `${d.aboveAvgYield ? 'Better' : 'Near'} than Dubai's 6.1% average`, subColor: C.muted },
+              { lbl: 'How Long to Sell?',  val: `${d.daysToSell} days`, valColor: C.amber, sub: d.daysToSell > 40 ? 'Takes a bit longer than usual' : 'Faster than Dubai average', subColor: d.daysToSell > 40 ? C.red : C.green },
+              { lbl: 'Homes Available to Buy', val: fmt(d.availableListings), valColor: C.text, sub: 'More choice than normal — good for buyers', subColor: C.muted },
+              { lbl: 'Market Mood Right Now', val: liveVerdict === 'BUY' ? 'Bullish' : liveVerdict === 'HOLD' ? 'Cautious' : 'Slow', valColor: liveVerdict === 'BUY' ? C.green : liveVerdict === 'HOLD' ? C.amber : C.red, sub: 'Watch closely — market paused', subColor: C.muted },
             ].map((stat, i) => (
               <div key={i} style={{ padding: '18px 14px', background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: C.muted, marginBottom: 8, lineHeight: 1.4, textAlign: 'center' }}>{stat.lbl}</div>
@@ -13292,16 +13295,30 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     const url = `https://acqar.com/area/jvc?area=${encodeURIComponent(area.name)}&zone=${encodeURIComponent(area.zone)}`
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(() => {
-  const toast = document.createElement('div')
-  toast.innerText = '✅ Link copied to clipboard!'
-  toast.style.cssText = `
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background:#1a1a1a; color:#fff; padding:12px 24px; border-radius:10px;
-    font-size:13px; font-weight:700; z-index:999999;
-    box-shadow:0 8px 32px rgba(0,0,0,0.25); font-family:Inter,sans-serif;
-  `
-  document.body.appendChild(toast)
-  setTimeout(() => toast.remove(), 3000)
+  const modal = document.createElement('div')
+modal.style.cssText = `
+  position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  z-index:999999; display:flex; align-items:center; justify-content:center; padding:20px;
+`
+modal.innerHTML = `
+  <div style="background:#fff; border-radius:14px; padding:24px; max-width:420px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.3); font-family:Inter,sans-serif;">
+    <div style="font-size:11px;font-weight:800;color:#C8732A;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">✅ Shareable Link Ready</div>
+    <div style="font-size:13px;font-weight:700;color:#1C1C28;margin-bottom:16px;">Share this link with your client — no login required.</div>
+    <div style="background:#F5F5F5;border:1px solid #E8E0D0;border-radius:8px;padding:10px 14px;font-size:11px;color:#6E7A8A;word-break:break-all;margin-bottom:16px;">${url}</div>
+    <div style="display:flex;gap:10px;">
+      <button id="acqar-copy-btn" style="flex:1;padding:12px;background:#C8732A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Copy Link</button>
+      <button id="acqar-close-btn" style="padding:12px 18px;background:#F5F5F5;border:1px solid #E8E0D0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#6E7A8A;">Close</button>
+    </div>
+  </div>
+`
+document.body.appendChild(modal)
+document.getElementById('acqar-copy-btn').onclick = () => {
+  navigator.clipboard.writeText(url)
+  document.getElementById('acqar-copy-btn').innerText = '✅ Copied!'
+  setTimeout(() => { document.getElementById('acqar-copy-btn').innerText = 'Copy Link' }, 2000)
+}
+document.getElementById('acqar-close-btn').onclick = () => modal.remove()
+modal.addEventListener('click', e => { if (e.target === modal) modal.remove() })
 })
     } else {
       window.prompt('Copy this shareable link:', url)
