@@ -610,7 +610,16 @@ useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   // JVC = 'Al Barsha South Fourth' in DLD naming
-  const dldName = area.name
+    const DLD_NAME_MAP = {
+    'Jumeirah Village Circle (JVC)': 'Al Barsha South Fourth',
+    'Jumeirah Village Triangle (JVT)': 'Al Barsha South Fifth',
+    'Barsha Heights (Tecom)': 'Al Thanyah First',
+    'Dubai Hills Estate': 'Hadaeq Sheikh Mohammed Bin Rashid',
+    'DAMAC Hills 2 (Akoya by DAMAC)': 'Madinat Hind 4',
+    'Dubai Production City (IMPZ)': 'City Of Arabia',
+    'Jumeirah Lake Towers (JLT)': 'Al Thanyah Fifth',
+  }
+  const dldName = DLD_NAME_MAP[area.name] ?? area.name
   fetch(
     `${SUPA_URL}/rest/v1/dld_projects?area_en=eq.${encodeURIComponent(dldName)}&select=project_name,developer_name,project_status,percent_completed,end_date,cnt_unit&order=project_status.asc`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
