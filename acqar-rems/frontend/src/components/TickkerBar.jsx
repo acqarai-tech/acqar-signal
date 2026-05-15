@@ -6,7 +6,6 @@ const C = {
 }
 
 const BACKEND = 'https://acqar-signal-production.up.railway.app'
-
 const fmt = (n) => (n || 0).toLocaleString()
 
 export default function TickerBar({ areaSlug, areaName, fallback, activeProjectCount, metroCatalyst }) {
@@ -34,46 +33,36 @@ export default function TickerBar({ areaSlug, areaName, fallback, activeProjectC
     return () => cancelAnimationFrame(id)
   }, [data])
 
+  // ── compute all values before items array ──
+  const score       = fallback?.score ?? 60
+  const soldVal     = data?.soldThisWeek ?? fallback?.soldThisWeek ?? 0
+  const fairPsf     = data?.fairPriceAedPsf ? fmt(data.fairPriceAedPsf) : fmt(fallback?.psf ?? 1200)
+  const yld         = data?.rentalReturnPct ?? fallback?.yld ?? 7
+  const distress    = data?.distressPct ?? fallback?.distressPct ?? 14
+  const verdict     = data?.signalMood ?? fallback?.verdict ?? 'WATCH'
+  const sigScore    = data?.score ?? fallback?.score ?? '—'
+
+  const metroLabel = metroCatalyst?.expected_date
+    ? `${new Date(metroCatalyst.expected_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })} · ${metroCatalyst.confidence}`
+    : data?.metroOpening?.date
+      ? `${new Date(data.metroOpening.date).getFullYear()} · ${data.metroOpening.confidence}`
+      : 'Dubai Metro expansion · 2026–2029'
+
+  const offPlanVal = activeProjectCount > 0
+    ? activeProjectCount
+    : data?.offPlanPipeline > 0
+      ? data.offPlanPipeline
+      : Math.round(3 + score * 0.08)
+
   const items = [
-  {
-    label: 'Sold This Week',
-    value: soldThisWeek > 0
-      ? `${fmt(soldThisWeek)} homes`
-      : `${fmt(fallback?.soldThisWeek ?? Math.round(20 + (fallback?.score ?? 60) * 1.5))} homes (est.)`
-  },
-  {
-    label: 'Fair Price',
-    value: `AED ${fairPsf} / sqft`
-  },
-  {
-    label: 'Rental Return',
-    value: `${yld}% / year`
-  },
-  {
-    label: 'Distress Listings',
-    value: `${distress}% below fair value`
-  },
-  {
-    label: 'Metro Opening',
-    value: metroCatalyst?.expected_date
-      ? `${new Date(metroCatalyst.expected_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })} · ${metroCatalyst.confidence}`
-      : data?.metroOpening?.date
-        ? `${new Date(data.metroOpening.date).getFullYear()} · ${data.metroOpening.confidence}`
-        : 'Dubai Metro expansion · 2026–2029'
-  },
-  {
-    label: 'Off-Plan Pipeline',
-    value: activeProjectCount > 0
-      ? `${activeProjectCount} active projects`
-      : data?.offPlanPipeline > 0
-        ? `${data.offPlanPipeline} active projects`
-        : `${Math.round(3 + (fallback?.score ?? 60) * 0.08)} active projects (est.)`
-  },
-  {
-    label: 'Signal',
-    value: `${verdict} · Score ${score}/100`
-  },
-]
+    { label: 'Sold This Week',    value: soldVal > 0 ? `${fmt(soldVal)} homes` : `${fmt(Math.round(20 + score * 1.5))} homes (est.)` },
+    { label: 'Fair Price',        value: `AED ${fairPsf} / sqft` },
+    { label: 'Rental Return',     value: `${yld}% / year` },
+    { label: 'Distress Listings', value: `${distress}% below fair value` },
+    { label: 'Metro Opening',     value: metroLabel },
+    { label: 'Off-Plan Pipeline', value: `${offPlanVal} active projects` },
+    { label: 'Signal',            value: `${verdict} · Score ${sigScore}/100` },
+  ]
 
   const allItems = [...items, ...items]
 
@@ -85,10 +74,7 @@ export default function TickerBar({ areaSlug, areaName, fallback, activeProjectC
         <div ref={trackRef} style={{ display: 'flex', whiteSpace: 'nowrap', willChange: 'transform' }}>
           {allItems.map((item, i) => (
             <div key={i} style={{ padding: '0 16px', borderRight: `1px solid ${C.border}`, whiteSpace: 'nowrap', color: C.text2, flexShrink: 0 }}>
-              {item.split(': ').map((part, j) => j === 0
-                ? part + ': '
-                : <span key={j} style={{ fontWeight: 600, color: C.text }}>{part}</span>
-              )}
+              {item.label}: <span style={{ fontWeight: 600, color: C.text }}>{item.value}</span>
             </div>
           ))}
         </div>
