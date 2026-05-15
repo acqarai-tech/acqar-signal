@@ -1311,14 +1311,27 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     <div style={{ ...g2, marginBottom: 16 }}>
           <Card>
   <CardTitle>Area Maturity</CardTitle>
-  <StRow label="Zone"                     value={area.zone} />
-  <StRow label="Occupancy rate"           value={`${d.occupancyRate}%`} valueColor={C.green} />
-  <StRow label="Active off-plan projects" value={activeProjects.length > 0 ? `${activeProjects.length} projects` : 'Data pending'} valueColor={C.orange} />
-  <StRow label="Pipeline units (DLD)"     value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : 'Data pending'} valueColor={C.amber} />
-  <StRow label="5-year appreciation"      value={fiveYrAppreciationReal ? `+${fiveYrAppreciationReal}%` : 'Data pending'} valueColor={C.green} />
-  <StRow label="Investment score"         value={`${liveScore}/100`} valueColor={liveScore >= 75 ? C.green : liveScore >= 65 ? C.amber : C.red} />
-  <StRow label="Gross yield"             value={`${liveYield}%`} valueColor={C.green} />
-  <StRow label="Fair price (PSF)"        value={`AED ${fmt(livePsf)}/sqft`} valueColor={C.orange} last />
+  {areaIntel?.year_established && <StRow label="Year established" value={String(areaIntel.year_established)} />}
+  {areaIntel?.master_developer && <StRow label="Master developer" value={areaIntel.master_developer} />}
+  <StRow label="Zone" value={area.zone} />
+  {areaIntel?.total_area_ha && <StRow label="Total area" value={`${areaIntel.total_area_ha} hectares`} />}
+  {areaIntel?.completion_rate && <StRow label="Completion rate" value={areaIntel.completion_rate} valueColor={C.green} />}
+  {areaIntel?.residential_units && <StRow label="Residential units" value={`${fmt(areaIntel.residential_units)} registered`} />}
+  <StRow label="Occupancy rate" value={`${d.occupancyRate}%`} valueColor={C.green} />
+  {areaIntel?.parks_info && <StRow label="Parks" value={areaIntel.parks_info} />}
+  <StRow
+    label="Active off-plan projects"
+    value={activeProjects.length > 0 ? `${activeProjects.length} projects` : 'None tracked'}
+    valueColor={activeProjects.length > 0 ? C.orange : C.muted}
+  />
+  {totalPipelineUnits > 0 && <StRow label="Pipeline units (DLD)" value={fmt(totalPipelineUnits)} valueColor={C.amber} />}
+  {areaIntel?.retail_info && <StRow label="Retail" value={areaIntel.retail_info} />}
+  <StRow
+    label="5-year appreciation"
+    value={fiveYrAppreciationReal ? `+${fiveYrAppreciationReal}%` : `+${d.fiveYrAppreciation}%`}
+    valueColor={C.green}
+    last
+  />
 </Card>
             <Card noPad>
   <div style={{ padding: '18px 18px 0' }}><CardTitle>Developer Delivery Track Record in {area.name}</CardTitle></div>
