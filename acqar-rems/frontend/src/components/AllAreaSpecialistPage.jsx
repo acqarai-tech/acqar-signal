@@ -1309,20 +1309,16 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 
     {/* Area maturity + developer table */}
     <div style={{ ...g2, marginBottom: 16 }}>
-           <Card>
+          <Card>
   <CardTitle>Area Maturity</CardTitle>
-  <StRow label="Year established"         value="2005" />
-  <StRow label="Master developer"         value="Nakheel" />
   <StRow label="Zone"                     value={area.zone} />
-  <StRow label="Total area"              value="870 hectares" />
-  <StRow label="Completion rate"          value="~75% built"           valueColor={C.green} />
-  <StRow label="Residential units"        value="105,860 registered" />
-  <StRow label="Occupancy rate"           value={`${d.occupancyRate}%`}  valueColor={C.green} />
-  <StRow label="Parks"                    value="33 landscaped parks" />
-  <StRow label="Active off-plan projects" value={activeProjects.length > 0 ? `${activeProjects.length} projects` : '6 projects'} valueColor={C.orange} />
-  <StRow label="Pipeline units (DLD)"     value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : '2,936'} valueColor={C.amber} />
-  <StRow label="Retail"                   value="Circle Mall (235 shops) + 200+ outlets" />
-  <StRow label="5-year appreciation"      value={`+${fiveYrAppreciationReal ?? '63.7'}%`} valueColor={C.green} last />
+  <StRow label="Occupancy rate"           value={`${d.occupancyRate}%`} valueColor={C.green} />
+  <StRow label="Active off-plan projects" value={activeProjects.length > 0 ? `${activeProjects.length} projects` : 'Data pending'} valueColor={C.orange} />
+  <StRow label="Pipeline units (DLD)"     value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : 'Data pending'} valueColor={C.amber} />
+  <StRow label="5-year appreciation"      value={fiveYrAppreciationReal ? `+${fiveYrAppreciationReal}%` : 'Data pending'} valueColor={C.green} />
+  <StRow label="Investment score"         value={`${liveScore}/100`} valueColor={liveScore >= 75 ? C.green : liveScore >= 65 ? C.amber : C.red} />
+  <StRow label="Gross yield"             value={`${liveYield}%`} valueColor={C.green} />
+  <StRow label="Fair price (PSF)"        value={`AED ${fmt(livePsf)}/sqft`} valueColor={C.orange} last />
 </Card>
             <Card noPad>
   <div style={{ padding: '18px 18px 0' }}><CardTitle>Developer Delivery Track Record in {area.name}</CardTitle></div>
