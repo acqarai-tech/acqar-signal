@@ -903,9 +903,15 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
           {/* Hero stats row — exact match to HTML .hero-stats-row */}
          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(6,1fr)', gap: 12, background: 'transparent' }}>
             {[
-             { lbl: 'Homes Sold This Week', val: liveSoldThisWeek ?? d.soldThisWeek, valColor: C.red,
-  sub: liveTxDelta != null ? `${liveTxDelta}% vs last week` : 'A bit quieter than last week',
-  subColor: (liveTxDelta ?? -1) < 0 ? C.red : C.green },
+             { lbl: 'Homes Sold This Week',
+  val: (liveSoldThisWeek ?? 0) > 0
+    ? liveSoldThisWeek
+    : Math.round(20 + liveScore * 1.5),
+  valColor: C.red,
+  sub: (liveSoldThisWeek ?? 0) > 0
+    ? (liveTxDelta != null ? `${liveTxDelta}% vs last week` : 'Based on DLD data')
+    : 'est. based on area score',
+  subColor: C.muted },
               { lbl: "What's a Fair Price Here?", val: `AED ${fmt(d.psf)}/sqft`, valColor: C.text, sub: 'Slightly up over 3 months', subColor: C.green },
               { lbl: 'Rent Return Per Year', val: `${d.yld}%`, valColor: C.green, sub: `${d.aboveAvgYield ? 'Better' : 'Near'} than Dubai's 6.1% average`, subColor: C.muted },
               { lbl: 'How Long to Sell?',  val: `${d.daysToSell} days`, valColor: C.amber, sub: d.daysToSell > 40 ? 'Takes a bit longer than usual' : 'Faster than Dubai average', subColor: d.daysToSell > 40 ? C.red : C.green },
