@@ -1385,17 +1385,16 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     />
     
   ) : (
-    
     <PTable
       minWidth={380}
       headers={['Developer', 'Projects', 'On-Time', 'Avg Delay', 'Rating']}
       rows={[
-        { dev: 'Nakheel',    n: 6,  ot: '95%', delay: '0.5 mo', rating: '★★★★★', c: C.green },
-        { dev: 'Binghatti',  n: 15, ot: '85%', delay: '1.5 mo', rating: '★★★★☆', c: C.green },
-        { dev: 'Ellington',  n: 6,  ot: '88%', delay: '2.0 mo', rating: '★★★★☆', c: C.green },
-        { dev: 'DAMAC',      n: 5,  ot: '72%', delay: '6.2 mo', rating: '★★★☆☆', c: C.amber },
-        { dev: 'Samana',     n: 9,  ot: '65%', delay: '7.5 mo', rating: '★★★☆☆', c: C.amber },
-        { dev: 'Tiger Group',n: 9,  ot: '58%', delay: '9.0 mo', rating: '★★☆☆☆', c: C.red   },
+        { dev: 'Nakheel',     n: 6,  ot: '95%', delay: '0.5 mo', rating: '★★★★★', c: C.green },
+        { dev: 'Binghatti',   n: 15, ot: '85%', delay: '1.5 mo', rating: '★★★★☆', c: C.green },
+        { dev: 'Ellington',   n: 6,  ot: '88%', delay: '2.0 mo', rating: '★★★★☆', c: C.green },
+        { dev: 'DAMAC',       n: 5,  ot: '72%', delay: '6.2 mo', rating: '★★★☆☆', c: C.amber },
+        { dev: 'Samana',      n: 9,  ot: '65%', delay: '7.5 mo', rating: '★★★☆☆', c: C.amber },
+        { dev: 'Tiger Group', n: 9,  ot: '58%', delay: '9.0 mo', rating: '★★☆☆☆', c: C.red   },
       ].map((r, i, arr) => (
         <tr key={r.dev}>
           <Td last={i === arr.length - 1} first>{r.dev}</Td>
@@ -1405,7 +1404,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           <Td last={i === arr.length - 1} color={r.c}>{r.rating}</Td>
         </tr>
       ))}
-   />
+    />
+  
   
   )}
   <div style={{ padding: '0 18px 18px' }}><p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
