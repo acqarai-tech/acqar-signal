@@ -600,8 +600,8 @@ export default function AllAreasPage() {
       <div style={{
         background: C.card,
         borderBottom: `1px solid ${C.border}`,
-        padding: '0 28px',
-        height: 52,
+        height: 64,
+padding: '0 28px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -625,8 +625,8 @@ export default function AllAreasPage() {
         </div>
 
         {/* Right: verdict legend */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {[['BUY', C.green, C.greenL], ['WATCH', C.amber, C.amberL], ['HOLD', C.red, C.redL]].map(([label, color, bg]) => (
+      <div className="verdict-legend" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+  {[['BUY', C.green, C.greenL], ['WATCH', C.amber, C.amberL], ['HOLD', C.red, C.redL]].map(([label, color, bg]) => (
             <span key={label} style={{
               fontSize: 9, fontWeight: 800, letterSpacing: '.08em',
               padding: '2px 8px', borderRadius: 4,
@@ -776,6 +776,7 @@ export default function AllAreasPage() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) { .verdict-legend { display: none !important; } }
         * { box-sizing: border-box; }
         input::placeholder { color: #9CA8B4; }
         body { margin: 0; }
