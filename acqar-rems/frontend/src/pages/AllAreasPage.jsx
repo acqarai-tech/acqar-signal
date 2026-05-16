@@ -571,6 +571,8 @@ export default function AllAreasPage() {
     }
   }
 
+  const isMobile = window.innerWidth <= 768
+
   const filtered = areas.filter(a =>
     !search || a.area_name_en?.toLowerCase().includes(search.toLowerCase())
   )
@@ -625,14 +627,16 @@ flexShrink: 0,
           }}>SIGNAL™</span>
         </div>
 
-      {/* Right: close button */}
-<button onClick={onClose} style={{
-  width: 30, height: 30, background: C.bg2,
-  border: `1px solid ${C.border}`, borderRadius: 7,
-  cursor: 'pointer', fontWeight: 900, fontSize: 14,
-  color: C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center',
-}}>✕</button>
-      </div>
+     {/* Right: verdict legend */}
+<div className="verdict-legend" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+  {[['BUY', C.green, C.greenL], ['WATCH', C.amber, C.amberL], ['HOLD', C.red, C.redL]].map(([label, color, bg]) => (
+    <span key={label} style={{
+      fontSize: 9, fontWeight: 800, letterSpacing: '.08em',
+      padding: '2px 8px', borderRadius: 4,
+      background: bg, color,
+    }}>{label}</span>
+  ))}
+</div>
 
       {/* ── BODY ── */}
       <div style={{ flex: 1, padding: '24px 28px 40px' }}>
