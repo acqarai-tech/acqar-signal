@@ -587,13 +587,14 @@ export default function AllAreasPage() {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: C.bg,
-      fontFamily: "'Inter', sans-serif",
-      color: C.text,
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+  minHeight: '100vh',
+  background: C.bg,
+  fontFamily: "'Inter', sans-serif",
+  color: C.text,
+  display: 'flex',
+  flexDirection: 'column',
+  overflowY: 'auto',
+}}>
 
       {/* ── HEADER ── */}
       <div style={{
@@ -678,16 +679,11 @@ export default function AllAreasPage() {
           </div>
         ) : (
           /* Area grid */
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 8,
-            maxHeight: 'calc(100vh - 160px)',
-            overflowY: 'auto',
-            paddingRight: 6,
-            scrollbarWidth: 'thin',
-            scrollbarColor: `${C.orange} ${C.border}`,
-          }}>
+         <div style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+  gap: 8,
+}}>
             {filtered.map(area => {
               const verdict = getVerdict(area)
               const vColor = verdictColor(verdict)
