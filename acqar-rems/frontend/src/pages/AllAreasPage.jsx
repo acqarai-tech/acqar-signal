@@ -255,9 +255,9 @@ const C = {
   card: '#FFFFFF', border: '#E8E0D0',
   orange: '#C8732A', orangeL: 'rgba(200,115,42,0.09)',
   // Fixed: BUY=green, WATCH=amber, HOLD=red
-  green: '#16A34A', greenL: 'rgba(22,163,74,0.08)',
+  green: '#118b3e', greenL: 'rgba(22,163,74,0.08)',
   amber: '#B45309', amberL: 'rgba(180,83,9,0.08)',
-  red: '#DC2626', redL: 'rgba(220,38,38,0.08)',
+  red: '#a73535', redL: 'rgba(220,38,38,0.08)',
   text: '#1C1C28', muted: '#6E7A8A', muted2: '#9CA8B4',
   copper: '#B87333',
 }
@@ -682,6 +682,11 @@ export default function AllAreasPage() {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: 8,
+            maxHeight: 'calc(100vh - 160px)',
+            overflowY: 'auto',
+            paddingRight: 6,
+            scrollbarWidth: 'thin',
+            scrollbarColor: `${C.orange} ${C.border}`,
           }}>
             {filtered.map(area => {
               const verdict = getVerdict(area)
@@ -721,13 +726,10 @@ export default function AllAreasPage() {
                     e.currentTarget.style.background = C.card
                   }}
                 >
-                  {/* Name + ID */}
+                  {/* Name */}
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>
                       {area.area_name_en}
-                    </div>
-                    <div style={{ fontSize: 10, color: C.muted2, marginTop: 2 }}>
-                      #{area.area_id}
                     </div>
                   </div>
 
@@ -781,6 +783,10 @@ export default function AllAreasPage() {
         * { box-sizing: border-box; }
         input::placeholder { color: #9CA8B4; }
         body { margin: 0; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: ${C.border}; border-radius: 99px; }
+        ::-webkit-scrollbar-thumb { background: ${C.orange}; border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a85f20; }
       `}</style>
     </div>
   )
