@@ -12,13 +12,19 @@
     }
   ],
   "redirects": [
-    {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "[www.signal.acqar.com](https://www.signal.acqar.com)" }],
-      "destination": "https://acqar.com",
-      "permanent": false
-    }
-  ],
+  {
+    "source": "/(.*)",
+    "has": [{ "type": "host", "value": "www.signal.acqar.com" }],
+    "destination": "https://acqar.com/$1",
+    "permanent": false
+  },
+  {
+    "source": "/(.*)",
+    "has": [{ "type": "host", "value": "signal.acqar.com" }],
+    "destination": "https://acqar.com/$1",
+    "permanent": false
+  }
+],
   "rewrites": [
     {
       "source": "/api/(.*)",
