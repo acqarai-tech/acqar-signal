@@ -637,7 +637,7 @@ flexShrink: 0,
     }}>{label}</span>
   ))}
 </div>
-
+</div>
       {/* ── BODY ── */}
       <div style={{ flex: 1, padding: '24px 28px 40px' }}>
 
