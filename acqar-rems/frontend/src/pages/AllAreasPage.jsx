@@ -600,8 +600,9 @@ export default function AllAreasPage() {
       <div style={{
         background: C.card,
         borderBottom: `1px solid ${C.border}`,
-        height: 64,
-padding: '0 28px',
+       height: 52,
+padding: isMobile ? '0 12px' : '0 28px',
+flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -624,16 +625,13 @@ padding: '0 28px',
           }}>SIGNAL™</span>
         </div>
 
-        {/* Right: verdict legend */}
-      <div className="verdict-legend" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-  {[['BUY', C.green, C.greenL], ['WATCH', C.amber, C.amberL], ['HOLD', C.red, C.redL]].map(([label, color, bg]) => (
-            <span key={label} style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '.08em',
-              padding: '2px 8px', borderRadius: 4,
-              background: bg, color,
-            }}>{label}</span>
-          ))}
-        </div>
+      {/* Right: close button */}
+<button onClick={onClose} style={{
+  width: 30, height: 30, background: C.bg2,
+  border: `1px solid ${C.border}`, borderRadius: 7,
+  cursor: 'pointer', fontWeight: 900, fontSize: 14,
+  color: C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center',
+}}>✕</button>
       </div>
 
       {/* ── BODY ── */}
