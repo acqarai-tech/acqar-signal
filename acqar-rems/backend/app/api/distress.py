@@ -764,6 +764,11 @@
 
 
 
+
+
+
+
+
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
 import httpx, re, logging
@@ -918,3 +923,24 @@ async def get_raw_posts(sub: str = "DubaiRealEstate"):
                 for p in posts
             ]
         }
+
+@router.get("/reddit/proxy")
+async def reddit_proxy_endpoint(sub: str, limit: int = 100):
+    import httpx
+    headers_list = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "python-requests/2.31.0",
+    ]
+    async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+        for ua in headers_list:
+            try:
+                resp = await client.get(
+                    f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
+                    headers={"User-Agent": ua, "Accept": "application/json"}
+                )
+                if resp.status_code == 200:
+                    return resp.json()
+            except Exception:
+                continue
+    return {"data": {"children": []}}
