@@ -769,6 +769,7 @@
 
 
 
+
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
 import httpx, re, logging
@@ -778,23 +779,12 @@ import os
 router = APIRouter(prefix="/api/distress", tags=["distress"])
 
 DISTRESS_KEYWORDS = [
-   
     'distress deal', 'distress sale', 'panic sell', 'panic sale',
     'forced sale', 'urgent sale', 'must sell', 'need to sell',
     'quick sale', 'below op', 'below original price', 'below market',
     'selling at loss', 'below asking', 'price reduced', 'motivated seller',
     'investor exit', 'relocation sale', 'genuine seller', 'sp below',
     'transfer in 3', 'transfer in 7',
-    
-    'deal of the week', 'deal of the day', 'deal of the month',
-    'below market value', 'motivated', 'negotiable',
-    'price drop', 'reduced price', 'huge discount', 'best deal',
-    'below developer price', 'below launch price',
-    'resale below', 'selling below', 'loss sale',
-    'handover soon', 'ready to transfer', 'urgent transfer',
-    'good deal', 'great deal', 'steal deal',
-    '10% dp', '20% dp', 'post handover',
-    'rented below', 'vacant soon', 'motivated to sell',
 ]
 
 SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
@@ -806,49 +796,24 @@ HEADERS = {
 
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
+SCRAPINGANT_KEY = os.environ.get("SCRAPINGANT_KEY", "")
+
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
-    import xml.etree.ElementTree as ET
-    url = f"https://www.reddit.com/r/{sub}/new.rss?limit={limit}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; ACQAR/1.0)",
-        "Accept": "application/rss+xml, application/xml",
-    }
+    target_url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
+    proxy_url = f"https://api.scrapingant.com/v2/general?url={target_url}&x-api-key={SCRAPINGANT_KEY}&browser=false"
+    
     try:
-        resp = await client.get(url, headers=headers, timeout=15)
-        if resp.status_code != 200:
-            return []
-        root = ET.fromstring(resp.text)
-        ns = {'atom': 'http://www.w3.org/2005/Atom'}
-        posts = []
-        for entry in root.findall('atom:entry', ns):
-            title = entry.find('atom:title', ns)
-            content = entry.find('atom:content', ns)
-            link = entry.find('atom:link', ns)
-            updated = entry.find('atom:updated', ns)
-            if title is None:
-                continue
-            from datetime import datetime
-            try:
-                ts = datetime.fromisoformat(updated.text.replace('Z', '+00:00')).timestamp() if updated is not None else 0
-            except:
-                ts = 0
-            href = link.get('href', '') if link is not None else ''
-            permalink = href.replace('https://www.reddit.com', '') if href else ''
-            posts.append({"data": {
-                "id": permalink.split('/')[-2] if permalink else '',
-                "title": title.text or '',
-                "selftext": content.text or '' if content is not None else '',
-                "permalink": permalink,
-                "score": 0,
-                "created_utc": ts,
-                "link_flair_text": "",
-                "author": "",
-            }})
-        return posts
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as c:
+            resp = await c.get(proxy_url)
+            resp.raise_for_status()
+            return resp.json().get("data", {}).get("children", [])
     except Exception as e:
-        logger.warning(f"RSS fetch error r/{sub}: {e}")
+        logger.warning(f"ScrapingAnt error r/{sub}: {e}")
         return []
+
 async def fetch_distress_deals():
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    week_ago_ts = week_ago.timestamp()
     all_deals = []
     seen = set()
 
@@ -930,43 +895,8 @@ async def reddit_proxy(sub: str, limit: int = 100):
             return {"data": {"children": posts}}
         return {"data": {"children": []}, "error": "All Reddit endpoints blocked"}
 
-@router.get("/deals/raw")
-async def get_raw_posts(sub: str = "DubaiRealEstate"):
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-        posts = await fetch_reddit_posts(client, sub, 100)
-        return {
-            "count": len(posts),
-            "posts": [
-                {
-                    "id": p["data"].get("id", ""),
-                    "title": p["data"].get("title", ""),
-                    "selftext": p["data"].get("selftext", ""),
-                    "permalink": p["data"].get("permalink", ""),
-                    "score": p["data"].get("score", 0),
-                    "created_utc": p["data"].get("created_utc", 0),
-                    "flair": p["data"].get("link_flair_text", ""),
-                }
-                for p in posts
-            ]
-        }
 
-@router.get("/reddit/proxy")
-async def reddit_proxy_endpoint(sub: str, limit: int = 100):
-    import httpx
-    headers_list = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        "python-requests/2.31.0",
-    ]
-    async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
-        for ua in headers_list:
-            try:
-                resp = await client.get(
-                    f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1",
-                    headers={"User-Agent": ua, "Accept": "application/json"}
-                )
-                if resp.status_code == 200:
-                    return resp.json()
-            except Exception:
-                continue
-    return {"data": {"children": []}}
+
+
+
+
