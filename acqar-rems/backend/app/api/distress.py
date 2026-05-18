@@ -906,11 +906,21 @@ async def reddit_proxy(sub: str, limit: int = 100):
         return {"data": {"children": []}, "error": "All Reddit endpoints blocked"}
 
 @router.get("/deals/raw")
-async def get_raw_posts():
+async def get_raw_posts(sub: str = "DubaiRealEstate"):
     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-        posts = await fetch_reddit_posts(client, "DubaiRealEstate", 10)
+        posts = await fetch_reddit_posts(client, sub, 100)
         return {
             "count": len(posts),
-            "titles": [p["data"].get("title", "") for p in posts],
-            "selftexts": [p["data"].get("selftext", "")[:100] for p in posts],
+            "posts": [
+                {
+                    "id": p["data"].get("id", ""),
+                    "title": p["data"].get("title", ""),
+                    "selftext": p["data"].get("selftext", ""),
+                    "permalink": p["data"].get("permalink", ""),
+                    "score": p["data"].get("score", 0),
+                    "created_utc": p["data"].get("created_utc", 0),
+                    "flair": p["data"].get("link_flair_text", ""),
+                }
+                for p in posts
+            ]
         }
