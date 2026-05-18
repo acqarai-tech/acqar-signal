@@ -791,17 +791,14 @@ HEADERS = {
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
-    url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "application/json",
-    }
+    url = f"https://api.pullpush.io/reddit/search/submission/?subreddit={sub}&size={limit}&sort=desc&sort_type=created_utc"
     try:
-        resp = await client.get(url, headers=headers, timeout=15)
-        resp.raise_for_status()
-        return resp.json().get("data", {}).get("children", [])
+        resp = await client.get(url, timeout=15, headers={"Accept": "application/json"})
+        data = resp.json().get("data", [])
+        # Wrap in Reddit-compatible format so rest of your code works unchanged
+        return [{"data": post} for post in data]
     except Exception as e:
-        logger.warning(f"Reddit fetch error r/{sub}: {e}")
+        logger.warning(f"PullPush fetch error r/{sub}: {e}")
         return []
 
 async def fetch_distress_deals():
