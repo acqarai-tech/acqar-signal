@@ -773,12 +773,23 @@ import os
 router = APIRouter(prefix="/api/distress", tags=["distress"])
 
 DISTRESS_KEYWORDS = [
+   
     'distress deal', 'distress sale', 'panic sell', 'panic sale',
     'forced sale', 'urgent sale', 'must sell', 'need to sell',
     'quick sale', 'below op', 'below original price', 'below market',
     'selling at loss', 'below asking', 'price reduced', 'motivated seller',
     'investor exit', 'relocation sale', 'genuine seller', 'sp below',
     'transfer in 3', 'transfer in 7',
+    
+    'deal of the week', 'deal of the day', 'deal of the month',
+    'below market value', 'motivated', 'negotiable',
+    'price drop', 'reduced price', 'huge discount', 'best deal',
+    'below developer price', 'below launch price',
+    'resale below', 'selling below', 'loss sale',
+    'handover soon', 'ready to transfer', 'urgent transfer',
+    'good deal', 'great deal', 'steal deal',
+    '10% dp', '20% dp', 'post handover',
+    'rented below', 'vacant soon', 'motivated to sell',
 ]
 
 SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
