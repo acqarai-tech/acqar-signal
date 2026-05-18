@@ -824,8 +824,6 @@ async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 1
         return []
 
 async def fetch_distress_deals():
-    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
-    week_ago_ts = week_ago.timestamp()
     all_deals = []
     seen = set()
 
