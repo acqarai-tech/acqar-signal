@@ -795,8 +795,19 @@ async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 1
     try:
         resp = await client.get(url, timeout=15, headers={"Accept": "application/json"})
         data = resp.json().get("data", [])
-        # Wrap in Reddit-compatible format so rest of your code works unchanged
-        return [{"data": post} for post in data]
+        normalized = []
+        for post in data:
+            normalized.append({"data": {
+                "id": post.get("id"),
+                "title": post.get("title", ""),
+                "selftext": post.get("selftext", ""),
+                "permalink": post.get("permalink", ""),
+                "score": post.get("score", 0),
+                "created_utc": post.get("created_utc", 0),
+                "link_flair_text": post.get("link_flair_text", ""),
+                "author": post.get("author", ""),
+            }})
+        return normalized
     except Exception as e:
         logger.warning(f"PullPush fetch error r/{sub}: {e}")
         return []
