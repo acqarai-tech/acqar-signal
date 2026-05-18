@@ -802,25 +802,19 @@ HEADERS = {
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
-    url = f"https://api.pullpush.io/reddit/search/submission/?subreddit={sub}&size={limit}&sort=desc&sort_type=created_utc"
+    url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; ACQAR/1.0; +https://acqar.com)",
+        "Accept": "application/json",
+    }
     try:
-        resp = await client.get(url, timeout=15, headers={"Accept": "application/json"})
-        data = resp.json().get("data", [])
-        normalized = []
-        for post in data:
-            normalized.append({"data": {
-                "id": post.get("id"),
-                "title": post.get("title", ""),
-                "selftext": post.get("selftext", ""),
-                "permalink": post.get("permalink", ""),
-                "score": post.get("score", 0),
-                "created_utc": post.get("created_utc", 0),
-                "link_flair_text": post.get("link_flair_text", ""),
-                "author": post.get("author", ""),
-            }})
-        return normalized
+        resp = await client.get(url, headers=headers, timeout=20)
+        resp.raise_for_status()
+        children = resp.json().get("data", {}).get("children", [])
+        # Convert to same format as before
+        return [{"data": item["data"]} for item in children]
     except Exception as e:
-        logger.warning(f"PullPush fetch error r/{sub}: {e}")
+        logger.warning(f"Reddit fetch error r/{sub}: {e}")
         return []
 
 async def fetch_distress_deals():
