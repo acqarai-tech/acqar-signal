@@ -807,21 +807,47 @@ HEADERS = {
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
-    url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
+    import xml.etree.ElementTree as ET
+    url = f"https://www.reddit.com/r/{sub}/new.rss?limit={limit}"
     headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; ACQAR/1.0; +https://acqar.com)",
-        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; ACQAR/1.0)",
+        "Accept": "application/rss+xml, application/xml",
     }
     try:
-        resp = await client.get(url, headers=headers, timeout=20)
-        resp.raise_for_status()
-        children = resp.json().get("data", {}).get("children", [])
-        # Convert to same format as before
-        return [{"data": item["data"]} for item in children]
+        resp = await client.get(url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            return []
+        root = ET.fromstring(resp.text)
+        ns = {'atom': 'http://www.w3.org/2005/Atom'}
+        posts = []
+        for entry in root.findall('atom:entry', ns):
+            title = entry.find('atom:title', ns)
+            content = entry.find('atom:content', ns)
+            link = entry.find('atom:link', ns)
+            updated = entry.find('atom:updated', ns)
+            if title is None:
+                continue
+            from datetime import datetime
+            try:
+                ts = datetime.fromisoformat(updated.text.replace('Z', '+00:00')).timestamp() if updated is not None else 0
+            except:
+                ts = 0
+            href = link.get('href', '') if link is not None else ''
+            permalink = href.replace('https://www.reddit.com', '') if href else ''
+            posts.append({"data": {
+                "id": permalink.split('/')[-2] if permalink else '',
+                "title": title.text or '',
+                "selftext": content.text or '' if content is not None else '',
+                "permalink": permalink,
+                "score": 0,
+                "created_utc": ts,
+                "link_flair_text": "",
+                "author": "",
+            }})
+        return posts
     except Exception as e:
-        logger.warning(f"Reddit fetch error r/{sub}: {e}")
+        logger.warning(f"RSS fetch error r/{sub}: {e}")
         return []
-
 async def fetch_distress_deals():
     all_deals = []
     seen = set()
