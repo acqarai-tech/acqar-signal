@@ -8592,22 +8592,32 @@ useEffect(() => {
 useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-  fetch(
-    `${SUPA_URL}/rest/v1/price_history_manual?area_id=eq.${area.area_id}&sale_year=gte.2020&select=sale_year,sale_month,psf,cnt&order=sale_year.asc,sale_month.asc`,
-    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-  )
-    .then(r => r.json())
-    .then(rows => {
-      const points = rows.map(row => ({
+  Promise.all([
+    fetch(
+      `${SUPA_URL}/rest/v1/price_history_monthly?area_id=eq.${area.area_id}&sale_year=gte.2020&select=sale_year,sale_month,psf,cnt&order=sale_year.asc,sale_month.asc`,
+      { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+    ).then(r => r.json()).catch(() => []),
+    fetch(
+      `${SUPA_URL}/rest/v1/price_history_manual?area_id=eq.${area.area_id}&sale_year=gte.2020&select=sale_year,sale_month,psf,cnt&order=sale_year.asc,sale_month.asc`,
+      { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+    ).then(r => r.json()).catch(() => [])
+  ]).then(([live, manual]) => {
+    const merged = {}
+    ;[...manual, ...live].forEach(row => {
+      const key = `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`
+      merged[key] = row
+    })
+    const points = Object.values(merged)
+      .sort((a, b) => a.sale_year !== b.sale_year ? a.sale_year - b.sale_year : a.sale_month - b.sale_month)
+      .map(row => ({
         key: `${row.sale_year}-${String(row.sale_month).padStart(2,'0')}`,
         psf: Math.round(row.psf),
         year: row.sale_year,
         month: row.sale_month,
         count: row.cnt,
       }))
-      setPriceHistory(points)
-    })
-    .catch(() => {})
+    setPriceHistory(points)
+  })
 }, [])
 
 useEffect(() => {
