@@ -10129,12 +10129,15 @@ function buildAreaData(area) {
   const netYield = (yld * 0.83).toFixed(1)
   const serviceCharge = psf > 2000 ? 'AED 18–28/sqft' : psf > 1200 ? 'AED 12–18/sqft' : 'AED 10–18/sqft'
 
-  // Nationalities — vary by zone
-  const nationals = area.zone === 'Prime'
-    ? [{ flag: '🇷🇺', name: 'Russian',   pct: 24, w: 100 },{ flag: '🇬🇧', name: 'British',   pct: 18, w: 75 },{ flag: '🇮🇳', name: 'Indian',    pct: 14, w: 58 },{ flag: '🇩🇪', name: 'German',    pct: 9, w: 38 },{ flag: '🇨🇳', name: 'Chinese',   pct: 8, w: 33 },{ flag: '🇦🇪', name: 'UAE Local', pct: 6, w: 25 },{ flag: '🌍', name: 'Other',     pct: 21, w: 48 }]
+  // Nationalities — real DB data or zone fallback
+// Nationalities — real DB data or zone fallback
+const nationals = area.buyer_nationalities?.length > 0
+  ? area.buyer_nationalities
+  : area.zone === 'Prime'
+    ? [{ flag:'🇷🇺',name:'Russian',pct:24,w:100},{flag:'🇬🇧',name:'British',pct:18,w:75},{flag:'🇮🇳',name:'Indian',pct:14,w:58},{flag:'🇩🇪',name:'German',pct:9,w:38},{flag:'🇨🇳',name:'Chinese',pct:8,w:33},{flag:'🇦🇪',name:'UAE Local',pct:6,w:25},{flag:'🌍',name:'Other',pct:21,w:48}]
     : area.zone === 'Marina'
-    ? [{ flag: '🇬🇧', name: 'British',   pct: 22, w: 100 },{ flag: '🇮🇳', name: 'Indian',    pct: 18, w: 82 },{ flag: '🇷🇺', name: 'Russian',   pct: 15, w: 68 },{ flag: '🇩🇪', name: 'German',    pct: 8, w: 36 },{ flag: '🇨🇳', name: 'Chinese',   pct: 7, w: 32 },{ flag: '🌍', name: 'Other',     pct: 30, w: 55 }]
-    : [{ flag: '🇮🇳', name: 'Indian',    pct: 31, w: 100 },{ flag: '🇬🇧', name: 'British',   pct: 18, w: 58 },{ flag: '🇷🇺', name: 'Russian',   pct: 14, w: 45 },{ flag: '🇵🇰', name: 'Pakistani', pct: 9, w: 29 },{ flag: '🇨🇳', name: 'Chinese',   pct: 6, w: 19 },{ flag: '🇩🇪', name: 'German',    pct: 4, w: 13 },{ flag: '🇦🇪', name: 'UAE Local', pct: 3, w: 10 },{ flag: '🌍', name: 'Other',     pct: 15, w: 48 }]
+    ? [{ flag:'🇬🇧',name:'British',pct:22,w:100},{flag:'🇮🇳',name:'Indian',pct:18,w:82},{flag:'🇷🇺',name:'Russian',pct:15,w:68},{flag:'🇩🇪',name:'German',pct:8,w:36},{flag:'🇨🇳',name:'Chinese',pct:7,w:32},{flag:'🌍',name:'Other',pct:30,w:55}]
+    : [{ flag:'🇮🇳',name:'Indian',pct:31,w:100},{flag:'🇬🇧',name:'British',pct:18,w:58},{flag:'🇷🇺',name:'Russian',pct:14,w:45},{flag:'🇵🇰',name:'Pakistani',pct:9,w:29},{flag:'🇨🇳',name:'Chinese',pct:6,w:19},{flag:'🇩🇪',name:'German',pct:4,w:13},{flag:'🇦🇪',name:'UAE Local',pct:3,w:10},{flag:'🌍',name:'Other',pct:15,w:48}]
 
   const sellRecommendation = score >= 75 ? 'Yes — Good Time' : 'Hold 6–12M'
   const sellColor = score >= 75 ? C.green : C.amber
@@ -10895,12 +10898,13 @@ useEffect(() => {
     })
 }, [area.name])
 
-  const d = buildAreaData({
-    ...area,
-    pricePerSqft: livePsf,
-    score: liveScore,
-    yield: liveYield,
-  })
+ const d = buildAreaData({
+  ...area,
+  pricePerSqft: livePsf,
+  score: liveScore,
+  yield: liveYield,
+  buyer_nationalities: areaIntel?.buyer_nationalities ?? null,  // ← add this line
+})
 
 
 
@@ -11226,8 +11230,8 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                {
   num: 5, title: 'Check the developer\'s track record before buying off-plan',
   body: devStats?.length > 0
-    ? `If you're buying off-plan in ${area.name}, developer track record matters. ${devStats[0].dev} leads with ${devStats[0].projects} projects at ${devStats[0].avgPct}% avg completion. There are currently ${activeProjects.length} active projects with ${fmt(totalPipelineUnits)} pipeline units tracked by DLD. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`
-    : `If you're buying an off-plan unit (not yet built), this matters a lot. Binghatti delivers 91% on time. Tiger Group has an 8-month average delay. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`,
+  ? `If you're buying off-plan in ${area.name}, developer track record matters. ${devStats[0].dev} leads with ${devStats[0].projects} projects at ${devStats[0].avgPct}% avg completion. There are currently ${activeProjects.length} active projects with ${fmt(totalPipelineUnits)} pipeline units tracked by DLD. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`
+  : `If you're buying off-plan in ${area.name}, there are currently ${tickerData?.offPlanPipeline ?? areaIntel?.active_project_count ?? 'several'} active projects in this area. Always verify the developer's track record — check their RERA registration, escrow account compliance, and past delivery history on the DLD portal before signing. Key things to check: on-time delivery rate, service charge history, and build quality of completed projects.`,
 },
               ].map((step, i, arr) => (
                 <div key={step.num} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: 14, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>
@@ -11342,8 +11346,10 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
           {/* Nationality + yield by type */}
           <div style={{ ...g2, marginTop: 16 }}>
             <Card>
-              <CardTitle>Who Is Buying in {area.name}? (Last 90 Days)</CardTitle>
-              {d.nationals.map(n => <NatBar key={n.name} {...n} />)}
+              <CardTitle badge={areaIntel?.buyer_nationalities ? "DLD verified" : "Market estimate"}>
+  Who Is Buying in {area.name}? (Last 90 Days)
+</CardTitle>
+{d.nationals.map(n => <NatBar key={n.name} {...n} />)}
             </Card>
             <Card>
               <CardTitle>Rental Yield by Unit Type</CardTitle>
@@ -11786,7 +11792,9 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               />
             </Card>
             <Card>
-              <CardTitle badge="Market estimate">Buyer Nationality — 90 Days</CardTitle>
+              <CardTitle badge={areaIntel?.buyer_nationalities ? "DLD verified" : "Market estimate"}>
+  Buyer Nationality — 90 Days
+</CardTitle>
               {d.nationals.map(n => <NatBar key={n.name} {...n} />)}
             </Card>
           </div>
