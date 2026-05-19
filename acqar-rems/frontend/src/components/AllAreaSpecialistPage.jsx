@@ -11048,7 +11048,7 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
 
      {/* ── TICKER ── */}
 <div style={{ position: 'sticky', top: 52, zIndex: 99 }}>
-  // FIXED — let backend API handle it (has correct counts from avm)
+
 <TickerBar
   areaSlug={`area-${area.area_id}`}
   areaName={area.name}
