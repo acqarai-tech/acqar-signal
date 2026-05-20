@@ -11334,14 +11334,19 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               { title: 'Gross Yield',          val: `${d.yld}%`,              color: C.green, sub: `Dubai avg: 6.1% · ${area.name} ${d.aboveAvgYield ? 'above' : 'near'} avg for 4 years` },
               { title: 'Distress Opportunity', val: `${liveDistressPct || d.distressPct}%`, color: C.amber, sub: `${fmt(Math.round((liveDistressPct || d.distressPct) / 100 * d.availableListings))} units priced below Truvalu™ floor right now` },
               { title: 'Catalyst Score', val: `${areaIntel?.catalyst_score ?? d.catalystScore}/100`, color: C.green, sub: `${areaCatalysts?.filter(c => c.confidence === 'confirmed').length ?? 2} confirmed infra catalysts in next 24 months` },
-             { title: 'Off-Plan Absorption',
+            { title: 'Off-Plan Pipeline',
   val: (() => {
-    if (!activeProjects.length) return '72%'
-    const avg = activeProjects.reduce((s, p) => s + Math.round(Number(p.percent_completed) || 0), 0) / activeProjects.length
-    return `${Math.min(99, Math.round(avg + 35))}%`
+    const count = areaIntel?.active_project_count ?? activeProjects.length
+    if (!count || count === 0) return 'None Active'
+    return `${count} Projects`
   })(),
   color: C.blue,
-  sub: `Average sold % across ${activeProjects.length || 6} active ${area.name} projects`
+  sub: (() => {
+    const count = areaIntel?.active_project_count ?? activeProjects.length
+    const units = totalPipelineUnits > 0 ? ` · ${fmt(totalPipelineUnits)} units` : ''
+    if (!count || count === 0) return `No active off-plan tracked in ${area.name}`
+    return `Active off-plan projects in ${area.name}${units}`
+  })(),
 },
             ].map(m => (
               <Card key={m.title} style={{ textAlign: 'center' }}>
@@ -11572,10 +11577,10 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     valueColor={C.green}
   />
   <StRow label="Residential units"
-    value={areaIntel?.residential_units
-      ? `${fmt(areaIntel.residential_units)} registered`
-      : `${fmt(Math.round(d.availableListings * 3.2))} est.`}
-  />
+  value={areaIntel?.residential_units
+    ? `${fmt(areaIntel.residential_units)} registered`
+    : `~${fmt(Math.round(d.availableListings * 3.2))} est.`}
+/>
   <StRow label="Occupancy rate"
     value={`${d.occupancyRate}%`}
     valueColor={C.green}
@@ -11584,13 +11589,31 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     value={areaIntel?.parks_info ?? (area.zone === 'Prime' ? 'Landscaped parks and walkways' : 'Community parks and open spaces')}
   />
   <StRow label="Active off-plan projects"
-    value={activeProjects.length > 0 ? `${activeProjects.length} projects` : '3–6 est. active projects'}
-    valueColor={C.orange}
-  />
-  <StRow label="Pipeline units (DLD)"
-    value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : `${fmt(Math.round(d.availableListings * 0.18))} est.`}
-    valueColor={C.amber}
-  />
+  value={(() => {
+    const count = areaIntel?.active_project_count
+    if (count > 0) return `${count} projects`
+    if (count === 0) return 'None active'
+    if (activeProjects.length > 0) return `${activeProjects.length} projects`
+    // Fallback: zone-based estimate
+    const zone = areaIntel?.zone_type ?? area.zone
+    if (zone === 'Industrial' || zone === 'Old Dubai') return '1–3 est. projects'
+    if (zone === 'Prime') return '8–15 est. projects'
+    if (zone === 'Villa') return '4–10 est. projects'
+    return '3–8 est. projects'
+  })()}
+  valueColor={C.orange}
+/>
+<StRow label="Pipeline units (DLD)"
+  value={(() => {
+    if (totalPipelineUnits > 0) return fmt(totalPipelineUnits)
+    const count = areaIntel?.active_project_count
+    if (count === 0) return 'None'
+    // Fallback: derive from score
+    const est = Math.round(d.availableListings * 0.15)
+    return `~${fmt(est)} est.`
+  })()}
+  valueColor={C.amber}
+/>
   <StRow label="Retail"
     value={areaIntel?.retail_info ?? (
       area.zone === 'Prime' ? 'Premium retail, luxury F&B outlets'
@@ -11905,10 +11928,25 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               <Card>
                 <CardTitle>Off-Plan Supply — Delivery Risk</CardTitle>
               <StRow label="Active projects in area"
-  value={activeProjects.length > 0 ? activeProjects.length : areaProjects === null ? 3 : 0}
+  value={(() => {
+    const count = areaIntel?.active_project_count
+    if (count > 0) return count
+    if (count === 0) return 'None active'
+    if (activeProjects.length > 0) return activeProjects.length
+    const zone = areaIntel?.zone_type ?? area.zone
+    if (zone === 'Industrial' || zone === 'Old Dubai') return '1–3 est.'
+    if (zone === 'Prime') return '8–15 est.'
+    if (zone === 'Villa') return '4–10 est.'
+    return '3–8 est.'
+  })()}
 />
 <StRow label="Total pipeline units"
-  value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : areaProjects === null ? fmt(Math.round(d.availableListings * 0.18)) + ' est.' : '0'}
+  value={(() => {
+    if (totalPipelineUnits > 0) return fmt(totalPipelineUnits)
+    const count = areaIntel?.active_project_count
+    if (count === 0) return 'None'
+    return `~${fmt(Math.round(d.availableListings * 0.15))} est.`
+  })()}
 />
                <StRow label="Delivering 2026"
   value={fmt(areaProjects?.filter(p => p.end_date?.startsWith('2026')).reduce((s,p) => s + (Number(p.cnt_unit)||0), 0) || 0) + ' units'}
