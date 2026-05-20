@@ -11336,16 +11336,21 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               { title: 'Catalyst Score', val: `${areaIntel?.catalyst_score ?? d.catalystScore}/100`, color: C.green, sub: `${areaCatalysts?.filter(c => c.confidence === 'confirmed').length ?? 2} confirmed infra catalysts in next 24 months` },
             { title: 'Off-Plan Pipeline',
   val: (() => {
-    const count = areaIntel?.active_project_count ?? activeProjects.length
-    if (!count || count === 0) return 'None Active'
+    const count = areaIntel?.active_project_count
+      ?? activeProjects.length
+      ?? Math.round(3 + liveScore * 0.08)
     return `${count} Projects`
   })(),
   color: C.blue,
   sub: (() => {
-    const count = areaIntel?.active_project_count ?? activeProjects.length
+    const count = areaIntel?.active_project_count
+      ?? activeProjects.length
+      ?? Math.round(3 + liveScore * 0.08)
+    const names = areaIntel?.active_project_names
     const units = totalPipelineUnits > 0 ? ` · ${fmt(totalPipelineUnits)} units` : ''
-    if (!count || count === 0) return `No active off-plan tracked in ${area.name}`
-    return `Active off-plan projects in ${area.name}${units}`
+    const isEst = !areaIntel?.active_project_count && !activeProjects.length
+    if (names?.length > 0) return `incl. ${names.slice(0,2).join(', ')}${names.length > 2 ? '…' : ''}`
+    return `Active off-plan projects in ${area.name}${units}${isEst ? ' (est.)' : ''}`
   })(),
 },
             ].map(m => (
@@ -11589,9 +11594,15 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
     value={areaIntel?.parks_info ?? (area.zone === 'Prime' ? 'Landscaped parks and walkways' : 'Community parks and open spaces')}
   />
   <StRow label="Active off-plan projects"
-    value={activeProjects.length > 0 ? `${activeProjects.length} projects` : '3–6 est. active projects'}
-    valueColor={C.orange}
-  />
+  value={(() => {
+    const count = areaIntel?.active_project_count
+      ?? (activeProjects.length > 0 ? activeProjects.length : null)
+      ?? Math.round(3 + liveScore * 0.08)
+    const isEst = !areaIntel?.active_project_count && !activeProjects.length
+    return `${count} projects${isEst ? ' (est.)' : ''}`
+  })()}
+  valueColor={C.orange}
+/>
   <StRow label="Pipeline units (DLD)"
     value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : `${fmt(Math.round(d.availableListings * 0.18))} est.`}
     valueColor={C.amber}
@@ -11910,7 +11921,13 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               <Card>
                 <CardTitle>Off-Plan Supply — Delivery Risk</CardTitle>
               <StRow label="Active projects in area"
-  value={activeProjects.length > 0 ? activeProjects.length : areaProjects === null ? 3 : 0}
+  value={(() => {
+    const count = areaIntel?.active_project_count
+      ?? (activeProjects.length > 0 ? activeProjects.length : null)
+      ?? Math.round(3 + liveScore * 0.08)
+    const isEst = !areaIntel?.active_project_count && !activeProjects.length
+    return `${count}${isEst ? ' (est.)' : ''}`
+  })()}
 />
 <StRow label="Total pipeline units"
   value={totalPipelineUnits > 0 ? fmt(totalPipelineUnits) : areaProjects === null ? fmt(Math.round(d.availableListings * 0.18)) + ' est.' : '0'}
@@ -11930,7 +11947,18 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
 
           {/* Pipeline cards */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>Active Off-Plan Projects in {area.name}</div>
+            <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 8 }}>
+  Active Off-Plan Projects in {area.name}
+  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(37,99,235,0.09)', color: '#2563EB', textTransform: 'none', letterSpacing: 0 }}>
+    {(() => {
+      const count = areaIntel?.active_project_count
+        ?? (activeProjects.length > 0 ? activeProjects.length : null)
+        ?? Math.round(3 + liveScore * 0.08)
+      const isEst = !areaIntel?.active_project_count && !activeProjects.length
+      return `${count} total${isEst ? ' (est.)' : ''}`
+    })()}
+  </span>
+</div>
 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: 10 }}>
   {/* Try DLD projects first, fall back to area_intelligence.active_project_names */}
   {areaProjects?.filter(p => p.project_status === 'ACTIVE').length > 0
