@@ -10880,6 +10880,22 @@ useEffect(() => {
     .catch(() => {})
 }, [areaIntel])
 
+
+const [areaShocks, setAreaShocks] = useState(null)
+
+useEffect(() => {
+  if (!areaIntel?.zone_type) return
+  const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+  const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+  fetch(
+    `${SUPA_URL}/rest/v1/area_shock_impacts?zone_type=eq.${encodeURIComponent(areaIntel.zone_type)}&select=*&order=id.asc`,
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+  )
+    .then(r => r.json())
+    .then(data => { if (data?.length) setAreaShocks(data) })
+    .catch(() => {})
+}, [areaIntel])
+
 const livePsf = areaIntel?.truvalu_psm
   ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
   : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
@@ -11641,47 +11657,47 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 ))}</tr>
               </thead>
               <tbody>
-                {[
-                  { event: 'Oil Price Crash',     period: '2014–2016', impact: '−18%', ic: C.red,   rec: '14 months', driver: 'Yield hunters attracted by low prices',         now: 'Partial parallel',       nc: C.amber },
-                  { event: 'Expo Slowdown',       period: '2019–2020', impact: '−9%',  ic: C.red,   rec: '8 months',  driver: 'Affordable entry vs Downtown',                  now: 'Same dynamic now',       nc: C.green },
-                  { event: 'COVID-19',            period: 'Q2–Q3 2020',impact: '−14%', ic: C.red,   rec: '11 months', driver: 'DLD fee waiver + Golden Visa expansion',         now: 'No direct parallel',     nc: C.amber },
-                  { event: 'Russia/Ukraine War',  period: 'Feb 2022',  impact: '+6%',  ic: C.green, rec: 'N/A (rose)', driver: 'Russian capital flight → Dubai demand',          now: 'Opposite dynamic',       nc: C.amber },
-                  { 
-  event: '⚡ Iran/USA ← NOW',  
-  period: 'Apr 2026→', 
-  impact: (() => {
-    // Compute real drop: compare last 30 days PSF vs 90-day average
-    if (!priceHistory?.length) return '−4% so far'
-    const recent = priceHistory.filter(p => p.year === 2026 && p.month >= 4)
-    const before = priceHistory.filter(p => 
-      (p.year === 2025 && p.month >= 10) || (p.year === 2026 && p.month < 4)
-    )
-    if (!recent.length || !before.length) return '−4% so far'
-    const avgRecent = recent.reduce((s, p) => s + p.psf, 0) / recent.length
-    const avgBefore = before.reduce((s, p) => s + p.psf, 0) / before.length
-    const drop = ((avgRecent - avgBefore) / avgBefore * 100).toFixed(1)
-    return `${drop > 0 ? '+' : ''}${drop}% so far`
-  })(),
-  ic: C.amber, 
-  rec: (() => {
-    const cs = areaIntel?.catalyst_score ?? d.catalystScore
-    return cs >= 70 ? 'Projected: 6–8M' : cs >= 50 ? 'Projected: 8–12M' : 'Projected: 10–14M'
-  })(),
-  driver: `${area.name} yield floor (${liveYield}%) + metro catalyst`, 
-  now: 'This is the current event', 
-  nc: C.orange, 
-  bold: true 
-},
-                ].map((row, i, arr) => (
-                  <tr key={row.event} style={{ background: row.bold ? 'rgba(200,115,42,0.04)' : 'transparent' }}>
-                    <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', fontWeight: row.bold ? 700 : 400, color: row.bold ? C.orange : C.text }}>{row.event}</td>
-                    <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>{row.period}</td>
-                    <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', color: row.ic, fontWeight: 700 }}>{row.impact}</td>
-                    <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}><strong>{row.rec}</strong></td>
-                    <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none' }}>{row.driver}</td>
-                    <td style={{ padding: '9px 10px', fontSize: 12, borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', color: row.nc, fontWeight: row.bold ? 700 : 400 }}>{row.now}</td>
-                  </tr>
-                ))}
+                {(areaShocks ?? [
+  { event_name:'Oil Price Crash',    event_period:'2014–2016',  price_impact_pct:-18,  recovery_months:14,   recovery_driver:'Yield hunters attracted by low prices',      notes:'Partial parallel'    },
+  { event_name:'Expo Slowdown',      event_period:'2019–2020',  price_impact_pct:-9,   recovery_months:8,    recovery_driver:'Affordable entry vs Downtown',               notes:'Same dynamic now'    },
+  { event_name:'COVID-19',           event_period:'Q2–Q3 2020', price_impact_pct:-14,  recovery_months:11,   recovery_driver:'DLD fee waiver + Golden Visa expansion',     notes:'No direct parallel'  },
+  { event_name:'Russia/Ukraine War', event_period:'Feb 2022',   price_impact_pct:6,    recovery_months:null, recovery_driver:'Russian capital flight → Dubai demand',      notes:'Opposite dynamic'    },
+  { event_name:'Iran/USA Tensions',  event_period:'Apr 2026→',  price_impact_pct:null, recovery_months:null, recovery_driver:`${area.name} yield floor (${liveYield}%) + metro catalyst`, notes:'This is the current event' },
+]).map((shock, i, arr) => {
+  const isNow = shock.event_name.includes('Iran')
+  const pct = Number(shock.price_impact_pct)
+  const impactColor = pct > 0 ? C.green : C.red
+  const impactStr = shock.price_impact_pct != null
+    ? `${pct > 0 ? '+' : ''}${pct}%`
+    : (() => {
+        if (!priceHistory?.length) return '−4% so far'
+        const recent = priceHistory.filter(p => p.year === 2026 && p.month >= 4)
+        const before = priceHistory.filter(p => (p.year === 2025 && p.month >= 10) || (p.year === 2026 && p.month < 4))
+        if (!recent.length || !before.length) return '−4% so far'
+        const avgR = recent.reduce((s,p) => s+p.psf,0) / recent.length
+        const avgB = before.reduce((s,p) => s+p.psf,0) / before.length
+        const drop = ((avgR - avgB) / avgB * 100).toFixed(1)
+        return `${drop > 0 ? '+' : ''}${drop}% so far`
+      })()
+  const recStr = isNow
+    ? (() => { const cs = areaIntel?.catalyst_score ?? d.catalystScore; return cs >= 70 ? 'Projected: 6–8M' : cs >= 50 ? 'Projected: 8–12M' : 'Projected: 10–14M' })()
+    : shock.recovery_months ? `${shock.recovery_months} months` : 'N/A (rose)'
+  const nowText = isNow ? 'This is the current event' : shock.notes
+  const nowColor = isNow ? C.orange : shock.notes?.includes('Same') ? C.green : C.amber
+
+  return (
+    <tr key={shock.event_name} style={{ background: isNow ? 'rgba(200,115,42,0.04)' : 'transparent' }}>
+      <td style={{ padding:'9px 10px', fontSize:12, borderBottom: i<arr.length-1 ? `1px solid ${C.border}` : 'none', fontWeight: isNow ? 700 : 400, color: isNow ? C.orange : C.text }}>
+        {isNow ? '⚡ Iran/USA ← NOW' : shock.event_name}
+      </td>
+      <td style={{ padding:'9px 10px', fontSize:12, borderBottom: i<arr.length-1 ? `1px solid ${C.border}` : 'none' }}>{shock.event_period}</td>
+      <td style={{ padding:'9px 10px', fontSize:12, borderBottom: i<arr.length-1 ? `1px solid ${C.border}` : 'none', color: shock.price_impact_pct == null ? C.amber : impactColor, fontWeight:700 }}>{impactStr}</td>
+      <td style={{ padding:'9px 10px', fontSize:12, borderBottom: i<arr.length-1 ? `1px solid ${C.border}` : 'none' }}><strong>{recStr}</strong></td>
+      <td style={{ padding:'9px 10px', fontSize:12, borderBottom: i<arr.length-1 ? `1px solid ${C.border}` : 'none' }}>{shock.recovery_driver}</td>
+      <td style={{ padding:'9px 10px', fontSize:12, borderBottom: i<arr.length-1 ? `1px solid ${C.border}` : 'none', color: nowColor, fontWeight: isNow ? 700 : 400 }}>{nowText}</td>
+    </tr>
+  )
+})}
               </tbody>
             </table>
             </div>
