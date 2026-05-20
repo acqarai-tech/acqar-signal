@@ -10859,6 +10859,27 @@ useEffect(() => {
     .catch(() => {})
 }, [])
 
+const [devTrackRecords, setDevTrackRecords] = useState(null)
+
+useEffect(() => {
+  if (!areaIntel?.key_developers?.length) return
+  const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+  const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+  // Filter out 'Various' — no track record entry for that
+  const devList = areaIntel.key_developers
+    .filter(d => d !== 'Various')
+    .map(d => `"${d}"`)
+    .join(',')
+  if (!devList) return
+  fetch(
+    `${SUPA_URL}/rest/v1/developer_track_records?developer_name=in.(${devList})&select=developer_name,on_time_pct,avg_delay_months,total_projects,star_rating,market_segment,notes&order=on_time_pct.desc`,
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+  )
+    .then(r => r.json())
+    .then(data => { if (data?.length) setDevTrackRecords(data) })
+    .catch(() => {})
+}, [areaIntel])
+
 const livePsf = areaIntel?.truvalu_psm
   ? Math.round(Number(areaIntel.truvalu_psm) / 10.764)
   : tickerData?.fairPriceAedPsf ?? area.pricePerSqft
@@ -11229,7 +11250,7 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
                 },
                {
   num: 5, title: 'Check the developer\'s track record before buying off-plan',
-  body: devStats?.length > 0
+ body: devStats?.length > 0 && devStats[0].projects >= 3 && devStats[0].avgPct > 0
   ? `If you're buying off-plan in ${area.name}, developer track record matters. ${devStats[0].dev} leads with ${devStats[0].projects} projects at ${devStats[0].avgPct}% avg completion. There are currently ${activeProjects.length} active projects with ${fmt(totalPipelineUnits)} pipeline units tracked by DLD. Acqar tracks every developer's delivery record so you can choose wisely. See the developer table in the Past tab.`
   : `If you're buying off-plan in ${area.name}, there are currently ${tickerData?.offPlanPipeline ?? areaIntel?.active_project_count ?? 'several'} active projects in this area. Always verify the developer's track record — check their RERA registration, escrow account compliance, and past delivery history on the DLD portal before signing. Key things to check: on-time delivery rate, service charge history, and build quality of completed projects.`,
 },
@@ -11568,52 +11589,41 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
   />
 </Card>
             <Card noPad>
-  <div style={{ padding: '18px 18px 0' }}><CardTitle>Developer Delivery Track Record in {area.name}</CardTitle></div>
-  {devStats ? (
-    <PTable
-      minWidth={380}
-      headers={['Developer', 'Projects', 'Active', 'Avg Built %', 'Units']}
-      rows={devStats.map((r, i, arr) => {
-        const color = r.avgPct >= 50 ? C.green : r.avgPct >= 20 ? C.amber : C.muted
-        return (
-        <tr key={r.dev}>
-            <Td last={i === arr.length - 1} first>{r.dev}</Td>
-            <Td last={i === arr.length - 1}>{r.projects}</Td>
-            <Td last={i === arr.length - 1} color={r.active > 0 ? C.green : C.muted}>{r.active} active</Td>
-            <Td last={i === arr.length - 1} color={color}>{r.avgPct}%</Td>
-            <Td last={i === arr.length - 1}>{r.units > 0 ? fmt(r.units) : '—'}</Td>
-          </tr>
-        )
-      })}
-    />
-    
-  ) : (
-    <PTable
-      minWidth={380}
-      headers={['Developer', 'Projects', 'On-Time', 'Avg Delay', 'Rating']}
-      rows={[
-        { dev: 'Nakheel',     n: 6,  ot: '95%', delay: '0.5 mo', rating: '★★★★★', c: C.green },
-        { dev: 'Binghatti',   n: 15, ot: '85%', delay: '1.5 mo', rating: '★★★★☆', c: C.green },
-        { dev: 'Ellington',   n: 6,  ot: '88%', delay: '2.0 mo', rating: '★★★★☆', c: C.green },
-        { dev: 'DAMAC',       n: 5,  ot: '72%', delay: '6.2 mo', rating: '★★★☆☆', c: C.amber },
-        { dev: 'Samana',      n: 9,  ot: '65%', delay: '7.5 mo', rating: '★★★☆☆', c: C.amber },
-        { dev: 'Tiger Group', n: 9,  ot: '58%', delay: '9.0 mo', rating: '★★☆☆☆', c: C.red   },
-      ].map((r, i, arr) => (
-        <tr key={r.dev}>
-          <Td last={i === arr.length - 1} first>{r.dev}</Td>
-          <Td last={i === arr.length - 1}>{r.n}</Td>
-          <Td last={i === arr.length - 1} color={r.c}>{r.ot}</Td>
-          <Td last={i === arr.length - 1}>{r.delay}</Td>
-          <Td last={i === arr.length - 1} color={r.c}>{r.rating}</Td>
+  <div style={{ padding: '18px 18px 0' }}>
+    <CardTitle badge={devTrackRecords ? 'Market Research 2025' : 'Historical estimates'}>
+      Developer Delivery Track Record in {area.name}
+    </CardTitle>
+  </div>
+  <PTable
+    minWidth={380}
+    headers={['Developer', 'On-Time %', 'Avg Delay', 'Rating', 'Segment']}
+    rows={(devTrackRecords ?? [
+      { developer_name: 'Emaar Properties',    on_time_pct: 85, avg_delay_months: 5.0, star_rating: 4, market_segment: 'premium'    },
+      { developer_name: 'Nakheel',             on_time_pct: 85, avg_delay_months: 2.5, star_rating: 4, market_segment: 'mixed'      },
+      { developer_name: 'Binghatti Developers',on_time_pct: 92, avg_delay_months: 0.0, star_rating: 5, market_segment: 'mid-market' },
+      { developer_name: 'DAMAC Properties',    on_time_pct: 75, avg_delay_months: 6.5, star_rating: 3, market_segment: 'luxury'     },
+      { developer_name: 'Danube Properties',   on_time_pct: 94, avg_delay_months: 0.5, star_rating: 5, market_segment: 'affordable' },
+      { developer_name: 'Ellington Properties',on_time_pct: 88, avg_delay_months: 2.0, star_rating: 4, market_segment: 'luxury'     },
+    ]).map((r, i, arr) => {
+      const onTimeColor = r.on_time_pct >= 88 ? C.green : r.on_time_pct >= 78 ? C.amber : C.red
+      const stars = '★'.repeat(r.star_rating) + '☆'.repeat(5 - r.star_rating)
+      const delay = r.avg_delay_months === 0 ? 'On time / early' : `~${r.avg_delay_months} months`
+      return (
+        <tr key={r.developer_name}>
+          <Td last={i === arr.length - 1} first>{r.developer_name}</Td>
+          <Td last={i === arr.length - 1} color={onTimeColor} bold>{r.on_time_pct}%</Td>
+          <Td last={i === arr.length - 1} color={r.avg_delay_months === 0 ? C.green : r.avg_delay_months > 4 ? C.red : C.amber}>{delay}</Td>
+          <Td last={i === arr.length - 1} color={onTimeColor}>{stars}</Td>
+          <Td last={i === arr.length - 1} color={C.muted}>{r.market_segment}</Td>
         </tr>
-      ))}
-    />
-  
-  
-  )}
-  <div style={{ padding: '0 18px 18px' }}><p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
-    📋 Source: Dubai Land Department · {areaProjects?.length ? 'Live DLD data' : 'Historical estimates'}
-</p></div>
+      )
+    })}
+  />
+  <div style={{ padding: '0 18px 18px' }}>
+    <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
+      📋 Source: DLD data + market research 2025 · {devTrackRecords ? `${devTrackRecords.length} developers tracked in ${area.name}` : 'General Dubai estimates'}
+    </p>
+  </div>
 </Card>
           </div>
 
