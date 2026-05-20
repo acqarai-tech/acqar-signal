@@ -11094,7 +11094,11 @@ const pad = { padding: isMobile ? '0 12px' : '0 28px' }
   areaSlug={`area-${area.area_id}`}
   areaName={area.name}
   fallback={d}
-  activeProjectCount={null}  // ← just set to null
+ activeProjectCount={
+  areaIntel?.active_project_count
+  ?? (activeProjects.length > 0 ? activeProjects.length : null)
+  ?? Math.round(3 + liveScore * 0.08)
+}// ← just set to null
   metroCatalyst={areaCatalysts?.find(c => c.catalyst_type === 'metro') ?? null}
 />
 </div>
@@ -11336,16 +11340,16 @@ Our AI Specialist's verdict: <strong style={{ color: d.verdictColor }}>{d.verdic
               { title: 'Catalyst Score', val: `${areaIntel?.catalyst_score ?? d.catalystScore}/100`, color: C.green, sub: `${areaCatalysts?.filter(c => c.confidence === 'confirmed').length ?? 2} confirmed infra catalysts in next 24 months` },
             { title: 'Off-Plan Pipeline',
   val: (() => {
-    const count = areaIntel?.active_project_count
-      ?? activeProjects.length
-      ?? Math.round(3 + liveScore * 0.08)
-    return `${count} Projects`
-  })(),
+  const count = areaIntel?.active_project_count
+    ?? (activeProjects.length > 0 ? activeProjects.length : null)
+    ?? Math.round(3 + liveScore * 0.08)
+  return `${count} Projects`
+})(),
   color: C.blue,
   sub: (() => {
     const count = areaIntel?.active_project_count
-      ?? activeProjects.length
-      ?? Math.round(3 + liveScore * 0.08)
+  ?? (activeProjects.length > 0 ? activeProjects.length : null)
+  ?? Math.round(3 + liveScore * 0.08)
     const names = areaIntel?.active_project_names
     const units = totalPipelineUnits > 0 ? ` · ${fmt(totalPipelineUnits)} units` : ''
     const isEst = !areaIntel?.active_project_count && !activeProjects.length
