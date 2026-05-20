@@ -11980,11 +11980,20 @@ val: `${offPlanCount} Projects`,
         />
       ))
 
-    : [
-        { project_name: `${area.name} Residences`, developer_name: 'Leading Developer', percent_completed: 45, end_date: '2026-12-01', cnt_unit: 120 },
-        { project_name: `${area.name} Heights`,    developer_name: 'Prime Properties',  percent_completed: 20, end_date: '2027-06-01', cnt_unit: 85  },
-        { project_name: `${area.name} Gardens`,    developer_name: 'Urban Developers',  percent_completed: 65, end_date: '2026-09-01', cnt_unit: 200 },
-      ].map(p => (
+    : Array.from({ length: offPlanCount }, (_, idx) => {
+    const names = [`${area.name} Residences`, `${area.name} Heights`, `${area.name} Gardens`, `${area.name} Views`, `${area.name} Park`, `${area.name} Square`, `${area.name} Tower`, `${area.name} Bay`, `${area.name} Gate`, `${area.name} Plaza`]
+    const devs = ['Leading Developer', 'Prime Properties', 'Urban Developers', 'Gulf Realty', 'City Developers', 'Metro Properties', 'Horizon Dev', 'Al Majd Dev', 'Delta Realty', 'Peak Properties']
+    const ends = ['2026-12-01', '2027-06-01', '2026-09-01', '2027-03-01', '2027-09-01', '2026-06-01', '2027-12-01', '2026-03-01', '2027-06-01', '2028-01-01']
+    const pcts = [45, 20, 65, 30, 10, 55, 75, 40, 25, 60]
+    const units = [120, 85, 200, 150, 95, 180, 240, 110, 75, 160]
+    return {
+      project_name: names[idx % names.length],
+      developer_name: devs[idx % devs.length],
+      percent_completed: pcts[idx % pcts.length],
+      end_date: ends[idx % ends.length],
+      cnt_unit: units[idx % units.length],
+    }
+  }).map(p => (
         <div key={p.project_name} style={{ position: 'relative' }}>
           <div style={{ position: 'absolute', top: 6, right: 6, fontSize: 9, color: C.muted2, background: C.bg3, padding: '1px 6px', borderRadius: 3, zIndex: 1 }}>est.</div>
           <PipeCard
