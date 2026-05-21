@@ -1811,7 +1811,7 @@ flexShrink: 0,
               return (
                 <div
                   key={area.area_id}
-                onClick={() => navigate(`/areas/${area.area_id}`)}
+                onClick={() => navigate(`/areas/${area.area_name_en.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`)}
                   className="area-card"
                   style={{
                     display: 'flex', alignItems: 'center',
