@@ -888,12 +888,38 @@ import { trackPage } from './analytics'  // ← ADD THIS
 
 function AreaPage() {
   const { slug } = useParams()
+  const [area, setArea] = useState(null)
+
+  useEffect(() => {
+    const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+    const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+    fetch(
+      `${SUPA_URL}/rest/v1/area_intelligence?select=area_id,area_name_en,investment_score,gross_yield_pct,truvalu_psm&limit=500`,
+      { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+    )
+      .then(r => r.json())
+      .then(data => {
+        const match = data.find(a =>
+          a.area_name_en.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug
+        )
+        if (!match) return
+        const score = Number(match.investment_score) || 60
+        setArea({
+          name: match.area_name_en,
+          zone: score >= 75 ? 'Prime' : score >= 65 ? 'Mid-Market' : 'Emerging',
+          area_id: match.area_id,
+          pricePerSqft: match.truvalu_psm ? Math.round(Number(match.truvalu_psm) / 10.764) : 1200,
+          score,
+          yield: Number(match.gross_yield_pct) || 6.5,
+        })
+      })
+  }, [slug])
+
+  if (!area) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'Inter, sans-serif', color: '#6E7A8A' }}>Loading...</div>
+
   return (
     <EventsProvider>
-      <AllAreaSpecialistPage
-        area={{ name: slug, zone: 'Mid-Market', area_id: slug }}
-        onClose={() => window.history.back()}
-      />
+      <AllAreaSpecialistPage area={area} onClose={() => window.history.back()} />
     </EventsProvider>
   )
 }
