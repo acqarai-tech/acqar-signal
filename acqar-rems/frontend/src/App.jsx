@@ -900,8 +900,8 @@ function AreaPage() {
       .then(r => r.json())
       .then(data => {
         const match = data.find(a =>
-          a.area_name_en.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug
-        )
+  a.area_name_en.toLowerCase().replace(/\s+/g, '') === slug
+)
         if (!match) return
         const score = Number(match.investment_score) || 60
         setArea({
