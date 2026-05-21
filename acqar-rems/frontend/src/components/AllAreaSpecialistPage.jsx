@@ -13023,7 +13023,7 @@ useEffect(() => {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   fetch(
-    `${SUPA_URL}/rest/v1/area_catalysts?area_name_en=eq.${encodeURIComponent(area.name)}&select=*&order=expected_date.asc`,
+    `${SUPA_URL}/rest/v1/area_catalysts?area_id=eq.${area.area_id}&select=*&order=expected_date.asc`,
     { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
   )
     .then(r => r.json())
