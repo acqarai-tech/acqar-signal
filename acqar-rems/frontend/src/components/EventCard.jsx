@@ -475,7 +475,7 @@ export default function EventCard({ event, isNew }) {
         <span style={{color:'#B87333', fontWeight:600}}>via {sourceLabel}</span>
         {/* ✅ FIX 3 — Clickable link that actually opens */}
         {articleUrl && articleUrl !== '#' && (
-          
+          <a
             href={articleUrl}
             target="_blank"
             rel="noopener noreferrer"
