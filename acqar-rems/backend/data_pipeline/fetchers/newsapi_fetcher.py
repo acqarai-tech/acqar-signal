@@ -193,16 +193,11 @@ def _detect_category(title: str) -> str:
         return "infrastructure"
     if any(w in title_lower for w in [
         "distress", "below market", "motivated seller",
-        "urgent sale", "forced sale", "price reduced"
-    ]):
-        return "distress_deal"
-    if any(w in title_lower for w in [
+        "urgent sale", "forced sale", "price reduced",
         "rent", "rental", "tenant", "landlord", "lease"
     ]):
-        return "rental"
+        return "investment"   # map to valid category
     return "transaction"
-
-
 class NewsAPIFetcher:
     """Fetches Dubai RE news from NewsAPI.org"""
 
