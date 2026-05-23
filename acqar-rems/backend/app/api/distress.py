@@ -770,11 +770,169 @@
 
 
 
+# from fastapi import APIRouter
+# from datetime import datetime, timezone, timedelta
+# import httpx, re, logging
+# logger = logging.getLogger(__name__)
+# import os
+
+# router = APIRouter(prefix="/api/distress", tags=["distress"])
+
+# DISTRESS_KEYWORDS = [
+#     'distress deal', 'distress sale', 'panic sell', 'panic sale',
+#     'forced sale', 'urgent sale', 'must sell', 'need to sell',
+#     'quick sale', 'below op', 'below original price', 'below market',
+#     'selling at loss', 'below asking', 'price reduced', 'motivated seller',
+#     'investor exit', 'relocation sale', 'genuine seller', 'sp below',
+#     'transfer in 3', 'transfer in 7',
+# ]
+
+# SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
+
+# HEADERS = {
+#     "User-Agent": "ACQAR-REMS/1.0 (Dubai Real Estate Intelligence Platform)",
+#     "Accept": "application/json",
+# }
+
+# def normalize_title(title: str) -> str:
+#     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
+# SCRAPINGANT_KEY = os.environ.get("SCRAPINGANT_KEY", "")
+
+# async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
+#     target_url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
+#     proxy_url = f"https://api.scrapingant.com/v2/general?url={target_url}&x-api-key={SCRAPINGANT_KEY}&browser=false"
+    
+#     try:
+#         async with httpx.AsyncClient(timeout=30, follow_redirects=True) as c:
+#             resp = await c.get(proxy_url)
+#             resp.raise_for_status()
+#             return resp.json().get("data", {}).get("children", [])
+#     except Exception as e:
+#         logger.warning(f"ScrapingAnt error r/{sub}: {e}")
+#         return []
+
+# async def fetch_distress_deals():
+#     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+#     week_ago_ts = week_ago.timestamp()
+#     all_deals = []
+#     seen = set()
+
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         for sub in SUBREDDITS:
+#             try:
+#                 posts = await fetch_reddit_posts(client, sub)
+#                 for item in posts:
+#                     post = item.get("data", {})
+#                     if not post:
+#                         continue
+#                     if post.get("created_utc", 0) < week_ago_ts:
+#                         continue
+#                     if post.get("selftext") in ("[removed]", "[deleted]"):
+#                         continue
+#                     combined = (post.get("title", "") + " " + post.get("selftext", "")).lower()
+#                     if not any(kw in combined for kw in DISTRESS_KEYWORDS):
+#                         continue
+#                     norm_title = normalize_title(post.get("title", ""))
+#                     body_snippet = post.get("selftext", "")[:100].lower().strip()
+#                     if norm_title in seen or (body_snippet and body_snippet in seen):
+#                         continue
+#                     seen.add(norm_title)
+#                     if body_snippet:
+#                         seen.add(body_snippet)
+#                     all_deals.append({
+#                         "id": post.get("id"),
+#                         "title": post.get("title"),
+#                         "body": post.get("selftext", "")[:800],
+#                         "url": "https://www.reddit.com" + post.get("permalink", ""),
+#                         "source": f"r/{sub}",
+#                         "score": post.get("score", 0),
+#                         "posted_at": datetime.utcfromtimestamp(
+#                             post.get("created_utc", 0)
+#                         ).replace(tzinfo=timezone.utc).isoformat(),
+#                         "flair": post.get("link_flair_text") or "",
+#                     })
+#             except Exception as e:
+#                 print(f"Reddit fetch failed for r/{sub}: {e}")
+#                 continue
+
+#     all_deals.sort(key=lambda x: x["posted_at"], reverse=True)
+#     return all_deals
+
+
+# # ── Cache ──
+# _cache = {"data": [], "fetched_at": None}
+
+# @router.get("/deals/clear-cache")
+# async def clear_cache():
+#     global _cache
+#     _cache = {"data": [], "fetched_at": None}
+#     return {"cleared": True}
+
+# @router.get("/deals")
+# async def get_distress_deals():
+#     global _cache
+#     now = datetime.now(timezone.utc)
+#     if _cache["fetched_at"] and (now - _cache["fetched_at"]) < timedelta(minutes=15):
+#         return {"deals": _cache["data"], "cached": True}
+#     deals = await fetch_distress_deals()
+#     _cache = {"data": deals, "fetched_at": now}
+#     return {"deals": deals, "cached": False}
+
+# @router.get("/deals/debug")
+# async def debug_reddit():
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         posts = await fetch_reddit_posts(client, "DubaiRealEstate", limit=5)
+#         return {
+#             "posts_found": len(posts),
+#             "first_title": posts[0]["data"].get("title") if posts else None,
+#         }
+
+# @router.get("/reddit/new")
+# async def reddit_proxy(sub: str, limit: int = 100):
+#     async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+#         posts = await fetch_reddit_posts(client, sub, limit)
+#         if posts:
+#             return {"data": {"children": posts}}
+#         return {"data": {"children": []}, "error": "All Reddit endpoints blocked"}
+
+# @router.get("/deals/debug-ant")
+# async def debug_scrapingant():
+#     import urllib.parse
+#     if not SCRAPINGANT_KEY:
+#         return {"error": "SCRAPINGANT_KEY not set", "key_value": "EMPTY"}
+    
+#     target_url = "https://www.reddit.com/r/DubaiRealEstate/new.json?limit=3&raw_json=1"
+#     encoded_url = urllib.parse.quote(target_url, safe='')
+#     proxy_url = (
+#         f"https://api.scrapingant.com/v2/general"
+#         f"?url={encoded_url}"
+#         f"&x-api-key={SCRAPINGANT_KEY}"
+#         f"&browser=false"
+#     )
+    
+#     try:
+#         async with httpx.AsyncClient(timeout=30) as c:
+#             resp = await c.get(proxy_url)
+#             return {
+#                 "status_code": resp.status_code,
+#                 "key_set": bool(SCRAPINGANT_KEY),
+#                 "key_length": len(SCRAPINGANT_KEY),
+#                 "response_preview": resp.text[:500],
+#                 "proxy_url_safe": proxy_url.replace(SCRAPINGANT_KEY, "***")
+#             }
+#     except Exception as e:
+#         return {"error": str(e)}
+
+
+
+
+
+
+
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
-import httpx, re, logging
+import httpx, re, logging, os, urllib.parse
 logger = logging.getLogger(__name__)
-import os
 
 router = APIRouter(prefix="/api/distress", tags=["distress"])
 
@@ -796,20 +954,40 @@ HEADERS = {
 
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
+
 SCRAPINGANT_KEY = os.environ.get("SCRAPINGANT_KEY", "")
 
+
+# ✅ FIXED fetch_reddit_posts
 async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 100) -> list:
+    if not SCRAPINGANT_KEY:
+        logger.warning("SCRAPINGANT_KEY not set — skipping Reddit fetch")
+        return []
+
     target_url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
-    proxy_url = f"https://api.scrapingant.com/v2/general?url={target_url}&x-api-key={SCRAPINGANT_KEY}&browser=false"
-    
+    encoded_url = urllib.parse.quote(target_url, safe='')
+
+    proxy_url = (
+        f"https://api.scrapingant.com/v2/general"
+        f"?url={encoded_url}"
+        f"&x-api-key={SCRAPINGANT_KEY}"
+        f"&browser=true"
+        f"&proxy_type=residential"
+        f"&proxy_country=US"
+    )
+
     try:
-        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as c:
+        async with httpx.AsyncClient(timeout=60, follow_redirects=True) as c:
             resp = await c.get(proxy_url)
-            resp.raise_for_status()
-            return resp.json().get("data", {}).get("children", [])
+            if resp.status_code != 200:
+                logger.warning(f"ScrapingAnt: status {resp.status_code} for r/{sub}")
+                return []
+            data = resp.json()
+            return data.get("data", {}).get("children", [])
     except Exception as e:
         logger.warning(f"ScrapingAnt error r/{sub}: {e}")
         return []
+
 
 async def fetch_distress_deals():
     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
@@ -880,7 +1058,7 @@ async def get_distress_deals():
 
 @router.get("/deals/debug")
 async def debug_reddit():
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
         posts = await fetch_reddit_posts(client, "DubaiRealEstate", limit=5)
         return {
             "posts_found": len(posts),
@@ -889,7 +1067,7 @@ async def debug_reddit():
 
 @router.get("/reddit/new")
 async def reddit_proxy(sub: str, limit: int = 100):
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+    async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
         posts = await fetch_reddit_posts(client, sub, limit)
         if posts:
             return {"data": {"children": posts}}
@@ -897,21 +1075,22 @@ async def reddit_proxy(sub: str, limit: int = 100):
 
 @router.get("/deals/debug-ant")
 async def debug_scrapingant():
-    import urllib.parse
     if not SCRAPINGANT_KEY:
         return {"error": "SCRAPINGANT_KEY not set", "key_value": "EMPTY"}
-    
+
     target_url = "https://www.reddit.com/r/DubaiRealEstate/new.json?limit=3&raw_json=1"
     encoded_url = urllib.parse.quote(target_url, safe='')
     proxy_url = (
         f"https://api.scrapingant.com/v2/general"
         f"?url={encoded_url}"
         f"&x-api-key={SCRAPINGANT_KEY}"
-        f"&browser=false"
+        f"&browser=true"
+        f"&proxy_type=residential"
+        f"&proxy_country=US"
     )
-    
+
     try:
-        async with httpx.AsyncClient(timeout=30) as c:
+        async with httpx.AsyncClient(timeout=60) as c:
             resp = await c.get(proxy_url)
             return {
                 "status_code": resp.status_code,
@@ -922,11 +1101,3 @@ async def debug_scrapingant():
             }
     except Exception as e:
         return {"error": str(e)}
-
-
-
-
-
-
-
-
