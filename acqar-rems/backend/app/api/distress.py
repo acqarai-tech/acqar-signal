@@ -1151,8 +1151,7 @@ async def fetch_reddit_posts(sub: str, limit: int = 100) -> list:
         f"?url={encoded_url}"
         f"&x-api-key={SCRAPINGANT_KEY}"
         f"&browser=true"
-        f"&proxy_type=residential"
-        f"&proxy_country=US"
+        
     )
 
     try:
