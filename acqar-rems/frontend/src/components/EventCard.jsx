@@ -685,7 +685,7 @@ export default function EventCard({ event, isNew }) {
           via {sourceLabel}
         </span>
         {articleUrl && articleUrl !== '#' && (
-          
+          <a
             href={articleUrl}
             target="_blank"
             rel="noopener noreferrer"
