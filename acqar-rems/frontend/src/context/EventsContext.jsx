@@ -332,62 +332,43 @@ export function EventsProvider({ children }) {
     categories: [],
     severityMin: 1,
     severityMax: 5,
-    hours: 720,  // ✅ FIX 1: was 24, now 30 days so all events show
+    hours: 720,
     search: ''
   })
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [mapStyle, setMapStyle] = useState('dark')
   const { on, off } = useSocket()
 
-  // Fetch events from signal-row API
+  // ✅ CHANGE 1 — Fetch from /api/events/ with correct hours param
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true)
 
-      const res = await fetch(`${API_BASE}/api/market/signal-row`)
+      const params = new URLSearchParams({
+        hours: filters.hours,
+        severity_min: filters.severityMin,
+        severity_max: filters.severityMax,
+        limit: 100
+      })
+
+      const res = await fetch(`${API_BASE}/api/events/?${params}`)
       if (!res.ok) throw new Error('API error')
       const data = await res.json()
 
-      // ✅ FIX 2: Deduplicate by label before mapping
-      const seen = new Set()
-      const dldEvents = (data.dld || [])
-        .filter(item => {
-          if (!item.label) return false
-          if (seen.has(item.label)) return false
-          seen.add(item.label)
-          return true
-        })
-        .map(item => ({
-          id: item.id,
-          title: item.label,
-          summary: item.label,
-          category: item.category || 'transaction',
-          severity: item.severity || 2,
-          location_name: item.area || 'Dubai',
-          source: 'DLD / Google News',
-          url: item.url || '',
-          created_at: new Date(Date.now() - (item.age_mins || 0) * 60 * 1000).toISOString(),
-          created_at_ts: (Date.now() - (item.age_mins || 0) * 60 * 1000) / 1000,
-          lat: 25.2048,
-          lng: 55.2708,
-          is_active: true,
-          confidence: 0.85,
-          signal_count: item.severity * 10,
-        }))
-
-      setEvents(dldEvents)
+      setEvents(data.events || [])
     } catch (err) {
       console.warn('REST fetch failed, using demo data:', err.message)
       setEvents(getDemoEvents())
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  // ✅ CHANGE 2 — Re-fetch when filters change
+  }, [filters.hours, filters.severityMin, filters.severityMax])
 
-  // Fetch on mount
+  // Fetch on mount and when filters change
   useEffect(() => { fetchEvents() }, [fetchEvents])
 
-  // ✅ FIX 3: Auto-refresh every 2 minutes to pick up new articles
+  // ✅ CHANGE 3 — Auto-refresh every 2 minutes
   useEffect(() => {
     const interval = setInterval(() => {
       fetchEvents()
@@ -405,8 +386,8 @@ export function EventsProvider({ children }) {
       })
     }
 
-    // ✅ FIX 4: Don't let Socket.io overwrite signal-row data with empty store
-    const handleInitialEvents = ({ events: initialEvents }) => {
+    // Don't let Socket.io overwrite API data
+    const handleInitialEvents = () => {
       setIsLoading(false)
     }
 
@@ -419,28 +400,29 @@ export function EventsProvider({ children }) {
     }
   }, [on, off])
 
-  // Apply ALL filters including time window
+  // Apply ALL filters
   useEffect(() => {
     let result = [...events]
 
-    // ── Time filter ──────────────────────────────────────────────────────────
+    // ✅ CHANGE 4 — Use published_at for time filtering
     const cutoff = Date.now() - filters.hours * 60 * 60 * 1000
     result = result.filter(e => {
-      const ts = e.created_at ? new Date(e.created_at).getTime() : Date.now()
+      const dateStr = e.published_at || e.created_at
+      const ts = dateStr ? new Date(dateStr).getTime() : Date.now()
       return ts >= cutoff
     })
 
-    // ── Category filter ──────────────────────────────────────────────────────
+    // Category filter
     if (filters.categories.length > 0) {
       result = result.filter(e => filters.categories.includes(e.category))
     }
 
-    // ── Severity filter ──────────────────────────────────────────────────────
+    // Severity filter
     result = result.filter(
       e => e.severity >= filters.severityMin && e.severity <= filters.severityMax
     )
 
-    // ── Search filter ────────────────────────────────────────────────────────
+    // Search filter
     if (filters.search) {
       const q = filters.search.toLowerCase()
       result = result.filter(e =>
@@ -473,13 +455,13 @@ function getDemoEvents() {
   const now = Date.now()
   const mins = (m) => now - m * 60 * 1000
   return [
-    { id: 'demo1', title: 'Emaar Reports Record Q4 Sales of AED 6.7 Billion', summary: 'Dubai developer Emaar Properties announced record quarterly sales driven by strong demand in Downtown and Creek Harbour.', category: 'transaction', severity: 4, lat: 25.1972, lng: 55.2744, location_name: 'Downtown Dubai', signal_count: 47, confidence: 0.92, source: 'Gulf News', created_at: new Date(mins(20)).toISOString(), is_active: true },
-    { id: 'demo2', title: 'DAMAC Launches Palm Jumeirah Ultra-Luxury Residences', summary: 'New off-plan project priced from AED 15M per unit, targeting UHNWI buyers from Europe and Asia.', category: 'offplan', severity: 3, lat: 25.1124, lng: 55.1390, location_name: 'Palm Jumeirah', signal_count: 31, confidence: 0.88, source: 'Arabian Business', created_at: new Date(mins(45)).toISOString(), is_active: true },
-    { id: 'demo3', title: 'RERA Issues New Short-Term Rental Regulations', summary: 'Dubai Real Estate Regulatory Authority updates licensing requirements for holiday homes and serviced apartments.', category: 'regulatory', severity: 3, lat: 25.2048, lng: 55.2708, location_name: 'Dubai', signal_count: 62, confidence: 0.95, source: 'The National', created_at: new Date(mins(180)).toISOString(), is_active: true },
-    { id: 'demo4', title: 'Business Bay Records 847 Transactions in November', summary: 'Business Bay continues to be Dubai top performing district with AED 1.2B total transaction value this month.', category: 'transaction', severity: 3, lat: 25.1865, lng: 55.2644, location_name: 'Business Bay', signal_count: 28, confidence: 0.85, source: 'Zawya', created_at: new Date(mins(600)).toISOString(), is_active: true },
-    { id: 'demo5', title: 'Nakheel Announces Palm Jebel Ali Phase 2 Infrastructure', summary: 'Construction contracts worth AED 3.8B awarded for road and utility infrastructure on Palm Jebel Ali expansion.', category: 'infrastructure', severity: 4, lat: 24.9823, lng: 55.0262, location_name: 'Dubai South', signal_count: 54, confidence: 0.91, source: 'Gulf News', created_at: new Date(mins(60 * 48)).toISOString(), is_active: true },
-    { id: 'demo6', title: 'Dubai Marina Average Rental Yield Hits 7.2%', summary: 'Marina district outperforms all other areas with highest rental yield in Q4, attracting yield-focused investors.', category: 'investment', severity: 2, lat: 25.0761, lng: 55.1403, location_name: 'Dubai Marina', signal_count: 19, confidence: 0.79, source: 'GDELT', created_at: new Date(mins(60 * 72)).toISOString(), is_active: true },
-    { id: 'demo7', title: 'Dubai Land Department Launches Smart Rental Index', summary: 'New digital platform allows landlords and tenants to access real-time rental valuations across all districts.', category: 'regulatory', severity: 3, lat: 25.2048, lng: 55.2708, location_name: 'Dubai', signal_count: 38, confidence: 0.87, source: 'DLD', created_at: new Date(mins(60 * 24 * 12)).toISOString(), is_active: true },
-    { id: 'demo8', title: 'JVC Emerges as Most Affordable Investment District', summary: 'Jumeirah Village Circle records highest transaction volume among sub-AED 1M properties in Q4.', category: 'investment', severity: 2, lat: 25.0580, lng: 55.2100, location_name: 'JVC', signal_count: 22, confidence: 0.81, source: 'Property Monitor', created_at: new Date(mins(60 * 24 * 20)).toISOString(), is_active: true },
+    { id: 'demo1', title: 'Emaar Reports Record Q4 Sales of AED 6.7 Billion', summary: 'Dubai developer Emaar Properties announced record quarterly sales driven by strong demand in Downtown and Creek Harbour.', category: 'transaction', severity: 4, lat: 25.1972, lng: 55.2744, location_name: 'Downtown Dubai', signal_count: 47, confidence: 0.92, source: 'Gulf News', created_at: new Date(mins(20)).toISOString(), published_at: new Date(mins(20)).toISOString(), is_active: true },
+    { id: 'demo2', title: 'DAMAC Launches Palm Jumeirah Ultra-Luxury Residences', summary: 'New off-plan project priced from AED 15M per unit, targeting UHNWI buyers from Europe and Asia.', category: 'offplan', severity: 3, lat: 25.1124, lng: 55.1390, location_name: 'Palm Jumeirah', signal_count: 31, confidence: 0.88, source: 'Arabian Business', created_at: new Date(mins(45)).toISOString(), published_at: new Date(mins(45)).toISOString(), is_active: true },
+    { id: 'demo3', title: 'RERA Issues New Short-Term Rental Regulations', summary: 'Dubai Real Estate Regulatory Authority updates licensing requirements for holiday homes and serviced apartments.', category: 'regulatory', severity: 3, lat: 25.2048, lng: 55.2708, location_name: 'Dubai', signal_count: 62, confidence: 0.95, source: 'The National', created_at: new Date(mins(180)).toISOString(), published_at: new Date(mins(180)).toISOString(), is_active: true },
+    { id: 'demo4', title: 'Business Bay Records 847 Transactions in November', summary: 'Business Bay continues to be Dubai top performing district with AED 1.2B total transaction value this month.', category: 'transaction', severity: 3, lat: 25.1865, lng: 55.2644, location_name: 'Business Bay', signal_count: 28, confidence: 0.85, source: 'Zawya', created_at: new Date(mins(600)).toISOString(), published_at: new Date(mins(600)).toISOString(), is_active: true },
+    { id: 'demo5', title: 'Nakheel Announces Palm Jebel Ali Phase 2 Infrastructure', summary: 'Construction contracts worth AED 3.8B awarded for road and utility infrastructure on Palm Jebel Ali expansion.', category: 'infrastructure', severity: 4, lat: 24.9823, lng: 55.0262, location_name: 'Dubai South', signal_count: 54, confidence: 0.91, source: 'Gulf News', created_at: new Date(mins(60 * 48)).toISOString(), published_at: new Date(mins(60 * 48)).toISOString(), is_active: true },
+    { id: 'demo6', title: 'Dubai Marina Average Rental Yield Hits 7.2%', summary: 'Marina district outperforms all other areas with highest rental yield in Q4, attracting yield-focused investors.', category: 'investment', severity: 2, lat: 25.0761, lng: 55.1403, location_name: 'Dubai Marina', signal_count: 19, confidence: 0.79, source: 'GDELT', created_at: new Date(mins(60 * 72)).toISOString(), published_at: new Date(mins(60 * 72)).toISOString(), is_active: true },
+    { id: 'demo7', title: 'Dubai Land Department Launches Smart Rental Index', summary: 'New digital platform allows landlords and tenants to access real-time rental valuations across all districts.', category: 'regulatory', severity: 3, lat: 25.2048, lng: 55.2708, location_name: 'Dubai', signal_count: 38, confidence: 0.87, source: 'DLD', created_at: new Date(mins(60 * 24 * 12)).toISOString(), published_at: new Date(mins(60 * 24 * 12)).toISOString(), is_active: true },
+    { id: 'demo8', title: 'JVC Emerges as Most Affordable Investment District', summary: 'Jumeirah Village Circle records highest transaction volume among sub-AED 1M properties in Q4.', category: 'investment', severity: 2, lat: 25.0580, lng: 55.2100, location_name: 'JVC', signal_count: 22, confidence: 0.81, source: 'Property Monitor', created_at: new Date(mins(60 * 24 * 20)).toISOString(), published_at: new Date(mins(60 * 24 * 20)).toISOString(), is_active: true },
   ]
 }
