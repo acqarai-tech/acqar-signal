@@ -344,12 +344,10 @@ export function EventsProvider({ children }) {
     try {
       setIsLoading(true)
 
-      const params = new URLSearchParams({
-        hours: filters.hours,
-        severity_min: filters.severityMin,
-        severity_max: filters.severityMax,
-        limit: 100
-      })
+    const params = new URLSearchParams({
+  hours: filters.hours,
+  limit: 100
+})
 
       const res = await fetch(`${API_BASE}/api/events/?${params}`)
       if (!res.ok) throw new Error('API error')
