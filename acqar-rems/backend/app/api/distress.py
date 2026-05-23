@@ -1089,31 +1089,3 @@ async def reddit_proxy(sub: str, limit: int = 100):
             return {"data": {"children": posts}}
         return {"data": {"children": []}, "error": "All Reddit endpoints blocked"}
 
-@router.get("/deals/debug-ant")
-async def debug_scrapingant():
-    if not SCRAPINGANT_KEY:
-        return {"error": "SCRAPINGANT_KEY not set", "key_value": "EMPTY"}
-
-    target_url = "https://www.reddit.com/r/DubaiRealEstate/new.json?limit=3&raw_json=1"
-    encoded_url = urllib.parse.quote(target_url, safe='')
-    proxy_url = (
-        f"https://api.scrapingant.com/v2/general"
-        f"?url={encoded_url}"
-        f"&x-api-key={SCRAPINGANT_KEY}"
-        f"&browser=true"
-        f"&proxy_type=residential"
-        f"&proxy_country=US"
-    )
-
-    try:
-        async with httpx.AsyncClient(timeout=60) as c:
-            resp = await c.get(proxy_url)
-            return {
-                "status_code": resp.status_code,
-                "key_set": bool(SCRAPINGANT_KEY),
-                "key_length": len(SCRAPINGANT_KEY),
-                "response_preview": resp.text[:500],
-                "proxy_url_safe": proxy_url.replace(SCRAPINGANT_KEY, "***")
-            }
-    except Exception as e:
-        return {"error": str(e)}
