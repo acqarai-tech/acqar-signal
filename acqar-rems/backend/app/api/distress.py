@@ -982,8 +982,24 @@ async def fetch_reddit_posts(client: httpx.AsyncClient, sub: str, limit: int = 1
             if resp.status_code != 200:
                 logger.warning(f"ScrapingAnt: status {resp.status_code} for r/{sub}")
                 return []
-            data = resp.json()
+
+            text = resp.text
+
+            # ✅ Extract JSON from HTML <pre> tag
+            import re as _re
+            match = _re.search(r'<pre[^>]*>(.*?)</pre>', text, _re.DOTALL)
+            if match:
+                import json
+                text = match.group(1)
+                # unescape HTML entities
+                text = text.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&#39;', "'").replace('&quot;', '"')
+                data = json.loads(text)
+            else:
+                # try direct JSON parse
+                data = resp.json()
+
             return data.get("data", {}).get("children", [])
+
     except Exception as e:
         logger.warning(f"ScrapingAnt error r/{sub}: {e}")
         return []
