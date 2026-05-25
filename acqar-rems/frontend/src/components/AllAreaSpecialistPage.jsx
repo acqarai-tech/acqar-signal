@@ -17304,7 +17304,7 @@ function PriceHistoryChart({ data }) {
 }
 
 
-function AreaVoteBar({ areaId, areaName, username }) {
+function AreaVoteBar({ areaId, areaName, username, commentCount = 0 }) {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   const myName = username || sessionStorage.getItem('acqar_username') || null
@@ -17369,58 +17369,62 @@ function AreaVoteBar({ areaId, areaName, username }) {
 
   return (
   <div style={{
-    display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
-    background: C.card, border: `1px solid ${C.border}`,
-    borderRadius: 10, padding: '14px 18px', marginBottom: 14,
+    display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+    marginBottom: 14,
   }}>
-    <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>
-      Is this area a good investment?
-    </span>
-
-    {/* Reddit-style pill */}
-    <div style={{ display: 'flex', alignItems: 'center', background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 20, overflow: 'hidden' }}>
+    {/* Reddit-style orange pill — matches image exactly */}
+    <div style={{
+      display: 'flex', alignItems: 'center',
+      background: C.orange,
+      borderRadius: 999,
+      overflow: 'hidden',
+      boxShadow: '0 2px 8px rgba(200,115,42,0.3)',
+    }}>
       <button
         onClick={() => castVote(1)}
         disabled={loading}
         style={{
           display: 'flex', alignItems: 'center', gap: 5,
-          padding: '7px 14px',
-          background: myVote === 1 ? C.orangeL : 'transparent',
-          color: myVote === 1 ? C.orange : C.muted,
-          border: 'none', fontWeight: 800, fontSize: 13,
+          padding: '8px 14px',
+          background: myVote === 1 ? 'rgba(255,255,255,0.2)' : 'transparent',
+          color: '#fff',
+          border: 'none', fontWeight: 900, fontSize: 14,
           cursor: loading ? 'default' : 'pointer',
-          borderRight: `1px solid ${C.border}`,
           transition: 'all .15s',
+          lineHeight: 1,
         }}
       >
-        ▲ <span style={{ fontSize: 12 }}>{upvotes}</span>
+        ▲ <span style={{ fontSize: 13, fontWeight: 800 }}>{(upvotes + downvotes) > 0 ? (upvotes + downvotes) >= 1000 ? `${((upvotes + downvotes)/1000).toFixed(1)}K` : upvotes + downvotes : upvotes}</span>
       </button>
-
-      <span style={{
-        padding: '7px 14px',
-        fontSize: 13, fontWeight: 900,
-        color: score > 0 ? C.green : score < 0 ? C.red : C.muted,
-        borderRight: `1px solid ${C.border}`,
-        minWidth: 36, textAlign: 'center',
-      }}>
-        {score > 0 ? `+${score}` : score}
-      </span>
 
       <button
         onClick={() => castVote(-1)}
         disabled={loading}
         style={{
-          display: 'flex', alignItems: 'center', gap: 5,
-          padding: '7px 14px',
-          background: myVote === -1 ? C.redL : 'transparent',
-          color: myVote === -1 ? C.red : C.muted,
-          border: 'none', fontWeight: 800, fontSize: 13,
+          display: 'flex', alignItems: 'center',
+          padding: '8px 14px',
+          background: myVote === -1 ? 'rgba(0,0,0,0.15)' : 'transparent',
+          color: '#fff',
+          border: 'none', fontWeight: 900, fontSize: 14,
           cursor: loading ? 'default' : 'pointer',
           transition: 'all .15s',
+          lineHeight: 1,
+          borderLeft: '1px solid rgba(255,255,255,0.2)',
         }}
       >
-        ▼ <span style={{ fontSize: 12 }}>{downvotes}</span>
+        ▼
       </button>
+    </div>
+
+    {/* Comment count pill */}
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 6,
+      padding: '8px 14px',
+      background: C.bg2, border: `1px solid ${C.border}`,
+      borderRadius: 999, cursor: 'default',
+    }}>
+      <span style={{ fontSize: 14, lineHeight: 1 }}>💬</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{commentCount}</span>
     </div>
 
     {!myName && (
@@ -17429,7 +17433,7 @@ function AreaVoteBar({ areaId, areaName, username }) {
   </div>
 )}
 
-function AreaComments({ areaId, areaName, username }) {
+function AreaComments({ areaId, areaName, username, onCountChange }) {
   const [comments, setComments] = useState([])
 const myName = username || sessionStorage.getItem('acqar_username') || 'Anonymous'
 const [input, setInput] = useState('')
@@ -17449,7 +17453,12 @@ const [input, setInput] = useState('')
       { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
     )
       .then(r => r.json())
-      .then(data => { setComments(data || []); setLoading(false) })
+      .then(data => { 
+        const list = data || []
+        setComments(list)
+        setLoading(false)
+        if (onCountChange) onCountChange(list.filter(c => !c.parent_id).length)
+      })
       .catch(() => setLoading(false))
   }
 
@@ -17698,6 +17707,7 @@ const [aiBrief, setAiBrief] = useState(null)
 const [aiBuyerTip, setAiBuyerTip] = useState(null)
 const [groqCatalysts, setGroqCatalysts] = useState(null)
 const [isReady, setIsReady] = useState(false)
+const [commentCount, setCommentCount] = useState(0)
 
   const { events } = useEvents()
 
@@ -19110,8 +19120,8 @@ val: `${offPlanCount} Projects`,
   <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 14, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
     💬 Community Comments — {area.name}
   </div>
-  <AreaVoteBar areaId={area.area_id} areaName={area.name} username={username} />
-  <AreaComments areaId={area.area_id} areaName={area.name} username={username} />
+ <AreaVoteBar areaId={area.area_id} areaName={area.name} username={username} commentCount={commentCount} />
+<AreaComments areaId={area.area_id} areaName={area.name} username={username} onCountChange={setCommentCount} />
 </div>
 
 
