@@ -14948,7 +14948,7 @@ function PriceHistoryChart({ data }) {
 
 function AreaComments({ areaId, areaName, username }) {
   const [comments, setComments] = useState([])
-const myName = username || 'Anonymous'
+const myName = username || sessionStorage.getItem('acqar_username') || 'Anonymous'
 const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
