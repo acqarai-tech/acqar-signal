@@ -17304,6 +17304,131 @@ function PriceHistoryChart({ data }) {
 }
 
 
+function AreaVoteBar({ areaId, areaName, username }) {
+  const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+  const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+  const myName = username || sessionStorage.getItem('acqar_username') || null
+
+  const [upvotes, setUpvotes] = useState(0)
+  const [downvotes, setDownvotes] = useState(0)
+  const [myVote, setMyVote] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const fetchVotes = async () => {
+    try {
+      const res = await fetch(
+        `${SUPA_URL}/rest/v1/area_votes?area_id=eq.${areaId}&select=user_name,vote`,
+        { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+      )
+      const data = await res.json()
+      if (!Array.isArray(data)) return
+      setUpvotes(data.filter(r => r.vote === 1).length)
+      setDownvotes(data.filter(r => r.vote === -1).length)
+      if (myName) {
+        const mine = data.find(r => r.user_name === myName)
+        setMyVote(mine?.vote ?? null)
+      }
+    } catch {}
+  }
+
+  useEffect(() => { fetchVotes() }, [areaId])
+
+  const castVote = async (dir) => {
+    if (!myName) return alert('Please log in to vote.')
+    if (loading) return
+    setLoading(true)
+    const newVote = myVote === dir ? null : dir
+    if (newVote === null) {
+      await fetch(
+        `${SUPA_URL}/rest/v1/area_votes?area_id=eq.${areaId}&user_name=eq.${encodeURIComponent(myName)}`,
+        { method: 'DELETE', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+      )
+    } else {
+      await fetch(`${SUPA_URL}/rest/v1/area_votes`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPA_KEY,
+          Authorization: `Bearer ${SUPA_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({
+          area_id: areaId,
+          user_name: myName,
+          vote: newVote,
+          updated_at: new Date().toISOString(),
+        }),
+      })
+    }
+    setMyVote(newVote)
+    await fetchVotes()
+    setLoading(false)
+  }
+
+  const score = upvotes - downvotes
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+      background: C.card, border: `1px solid ${C.border}`,
+      borderRadius: 10, padding: '12px 18px', marginBottom: 14,
+    }}>
+      <span style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginRight: 4 }}>
+        Is this area a good investment right now?
+      </span>
+      <button
+        onClick={() => castVote(1)}
+        disabled={loading}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '7px 14px', borderRadius: 7,
+          border: `1px solid ${myVote === 1 ? C.green : C.border}`,
+          background: myVote === 1 ? C.greenL : C.bg2,
+          color: myVote === 1 ? C.green : C.muted,
+          fontWeight: 700, fontSize: 13, cursor: loading ? 'default' : 'pointer',
+          transition: 'all .15s',
+        }}
+      >
+        ▲ Yes
+        <span style={{
+          fontSize: 11, fontWeight: 800, borderRadius: 4, padding: '1px 6px',
+          background: myVote === 1 ? C.green : C.bg3,
+          color: myVote === 1 ? '#fff' : C.muted,
+        }}>{upvotes}</span>
+      </button>
+      <span style={{
+        fontSize: 14, fontWeight: 900, minWidth: 28, textAlign: 'center',
+        color: score > 0 ? C.green : score < 0 ? C.red : C.muted,
+      }}>
+        {score > 0 ? `+${score}` : score}
+      </span>
+      <button
+        onClick={() => castVote(-1)}
+        disabled={loading}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '7px 14px', borderRadius: 7,
+          border: `1px solid ${myVote === -1 ? C.red : C.border}`,
+          background: myVote === -1 ? C.redL : C.bg2,
+          color: myVote === -1 ? C.red : C.muted,
+          fontWeight: 700, fontSize: 13, cursor: loading ? 'default' : 'pointer',
+          transition: 'all .15s',
+        }}
+      >
+        ▼ No
+        <span style={{
+          fontSize: 11, fontWeight: 800, borderRadius: 4, padding: '1px 6px',
+          background: myVote === -1 ? C.red : C.bg3,
+          color: myVote === -1 ? '#fff' : C.muted,
+        }}>{downvotes}</span>
+      </button>
+      {!myName && (
+        <span style={{ fontSize: 11, color: C.muted2 }}>(log in to vote)</span>
+      )}
+    </div>
+  )
+}
+
 function AreaComments({ areaId, areaName, username }) {
   const [comments, setComments] = useState([])
 const myName = username || sessionStorage.getItem('acqar_username') || 'Anonymous'
@@ -17357,9 +17482,25 @@ const [input, setInput] = useState('')
     fetchComments()
   }
 
-  const vote = (id, dir) => {
-    setVotes(v => ({ ...v, [id]: (v[id] || 0) + dir }))
-  }
+ const vote = async (id, dir) => {
+  setVotes(v => ({ ...v, [id]: (v[id] || 0) + dir }))
+  const target = comments.find(c => c.id === id)
+  if (!target) return
+  const newCount = (target.upvotes || 0) + dir
+  await fetch(
+    `${SUPA_URL}/rest/v1/area_comments?id=eq.${id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPA_KEY,
+        Authorization: `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ upvotes: newCount }),
+    }
+  )
+}
 
   // Build threaded structure
   const topLevel = comments.filter(c => !c.parent_id)
@@ -17404,8 +17545,9 @@ const [input, setInput] = useState('')
             {replyTo?.id === c.id && (
   <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
     <textarea
+      autoFocus
       value={replyInput}
-      onChange={e => { e.stopPropagation(); setReplyInput(e.target.value) }}
+      onChange={e => setReplyInput(e.target.value)}
       onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); send(c.id) } }}
       placeholder={`Reply to ${c.user_name}... (Ctrl+Enter to send)`}
       maxLength={3000}
@@ -18902,6 +19044,7 @@ val: `${offPlanCount} Projects`,
   <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 14, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
     💬 Community Comments — {area.name}
   </div>
+  <AreaVoteBar areaId={area.area_id} areaName={area.name} username={username} />
   <AreaComments areaId={area.area_id} areaName={area.name} username={username} />
 </div>
 
