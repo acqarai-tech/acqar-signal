@@ -4993,8 +4993,10 @@ function Footer() {
 // ── Main Page ────────────────────────────────────────────────────────────────
 export default function AllAreasPage() {
   const navigate = useNavigate()  // ← ADD THIS
-  const username = new URLSearchParams(window.location.search).get('username') || ''
-  const [areas, setAreas] = useState([])
+  const urlParams = new URLSearchParams(window.location.search)
+const username = urlParams.get('username') || ''
+const slugFromUrl = window.location.pathname.split('/areas/')[1]?.replace(/\//g, '') || ''
+const [areas, setAreas] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedArea, setSelectedArea] = useState(null)
@@ -5011,7 +5013,17 @@ const [verdictFilter, setVerdictFilter] = useState(null)
       { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
     )
       .then(r => r.json())
-      .then(data => { setAreas(data || []); setLoading(false) })
+      .then(data => {
+  setAreas(data || [])
+  setLoading(false)
+  if (slugFromUrl) {
+    const match = data?.find(a => {
+      const s = a.area_name_en.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
+      return s === slugFromUrl.toLowerCase()
+    })
+    if (match) setSelectedArea(buildAreaObj(match))
+  }
+})
       .catch(() => setLoading(false))
   }, [])
 
@@ -5043,10 +5055,13 @@ const [verdictFilter, setVerdictFilter] = useState(null)
     <EventsProvider>
       <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
         <AllAreaSpecialistPage
-          area={selectedArea}
-          onClose={() => setSelectedArea(null)}
-          username={new URLSearchParams(window.location.search).get('username') || 'Anonymous'}
-        />
+  area={selectedArea}
+  onClose={() => {
+    setSelectedArea(null)
+    navigate(`/areas?username=${encodeURIComponent(username)}`)
+  }}
+  username={username || 'Anonymous'}
+/>
       </div>
     </EventsProvider>
   )
@@ -5275,6 +5290,8 @@ flexShrink: 0,
                   key={area.area_id}
                 onClick={() => {
   trackEvent('area_clicked', { area: area.area_name_en, verdict: getVerdict(area), ranking_score: area.ranking_score, page: 'all_areas' })
+  const slug = area.area_name_en.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
+  navigate(`/areas/${slug}?username=${encodeURIComponent(username)}`)
   setSelectedArea(buildAreaObj(area))
 }}
                   className="area-card"
