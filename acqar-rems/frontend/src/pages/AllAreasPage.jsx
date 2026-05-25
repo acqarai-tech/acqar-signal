@@ -4994,7 +4994,9 @@ function Footer() {
 export default function AllAreasPage() {
   const navigate = useNavigate()  // ← ADD THIS
   const urlParams = new URLSearchParams(window.location.search)
-const username = urlParams.get('username') || ''
+const urlUsername = urlParams.get('username') || ''
+if (urlUsername) sessionStorage.setItem('acqar_username', urlUsername)
+const username = urlUsername || sessionStorage.getItem('acqar_username') || ''
 const slugFromUrl = window.location.pathname.split('/areas/')[1]?.replace(/\//g, '') || ''
 const [areas, setAreas] = useState([])
   const [loading, setLoading] = useState(true)
