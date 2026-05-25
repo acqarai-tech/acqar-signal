@@ -14948,8 +14948,9 @@ function PriceHistoryChart({ data }) {
 
 function AreaComments({ areaId, areaName }) {
   const [comments, setComments] = useState([])
-  const [input, setInput] = useState('')
-  const [name, setName] = useState('')
+const params = new URLSearchParams(window.location.search)
+const myName = params.get('username') || 'Anonymous'
+const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [replyTo, setReplyTo] = useState(null) // { id, user_name }
@@ -14982,7 +14983,7 @@ function AreaComments({ areaId, areaName }) {
 
   const send = async (parentId = null) => {
     const text = parentId ? replyInput.trim() : input.trim()
-    const userName = parentId ? replyName.trim() : name.trim()
+    const userName = myName
     if (!text || !userName) return
     if (parentId) setSending('reply')
     else setSending('main')
@@ -15044,35 +15045,27 @@ function AreaComments({ areaId, areaName }) {
 
             {/* Reply input */}
             {replyTo?.id === c.id && (
-              <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  <input
-                    value={replyName}
-                    onChange={e => setReplyName(e.target.value)}
-                    placeholder="Your name"
-                    maxLength={40}
-                    style={{ width: 130, flexShrink: 0, padding: '6px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none' }}
-                    onFocus={e => e.target.style.borderColor = C.orange}
-                    onBlur={e => e.target.style.borderColor = C.border}
-                  />
-                  <input
-                    value={replyInput}
-                    onChange={e => setReplyInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(c.id) } }}
-                    placeholder={`Reply to ${c.user_name}...`}
-                    maxLength={300}
-                    style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none' }}
-                    onFocus={e => e.target.style.borderColor = C.orange}
-                    onBlur={e => e.target.style.borderColor = C.border}
-                  />
-                  <button
-                    onClick={() => send(c.id)}
-                    disabled={!replyInput.trim() || !replyName.trim() || sending === 'reply'}
-                    style={{ padding: '6px 14px', background: replyInput.trim() && replyName.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
-                  >{sending === 'reply' ? '...' : 'Reply'}</button>
-                </div>
-              </div>
-            )}
+  <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
+    <textarea
+      value={replyInput}
+      onChange={e => setReplyInput(e.target.value)}
+      onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); send(c.id) } }}
+      placeholder={`Reply to ${c.user_name}... (Ctrl+Enter to send)`}
+      maxLength={3000}
+      rows={2}
+      style={{ width: '100%', padding: '8px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+      onFocus={e => e.target.style.borderColor = C.orange}
+      onBlur={e => e.target.style.borderColor = C.border}
+    />
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
+      <button
+        onClick={() => send(c.id)}
+        disabled={!replyInput.trim() || sending === 'reply'}
+        style={{ padding: '6px 14px', background: replyInput.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: replyInput.trim() ? 'pointer' : 'default' }}
+      >{sending === 'reply' ? '...' : 'Reply'}</button>
+    </div>
+  </div>
+)}
 
             {/* Nested replies */}
             {replies.length > 0 && (
@@ -15090,35 +15083,28 @@ function AreaComments({ areaId, areaName }) {
   return (
     <div>
       {/* Main input */}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Your name"
-            maxLength={40}
-            style={{ width: 160, flexShrink: 0, padding: '8px 12px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 7, background: C.bg, color: C.text, outline: 'none' }}
-            onFocus={e => e.target.style.borderColor = C.orange}
-            onBlur={e => e.target.style.borderColor = C.border}
-          />
-          <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
-            placeholder={`Share your thoughts on ${areaName}...`}
-            maxLength={300}
-            style={{ flex: 1, padding: '8px 12px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 7, background: C.bg, color: C.text, outline: 'none' }}
-            onFocus={e => e.target.style.borderColor = C.orange}
-            onBlur={e => e.target.style.borderColor = C.border}
-          />
-          <button
-            onClick={() => send()}
-            disabled={!input.trim() || !name.trim() || sending === 'main'}
-            style={{ padding: '8px 18px', background: input.trim() && name.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
-          >{sending === 'main' ? '...' : 'Post'}</button>
-        </div>
-        <div style={{ fontSize: 10, color: C.muted2 }}>Comments are public and visible to all users viewing {areaName}.</div>
-      </div>
+     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 20 }}>
+  <textarea
+    value={input}
+    onChange={e => setInput(e.target.value)}
+    placeholder={`Share your thoughts on ${areaName}... (500 words max)`}
+    maxLength={3000}
+    rows={3}
+    style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 7, background: C.bg, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+    onFocus={e => e.target.style.borderColor = C.orange}
+    onBlur={e => e.target.style.borderColor = C.border}
+  />
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+    <span style={{ fontSize: 10, color: C.muted2 }}>Posting as <strong style={{ color: C.orange }}>{myName}</strong> · Comments are public</span>
+    <button
+      onClick={() => send()}
+      disabled={!input.trim() || sending === 'main'}
+      style={{ padding: '8px 18px', background: input.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: input.trim() ? 'pointer' : 'default' }}
+    >{sending === 'main' ? '...' : 'Post'}</button>
+  </div>
+</div>
+        
+      
 
       {/* Comments */}
       {loading ? (
