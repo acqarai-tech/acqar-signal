@@ -17445,7 +17445,7 @@ const [input, setInput] = useState('')
     value={input}
     onChange={e => { e.stopPropagation(); setInput(e.target.value) }}
      onKeyDown={e => e.stopPropagation()}
-    placeholder={`Share your thoughts on ${areaName}... (500 words max)`}
+    placeholder={`Write comment on ${areaName} (500 words max)`}
     maxLength={3000}
     rows={3}
     style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 7, background: C.bg, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
@@ -17453,7 +17453,7 @@ const [input, setInput] = useState('')
     onBlur={e => e.target.style.borderColor = C.border}
   />
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-    <span style={{ fontSize: 10, color: C.muted2 }}>Posting as <strong style={{ color: C.orange }}>{myName}</strong> · Comments are public</span>
+    <span style={{ fontSize: 10, color: C.muted2 }}>Posting as <strong style={{ color: C.orange }}>{myName}</strong> · </span>
     <button
       onClick={() => send()}
       disabled={!input.trim() || sending === 'main'}
@@ -17468,7 +17468,7 @@ const [input, setInput] = useState('')
       {loading ? (
         <div style={{ fontSize: 12, color: C.muted, padding: '16px 0' }}>Loading comments...</div>
       ) : topLevel.length === 0 ? (
-        <div style={{ fontSize: 12, color: C.muted2, padding: '16px 0', textAlign: 'center' }}>No comments yet. Be the first to share your thoughts on {areaName}.</div>
+        <div style={{ fontSize: 12, color: C.muted2, padding: '16px 0', textAlign: 'center' }}></div>
       ) : (
         <div>{topLevel.map(c => <CommentBlock key={c.id} c={c} />)}</div>
       )}
@@ -18917,7 +18917,7 @@ val: `${offPlanCount} Projects`,
           <button
   onClick={() => {
    const slug = area.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-const url = `https://acqar.com/area/${slug}?area=${encodeURIComponent(area.name)}&zone=${encodeURIComponent(area.zone)}&id=${area.area_id}`
+const url = `https://acqar.com/areas/${slug}?area=${encodeURIComponent(area.name)}&zone=${encodeURIComponent(area.zone)}&id=${area.area_id}`
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(() => {
   const modal = document.createElement('div')
