@@ -2219,6 +2219,8 @@ export default function AllAreasPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedArea, setSelectedArea] = useState(null)
+  const [rankFilter, setRankFilter] = useState(null)
+const [verdictFilter, setVerdictFilter] = useState(null)
 
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -2249,9 +2251,12 @@ export default function AllAreasPage() {
 
   const isMobile = window.innerWidth <= 768
 
-  const filtered = areas.filter(a =>
-    !search || a.area_name_en?.toLowerCase().includes(search.toLowerCase())
-  )
+ const filtered = areas.filter(a => {
+  if (search && !a.area_name_en?.toLowerCase().includes(search.toLowerCase())) return false
+  if (verdictFilter && getVerdict(a) !== verdictFilter) return false
+  if (rankFilter && Math.floor(Number(a.ranking_score)) !== rankFilter) return false
+  return true
+})
 
   if (selectedArea) {
     return (
@@ -2341,6 +2346,45 @@ flexShrink: 0,
             onBlur={e => e.target.style.borderColor = C.border}
           />
         </div>
+
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+  {[['BUY', C.green, C.greenL], ['WATCH', C.amber, C.amberL], ['HOLD', C.red, C.redL]].map(([label, color, bg]) => (
+    <button key={label} onClick={() => setVerdictFilter(verdictFilter === label ? null : label)}
+      style={{
+        fontSize: 10, fontWeight: 800, letterSpacing: '.08em',
+        padding: '4px 12px', borderRadius: 4, cursor: 'pointer',
+        background: verdictFilter === label ? bg : 'transparent',
+        color: verdictFilter === label ? color : C.muted,
+        border: `1px solid ${verdictFilter === label ? color + '44' : C.border}`,
+        transition: 'all 0.15s',
+      }}
+    >{label}</button>
+  ))}
+  <div style={{ width: 1, height: 18, background: C.border }} />
+  {[10,9,8,7,6,5,4,3,2,1].map(n => (
+    <button key={n} onClick={() => setRankFilter(rankFilter === n ? null : n)}
+      style={{
+        fontSize: 10, fontWeight: 800,
+        padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+        background: rankFilter === n ? C.orangeL : 'transparent',
+        color: rankFilter === n ? C.orange : C.muted,
+        border: `1px solid ${rankFilter === n ? 'rgba(200,115,42,0.4)' : C.border}`,
+        transition: 'all 0.15s',
+        minWidth: 32,
+      }}
+    >{n}</button>
+  ))}
+  {(rankFilter || verdictFilter) && (
+    <button onClick={() => { setRankFilter(null); setVerdictFilter(null) }}
+      style={{
+        fontSize: 10, fontWeight: 700, padding: '4px 10px',
+        borderRadius: 4, cursor: 'pointer', color: C.muted,
+        background: 'transparent', border: `1px solid ${C.border}`,
+      }}
+    >Clear</button>
+  )}
+</div>
 
         {/* Loading */}
         {loading ? (
