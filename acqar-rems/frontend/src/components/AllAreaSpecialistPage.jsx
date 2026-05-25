@@ -17368,66 +17368,66 @@ function AreaVoteBar({ areaId, areaName, username }) {
   const score = upvotes - downvotes
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-      background: C.card, border: `1px solid ${C.border}`,
-      borderRadius: 10, padding: '12px 18px', marginBottom: 14,
-    }}>
-      <span style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginRight: 4 }}>
-        Is this area a good investment right now?
-      </span>
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+    background: C.card, border: `1px solid ${C.border}`,
+    borderRadius: 10, padding: '14px 18px', marginBottom: 14,
+  }}>
+    <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>
+      Is this area a good investment?
+    </span>
+
+    {/* Reddit-style pill */}
+    <div style={{ display: 'flex', alignItems: 'center', background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 20, overflow: 'hidden' }}>
       <button
         onClick={() => castVote(1)}
         disabled={loading}
         style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '7px 14px', borderRadius: 7,
-          border: `1px solid ${myVote === 1 ? C.green : C.border}`,
-          background: myVote === 1 ? C.greenL : C.bg2,
-          color: myVote === 1 ? C.green : C.muted,
-          fontWeight: 700, fontSize: 13, cursor: loading ? 'default' : 'pointer',
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '7px 14px',
+          background: myVote === 1 ? C.orangeL : 'transparent',
+          color: myVote === 1 ? C.orange : C.muted,
+          border: 'none', fontWeight: 800, fontSize: 13,
+          cursor: loading ? 'default' : 'pointer',
+          borderRight: `1px solid ${C.border}`,
           transition: 'all .15s',
         }}
       >
-        ▲ Yes
-        <span style={{
-          fontSize: 11, fontWeight: 800, borderRadius: 4, padding: '1px 6px',
-          background: myVote === 1 ? C.green : C.bg3,
-          color: myVote === 1 ? '#fff' : C.muted,
-        }}>{upvotes}</span>
+        ▲ <span style={{ fontSize: 12 }}>{upvotes}</span>
       </button>
+
       <span style={{
-        fontSize: 14, fontWeight: 900, minWidth: 28, textAlign: 'center',
+        padding: '7px 14px',
+        fontSize: 13, fontWeight: 900,
         color: score > 0 ? C.green : score < 0 ? C.red : C.muted,
+        borderRight: `1px solid ${C.border}`,
+        minWidth: 36, textAlign: 'center',
       }}>
         {score > 0 ? `+${score}` : score}
       </span>
+
       <button
         onClick={() => castVote(-1)}
         disabled={loading}
         style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '7px 14px', borderRadius: 7,
-          border: `1px solid ${myVote === -1 ? C.red : C.border}`,
-          background: myVote === -1 ? C.redL : C.bg2,
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '7px 14px',
+          background: myVote === -1 ? C.redL : 'transparent',
           color: myVote === -1 ? C.red : C.muted,
-          fontWeight: 700, fontSize: 13, cursor: loading ? 'default' : 'pointer',
+          border: 'none', fontWeight: 800, fontSize: 13,
+          cursor: loading ? 'default' : 'pointer',
           transition: 'all .15s',
         }}
       >
-        ▼ No
-        <span style={{
-          fontSize: 11, fontWeight: 800, borderRadius: 4, padding: '1px 6px',
-          background: myVote === -1 ? C.red : C.bg3,
-          color: myVote === -1 ? '#fff' : C.muted,
-        }}>{downvotes}</span>
+        ▼ <span style={{ fontSize: 12 }}>{downvotes}</span>
       </button>
-      {!myName && (
-        <span style={{ fontSize: 11, color: C.muted2 }}>(log in to vote)</span>
-      )}
     </div>
-  )
-}
+
+    {!myName && (
+      <span style={{ fontSize: 11, color: C.muted2 }}>(log in to vote)</span>
+    )}
+  </div>
+)}
 
 function AreaComments({ areaId, areaName, username }) {
   const [comments, setComments] = useState([])
@@ -17455,13 +17455,14 @@ const [input, setInput] = useState('')
 
   useEffect(() => { fetchComments() }, [areaId])
 
-  const timeAgo = (iso) => {
-    const diff = Math.floor((Date.now() - new Date(iso)) / 1000)
-    if (diff < 60) return `${diff}s ago`
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-    return `${Math.floor(diff / 86400)}d ago`
-  }
+const timeAgo = (iso) => {
+  const diff = Math.floor((Date.now() - new Date(iso)) / 1000)
+  if (diff < 0) return 'just now'
+  if (diff < 60) return `${diff}s ago`
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  return `${Math.floor(diff / 86400)}d ago`
+}
 
   const send = async (parentId = null) => {
     const text = parentId ? replyInput.trim() : input.trim()
@@ -17526,12 +17527,24 @@ const [input, setInput] = useState('')
             <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.6, marginBottom: 8 }}>{c.content}</div>
             {/* Actions row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              {/* Upvote */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <button onClick={() => vote(c.id, 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 14, padding: '2px 4px', borderRadius: 4, lineHeight: 1 }}>▲</button>
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.muted, minWidth: 20, textAlign: 'center' }}>{voteCount}</span>
-                <button onClick={() => vote(c.id, -1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 14, padding: '2px 4px', borderRadius: 4, lineHeight: 1 }}>▼</button>
-              </div>
+             {/* Upvote — Reddit style */}
+<div style={{ display: 'flex', alignItems: 'center', gap: 2, background: C.bg2, borderRadius: 20, padding: '3px 6px', border: `1px solid ${C.border}` }}>
+  <button
+    onClick={() => vote(c.id, 1)}
+    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '1px 5px', borderRadius: 20, lineHeight: 1,
+      color: (votes[c.id] || 0) > 0 ? C.orange : C.muted,
+      fontWeight: 700,
+    }}
+  >▲</button>
+  <span style={{ fontSize: 12, fontWeight: 800, color: C.text, minWidth: 16, textAlign: 'center' }}>{voteCount}</span>
+  <button
+    onClick={() => vote(c.id, -1)}
+    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '1px 5px', borderRadius: 20, lineHeight: 1,
+      color: (votes[c.id] || 0) < 0 ? C.blue : C.muted,
+      fontWeight: 700,
+    }}
+  >▼</button>
+</div>
               {/* Reply */}
               <button
                 onClick={() => setReplyTo(replyTo?.id === c.id ? null : { id: c.id, user_name: c.user_name })}
@@ -17552,7 +17565,7 @@ const [input, setInput] = useState('')
       placeholder={`Reply to ${c.user_name}... (Ctrl+Enter to send)`}
       maxLength={3000}
       rows={2}
-      style={{ width: '100%', padding: '8px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+      style={{ width: '100%', padding: '8px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', direction: 'ltr', textAlign: 'left' }}
       onFocus={e => e.target.style.borderColor = C.orange}
       onBlur={e => e.target.style.borderColor = C.border}
     />
