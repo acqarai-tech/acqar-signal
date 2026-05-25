@@ -2324,7 +2324,8 @@ flexShrink: 0,
       <div style={{ flex: 1, padding: '24px 28px 40px' }}>
 
         {/* Search */}
-        <div style={{ marginBottom: 20, position: 'relative', maxWidth: 400 }}>
+        <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+<div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
           <span style={{
             position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
             fontSize: 13, pointerEvents: 'none', color: C.muted2,
@@ -2344,12 +2345,13 @@ flexShrink: 0,
               transition: 'border-color 0.15s',
             }}
             onFocus={e => e.target.style.borderColor = C.orange}
-            onBlur={e => e.target.style.borderColor = C.border}
+          onBlur={e => e.target.style.borderColor = C.border}
           />
         </div>
+        </div>{/* end search+filter row */}
 
 
-       <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
+       <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center', marginTop: -44, paddingLeft: 410 }}>
   <div style={{ position: 'relative' }}>
     <button
       onClick={() => setShowFilter(f => !f)}
