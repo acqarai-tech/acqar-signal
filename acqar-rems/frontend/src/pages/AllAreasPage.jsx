@@ -4292,6 +4292,7 @@ function Footer() {
 // ── Main Page ────────────────────────────────────────────────────────────────
 export default function AllAreasPage() {
   const navigate = useNavigate()  // ← ADD THIS
+  const username = new URLSearchParams(window.location.search).get('username') || ''
   const [areas, setAreas] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -4343,7 +4344,7 @@ const [verdictFilter, setVerdictFilter] = useState(null)
           <AllAreaSpecialistPage
   area={selectedArea}
   onClose={() => setSelectedArea(null)}
-  username={new URLSearchParams(window.location.search).get('username') || 'Anonymous'}
+  username={username}
 />
         </div>
       </EventsProvider>
