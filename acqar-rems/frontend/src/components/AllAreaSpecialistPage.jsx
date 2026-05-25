@@ -14946,10 +14946,9 @@ function PriceHistoryChart({ data }) {
 }
 
 
-function AreaComments({ areaId, areaName }) {
+function AreaComments({ areaId, areaName, username }) {
   const [comments, setComments] = useState([])
-const params = new URLSearchParams(window.location.search)
-const myName = params.get('username') || 'Anonymous'
+const myName = username || 'Anonymous'
 const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -15123,7 +15122,7 @@ const [input, setInput] = useState('')
 // ══════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════
-export default function AllAreaSpecialistPage({ area, onClose }) {
+export default function AllAreaSpecialistPage({ area, onClose, username }) {
   const [persona, setPersona] = useState('buyer')
   const isMobile = useIsMobile()
 const [activeTab, setActiveTab] = useState('past')
@@ -16544,7 +16543,7 @@ val: `${offPlanCount} Projects`,
   <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 14, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
     💬 Community Comments — {area.name}
   </div>
-  <AreaComments areaId={area.area_id} areaName={area.name} />
+  <AreaComments areaId={area.area_id} areaName={area.name} username={username} />
 </div>
 
 
