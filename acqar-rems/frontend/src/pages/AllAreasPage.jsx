@@ -2220,6 +2220,7 @@ export default function AllAreasPage() {
   const [search, setSearch] = useState('')
   const [selectedArea, setSelectedArea] = useState(null)
   const [rankFilter, setRankFilter] = useState(null)
+  const [showFilter, setShowFilter] = useState(false)
 const [verdictFilter, setVerdictFilter] = useState(null)
 
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
@@ -2348,44 +2349,118 @@ flexShrink: 0,
         </div>
 
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-  {[['BUY', C.green, C.greenL], ['WATCH', C.amber, C.amberL], ['HOLD', C.red, C.redL]].map(([label, color, bg]) => (
-    <button key={label} onClick={() => setVerdictFilter(verdictFilter === label ? null : label)}
+       <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
+  <div style={{ position: 'relative' }}>
+    <button
+      onClick={() => setShowFilter(f => !f)}
       style={{
-        fontSize: 10, fontWeight: 800, letterSpacing: '.08em',
-        padding: '4px 12px', borderRadius: 4, cursor: 'pointer',
-        background: verdictFilter === label ? bg : 'transparent',
-        color: verdictFilter === label ? color : C.muted,
-        border: `1px solid ${verdictFilter === label ? color + '44' : C.border}`,
-        transition: 'all 0.15s',
+        display: 'flex', alignItems: 'center', gap: 6,
+        padding: '7px 14px', borderRadius: 8, cursor: 'pointer',
+        background: (rankFilter || verdictFilter) ? C.orangeL : C.card,
+        color: (rankFilter || verdictFilter) ? C.orange : C.muted,
+        border: `1px solid ${(rankFilter || verdictFilter) ? 'rgba(200,115,42,0.4)' : C.border}`,
+        fontSize: 13, fontWeight: 600,
       }}
-    >{label}</button>
-  ))}
-  <div style={{ width: 1, height: 18, background: C.border }} />
-  {[10,9,8,7,6,5,4,3,2,1].map(n => (
-    <button key={n} onClick={() => setRankFilter(rankFilter === n ? null : n)}
-      style={{
-        fontSize: 10, fontWeight: 800,
-        padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
-        background: rankFilter === n ? C.orangeL : 'transparent',
-        color: rankFilter === n ? C.orange : C.muted,
-        border: `1px solid ${rankFilter === n ? 'rgba(200,115,42,0.4)' : C.border}`,
-        transition: 'all 0.15s',
-        minWidth: 32,
-      }}
-    >{n}</button>
-  ))}
-  {(rankFilter || verdictFilter) && (
-    <button onClick={() => { setRankFilter(null); setVerdictFilter(null) }}
-      style={{
-        fontSize: 10, fontWeight: 700, padding: '4px 10px',
-        borderRadius: 4, cursor: 'pointer', color: C.muted,
-        background: 'transparent', border: `1px solid ${C.border}`,
-      }}
-    >Clear</button>
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filter
+      {(rankFilter || verdictFilter) && (
+        <span style={{
+          background: C.orange, color: '#fff',
+          borderRadius: '50%', width: 16, height: 16,
+          fontSize: 9, fontWeight: 800,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {(rankFilter ? 1 : 0) + (verdictFilter ? 1 : 0)}
+        </span>
+      )}
+    </button>
+
+    {showFilter && (
+      <div style={{
+        position: 'absolute', top: 38, left: 0, zIndex: 200,
+        background: C.card, border: `1px solid ${C.border}`,
+        borderRadius: 10, padding: '16px', minWidth: 220,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+      }}>
+        {/* Verdict */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: C.muted2, textTransform: 'uppercase', marginBottom: 8 }}>Verdict</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[['BUY', C.green, C.greenL], ['WATCH', C.amber, C.amberL], ['HOLD', C.red, C.redL]].map(([label, color, bg]) => (
+              <button key={label} onClick={() => setVerdictFilter(verdictFilter === label ? null : label)}
+                style={{
+                  fontSize: 10, fontWeight: 800, letterSpacing: '.06em',
+                  padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+                  background: verdictFilter === label ? bg : 'transparent',
+                  color: verdictFilter === label ? color : C.muted,
+                  border: `1px solid ${verdictFilter === label ? color + '44' : C.border}`,
+                }}
+              >{label}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: C.border, marginBottom: 14 }} />
+
+        {/* Ranking */}
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: C.muted2, textTransform: 'uppercase', marginBottom: 8 }}>Ranking score</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {[10,9,8,7,6,5,4,3,2,1].map(n => (
+              <button key={n} onClick={() => setRankFilter(rankFilter === n ? null : n)}
+                style={{
+                  width: 34, height: 28, borderRadius: 4, cursor: 'pointer',
+                  fontSize: 11, fontWeight: 800,
+                  background: rankFilter === n ? C.orangeL : 'transparent',
+                  color: rankFilter === n ? C.orange : C.muted,
+                  border: `1px solid ${rankFilter === n ? 'rgba(200,115,42,0.4)' : C.border}`,
+                }}
+              >{n}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Clear */}
+        {(rankFilter || verdictFilter) && (
+          <>
+            <div style={{ height: 1, background: C.border, margin: '14px 0' }} />
+            <button onClick={() => { setRankFilter(null); setVerdictFilter(null); setShowFilter(false) }}
+              style={{
+                width: '100%', padding: '7px', borderRadius: 6, cursor: 'pointer',
+                fontSize: 11, fontWeight: 700, color: C.red,
+                background: 'transparent', border: `1px solid ${C.border}`,
+              }}
+            >Clear all filters</button>
+          </>
+        )}
+      </div>
+    )}
+  </div>
+
+  {/* Active filter pills */}
+  {verdictFilter && (
+    <span style={{
+      fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 4,
+      background: C.amberL, color: C.amber, border: `1px solid ${C.amber}44`,
+      display: 'flex', alignItems: 'center', gap: 4,
+    }}>
+      {verdictFilter}
+      <span onClick={() => setVerdictFilter(null)} style={{ cursor: 'pointer', opacity: 0.6 }}>×</span>
+    </span>
+  )}
+  {rankFilter && (
+    <span style={{
+      fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 4,
+      background: C.orangeL, color: C.orange, border: `1px solid rgba(200,115,42,0.3)`,
+      display: 'flex', alignItems: 'center', gap: 4,
+    }}>
+      Score {rankFilter}
+      <span onClick={() => setRankFilter(null)} style={{ cursor: 'pointer', opacity: 0.6 }}>×</span>
+    </span>
   )}
 </div>
-
         {/* Loading */}
         {loading ? (
           <div style={{
