@@ -14946,18 +14946,21 @@ function PriceHistoryChart({ data }) {
 }
 
 
-
 function AreaComments({ areaId, areaName }) {
   const [comments, setComments] = useState([])
   const [input, setInput] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [replyTo, setReplyTo] = useState(null) // { id, user_name }
+  const [replyInput, setReplyInput] = useState('')
+  const [replyName, setReplyName] = useState('')
+  const [votes, setVotes] = useState({}) // { commentId: count }
 
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-  useEffect(() => {
+  const fetchComments = () => {
     fetch(
       `${SUPA_URL}/rest/v1/area_comments?area_id=eq.${areaId}&order=created_at.desc&limit=50`,
       { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
@@ -14965,31 +14968,130 @@ function AreaComments({ areaId, areaName }) {
       .then(r => r.json())
       .then(data => { setComments(data || []); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [areaId])
+  }
 
-  const send = async () => {
-    if (!input.trim() || !name.trim()) return
-    setSending(true)
-    const body = { area_id: areaId, area_name: areaName, user_name: name.trim(), content: input.trim() }
+  useEffect(() => { fetchComments() }, [areaId])
+
+  const timeAgo = (iso) => {
+    const diff = Math.floor((Date.now() - new Date(iso)) / 1000)
+    if (diff < 60) return `${diff}s ago`
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+    return `${Math.floor(diff / 86400)}d ago`
+  }
+
+  const send = async (parentId = null) => {
+    const text = parentId ? replyInput.trim() : input.trim()
+    const userName = parentId ? replyName.trim() : name.trim()
+    if (!text || !userName) return
+    if (parentId) setSending('reply')
+    else setSending('main')
+
     await fetch(`${SUPA_URL}/rest/v1/area_comments`, {
       method: 'POST',
       headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ area_id: areaId, area_name: areaName, user_name: userName, content: text, parent_id: parentId ?? null }),
     })
-    setInput('')
+
+    if (parentId) { setReplyInput(''); setReplyTo(null) }
+    else setInput('')
     setSending(false)
-    // Refresh
-    fetch(
-      `${SUPA_URL}/rest/v1/area_comments?area_id=eq.${areaId}&order=created_at.desc&limit=50`,
-      { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-    ).then(r => r.json()).then(data => setComments(data || []))
+    fetchComments()
+  }
+
+  const vote = (id, dir) => {
+    setVotes(v => ({ ...v, [id]: (v[id] || 0) + dir }))
+  }
+
+  // Build threaded structure
+  const topLevel = comments.filter(c => !c.parent_id)
+  const getReplies = (id) => comments.filter(c => c.parent_id === id)
+
+  const CommentBlock = ({ c, depth = 0 }) => {
+    const replies = getReplies(c.id)
+    const voteCount = (c.upvotes || 0) + (votes[c.id] || 0)
+    return (
+      <div style={{ marginLeft: depth > 0 ? 20 : 0, borderLeft: depth > 0 ? `2px solid ${C.border}` : 'none', paddingLeft: depth > 0 ? 14 : 0, marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 0' }}>
+          {/* Avatar */}
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: C.orangeL, border: `1px solid rgba(200,115,42,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: C.orange, flexShrink: 0 }}>
+            {(c.user_name || 'U')[0].toUpperCase()}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{c.user_name}</span>
+              <span style={{ fontSize: 11, color: C.muted2 }}>• {timeAgo(c.created_at)}</span>
+            </div>
+            {/* Content */}
+            <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.6, marginBottom: 8 }}>{c.content}</div>
+            {/* Actions row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              {/* Upvote */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => vote(c.id, 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 14, padding: '2px 4px', borderRadius: 4, lineHeight: 1 }}>▲</button>
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.muted, minWidth: 20, textAlign: 'center' }}>{voteCount}</span>
+                <button onClick={() => vote(c.id, -1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 14, padding: '2px 4px', borderRadius: 4, lineHeight: 1 }}>▼</button>
+              </div>
+              {/* Reply */}
+              <button
+                onClick={() => setReplyTo(replyTo?.id === c.id ? null : { id: c.id, user_name: c.user_name })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4 }}
+              >
+                💬 Reply
+              </button>
+            </div>
+
+            {/* Reply input */}
+            {replyTo?.id === c.id && (
+              <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <input
+                    value={replyName}
+                    onChange={e => setReplyName(e.target.value)}
+                    placeholder="Your name"
+                    maxLength={40}
+                    style={{ width: 130, flexShrink: 0, padding: '6px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none' }}
+                    onFocus={e => e.target.style.borderColor = C.orange}
+                    onBlur={e => e.target.style.borderColor = C.border}
+                  />
+                  <input
+                    value={replyInput}
+                    onChange={e => setReplyInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(c.id) } }}
+                    placeholder={`Reply to ${c.user_name}...`}
+                    maxLength={300}
+                    style={{ flex: 1, padding: '6px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none' }}
+                    onFocus={e => e.target.style.borderColor = C.orange}
+                    onBlur={e => e.target.style.borderColor = C.border}
+                  />
+                  <button
+                    onClick={() => send(c.id)}
+                    disabled={!replyInput.trim() || !replyName.trim() || sending === 'reply'}
+                    style={{ padding: '6px 14px', background: replyInput.trim() && replyName.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
+                  >{sending === 'reply' ? '...' : 'Reply'}</button>
+                </div>
+              </div>
+            )}
+
+            {/* Nested replies */}
+            {replies.length > 0 && (
+              <div style={{ marginTop: 8 }}>
+                {replies.map(r => <CommentBlock key={r.id} c={r} depth={depth + 1} />)}
+              </div>
+            )}
+          </div>
+        </div>
+        {depth === 0 && <div style={{ height: 1, background: C.border }} />}
+      </div>
+    )
   }
 
   return (
     <div>
-      {/* Input */}
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+      {/* Main input */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
@@ -15010,40 +15112,28 @@ function AreaComments({ areaId, areaName }) {
             onBlur={e => e.target.style.borderColor = C.border}
           />
           <button
-            onClick={send}
-            disabled={!input.trim() || !name.trim() || sending}
-            style={{ padding: '8px 18px', background: input.trim() && name.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: input.trim() && name.trim() ? 'pointer' : 'default', flexShrink: 0 }}
-          >{sending ? '...' : 'Post'}</button>
+            onClick={() => send()}
+            disabled={!input.trim() || !name.trim() || sending === 'main'}
+            style={{ padding: '8px 18px', background: input.trim() && name.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
+          >{sending === 'main' ? '...' : 'Post'}</button>
         </div>
         <div style={{ fontSize: 10, color: C.muted2 }}>Comments are public and visible to all users viewing {areaName}.</div>
       </div>
 
-      {/* Comments list */}
+      {/* Comments */}
       {loading ? (
         <div style={{ fontSize: 12, color: C.muted, padding: '16px 0' }}>Loading comments...</div>
-      ) : comments.length === 0 ? (
+      ) : topLevel.length === 0 ? (
         <div style={{ fontSize: 12, color: C.muted2, padding: '16px 0', textAlign: 'center' }}>No comments yet. Be the first to share your thoughts on {areaName}.</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {comments.map(c => (
-            <div key={c.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '12px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: C.orangeL, border: `1px solid rgba(200,115,42,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: C.orange, flexShrink: 0 }}>
-                  {(c.user_name || 'U')[0].toUpperCase()}
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{c.user_name}</span>
-                <span style={{ fontSize: 10, color: C.muted2, marginLeft: 'auto' }}>
-                  {new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </span>
-              </div>
-              <div style={{ fontSize: 12, color: C.text2, lineHeight: 1.6 }}>{c.content}</div>
-            </div>
-          ))}
-        </div>
+        <div>{topLevel.map(c => <CommentBlock key={c.id} c={c} />)}</div>
       )}
     </div>
   )
 }
+
+
+
 // ══════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════
