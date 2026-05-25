@@ -17367,63 +17367,80 @@ function AreaVoteBar({ areaId, areaName, username, commentCount = 0 }) {
 
   const score = upvotes - downvotes
 
+  // pill color: orange if upvoted, purple if downvoted, grey if no vote
+  const pillBg = myVote === 1 ? C.orange : myVote === -1 ? '#7C3AED' : C.muted
+  const totalVotes = upvotes + downvotes
+  const displayCount = totalVotes >= 1000
+    ? `${(totalVotes / 1000).toFixed(1)}K`
+    : totalVotes > 0 ? totalVotes : upvotes
+
   return (
   <div style={{
     display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
     marginBottom: 14,
   }}>
-    {/* Reddit-style orange pill — matches image exactly */}
+
+    {/* Vote pill — ▲ COUNT ▼ all in one pill, color changes by vote */}
     <div style={{
-      display: 'flex', alignItems: 'center',
-      background: C.orange,
+      display: 'inline-flex', alignItems: 'center',
+      background: pillBg,
       borderRadius: 999,
       overflow: 'hidden',
-      boxShadow: '0 2px 8px rgba(200,115,42,0.3)',
+      boxShadow: `0 2px 8px ${myVote === 1 ? 'rgba(200,115,42,0.35)' : myVote === -1 ? 'rgba(124,58,237,0.35)' : 'rgba(0,0,0,0.15)'}`,
+      transition: 'background .2s, box-shadow .2s',
     }}>
+      {/* UP arrow */}
       <button
         onClick={() => castVote(1)}
         disabled={loading}
         style={{
-          display: 'flex', alignItems: 'center', gap: 5,
-          padding: '8px 14px',
-          background: myVote === 1 ? 'rgba(255,255,255,0.2)' : 'transparent',
-          color: '#fff',
-          border: 'none', fontWeight: 900, fontSize: 14,
+          background: 'none', border: 'none',
+          color: '#fff', fontWeight: 900, fontSize: 15,
+          padding: '8px 12px 8px 16px',
           cursor: loading ? 'default' : 'pointer',
-          transition: 'all .15s',
-          lineHeight: 1,
+          lineHeight: 1, display: 'flex', alignItems: 'center',
+          transition: 'opacity .15s',
+          opacity: loading ? 0.6 : 1,
         }}
-      >
-        ▲ <span style={{ fontSize: 13, fontWeight: 800 }}>{(upvotes + downvotes) > 0 ? (upvotes + downvotes) >= 1000 ? `${((upvotes + downvotes)/1000).toFixed(1)}K` : upvotes + downvotes : upvotes}</span>
-      </button>
+      >▲</button>
 
+      {/* Count in middle */}
+      <span style={{
+        color: '#fff', fontWeight: 800, fontSize: 14,
+        padding: '0 4px', lineHeight: 1,
+        borderLeft: '1px solid rgba(255,255,255,0.25)',
+        borderRight: '1px solid rgba(255,255,255,0.25)',
+        minWidth: 36, textAlign: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: 36,
+      }}>
+        {displayCount}
+      </span>
+
+      {/* DOWN arrow */}
       <button
         onClick={() => castVote(-1)}
         disabled={loading}
         style={{
-          display: 'flex', alignItems: 'center',
-          padding: '8px 14px',
-          background: myVote === -1 ? 'rgba(0,0,0,0.15)' : 'transparent',
-          color: '#fff',
-          border: 'none', fontWeight: 900, fontSize: 14,
+          background: 'none', border: 'none',
+          color: '#fff', fontWeight: 900, fontSize: 15,
+          padding: '8px 16px 8px 12px',
           cursor: loading ? 'default' : 'pointer',
-          transition: 'all .15s',
-          lineHeight: 1,
-          borderLeft: '1px solid rgba(255,255,255,0.2)',
+          lineHeight: 1, display: 'flex', alignItems: 'center',
+          transition: 'opacity .15s',
+          opacity: loading ? 0.6 : 1,
         }}
-      >
-        ▼
-      </button>
+      >▼</button>
     </div>
 
-    {/* Comment count pill */}
+    {/* Comment count — same line */}
     <div style={{
       display: 'flex', alignItems: 'center', gap: 6,
       padding: '8px 14px',
       background: C.bg2, border: `1px solid ${C.border}`,
-      borderRadius: 999, cursor: 'default',
+      borderRadius: 999,
     }}>
-      <span style={{ fontSize: 14, lineHeight: 1 }}>💬</span>
+      <span style={{ fontSize: 13, color: C.muted }}>💬</span>
       <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{commentCount}</span>
     </div>
 
@@ -17567,19 +17584,6 @@ const timeAgo = (iso) => {
       <div style={{ marginLeft: depth > 0 ? 20 : 0, borderLeft: depth > 0 ? `2px solid ${C.border}` : 'none', paddingLeft: depth > 0 ? 14 : 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 0 8px' }}>
 
-          {/* VOTE COLUMN — vertical, Reddit style */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0, paddingTop: 2 }}>
-            <button
-              onClick={() => vote(c.id, 1)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4, fontSize: 14, lineHeight: 1, color: (votes[c.id] || 0) > 0 ? C.orange : C.muted, transition: 'color .15s' }}
-            >▲</button>
-            <span style={{ fontSize: 11, fontWeight: 800, color: voteCount > 0 ? C.orange : voteCount < 0 ? C.blue : C.muted, minWidth: 18, textAlign: 'center' }}>{voteCount}</span>
-            <button
-              onClick={() => vote(c.id, -1)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4, fontSize: 14, lineHeight: 1, color: (votes[c.id] || 0) < 0 ? C.blue : C.muted, transition: 'color .15s' }}
-            >▼</button>
-          </div>
-
           {/* AVATAR */}
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: C.orangeL, border: `1px solid rgba(200,115,42,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: C.orange, flexShrink: 0 }}>
             {(c.user_name || 'U')[0].toUpperCase()}
@@ -17593,14 +17597,31 @@ const timeAgo = (iso) => {
             </div>
             <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.6, marginBottom: 8 }}>{c.content}</div>
 
-            {/* ACTION ROW */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* ACTION ROW — votes + reply all on one line like Reddit */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {/* Upvote */}
+              <button
+                onClick={() => vote(c.id, 1)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) > 0 ? C.orange : C.muted, transition: 'color .15s', fontWeight: 700 }}
+              >▲</button>
+              {/* Score */}
+              <span style={{ fontSize: 12, fontWeight: 800, color: voteCount > 0 ? C.orange : voteCount < 0 ? C.blue : C.muted, minWidth: 16, textAlign: 'center' }}>{voteCount}</span>
+              {/* Downvote */}
+              <button
+                onClick={() => vote(c.id, -1)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) < 0 ? C.blue : C.muted, transition: 'color .15s', fontWeight: 700 }}
+              >▼</button>
+              {/* Divider */}
+              <span style={{ width: 1, height: 14, background: C.border, display: 'inline-block', margin: '0 6px' }} />
+              {/* Reply */}
               <button
                 onClick={() => { setReplyTo(isReplying ? null : { id: c.id, user_name: c.user_name }); setLocalReply('') }}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', color: isReplying ? C.orange : C.muted, fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 4, transition: 'color .15s' }}
-              >💬 Reply</button>
+                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: isReplying ? C.orange : C.muted, fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 4, transition: 'color .15s' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Reply
+              </button>
             </div>
-
             {/* REPLY INPUT BOX */}
             {isReplying && (
               <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
