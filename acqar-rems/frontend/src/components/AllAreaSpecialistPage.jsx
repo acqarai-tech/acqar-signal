@@ -17507,79 +17507,122 @@ const timeAgo = (iso) => {
   const topLevel = comments.filter(c => !c.parent_id)
   const getReplies = (id) => comments.filter(c => c.parent_id === id)
 
-  const CommentBlock = ({ c, depth = 0 }) => {
+ const CommentBlock = ({ c, depth = 0 }) => {
     const replies = getReplies(c.id)
     const voteCount = (c.upvotes || 0) + (votes[c.id] || 0)
+    const isReplying = replyTo?.id === c.id
+
+    // LOCAL state per comment — fixes typing bug
+    const [localReply, setLocalReply] = useState('')
+
+    const handleReplyChange = (e) => {
+      e.stopPropagation()
+      setLocalReply(e.target.value)
+    }
+
+    const handleReplyKeyDown = (e) => {
+      e.stopPropagation()  // CRITICAL — prevents parent page intercepting keys
+      if (e.key === 'Enter' && e.ctrlKey) {
+        e.preventDefault()
+        handleReplySend()
+      }
+    }
+
+    const handleReplySend = async () => {
+      const text = localReply.trim()
+      if (!text) return
+      setSending('reply')
+      await fetch(`${SUPA_URL}/rest/v1/area_comments`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPA_KEY,
+          Authorization: `Bearer ${SUPA_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({
+          area_id: areaId,
+          area_name: areaName,
+          user_name: myName,
+          content: text,
+          parent_id: c.id,
+        }),
+      })
+      setLocalReply('')
+      setReplyTo(null)
+      setSending(false)
+      fetchComments()
+    }
+
     return (
-      <div style={{ marginLeft: depth > 0 ? 20 : 0, borderLeft: depth > 0 ? `2px solid ${C.border}` : 'none', paddingLeft: depth > 0 ? 14 : 0, marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 0' }}>
-          {/* Avatar */}
-          <div style={{ width: 32, height: 32, borderRadius: '50%', background: C.orangeL, border: `1px solid rgba(200,115,42,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: C.orange, flexShrink: 0 }}>
+      <div style={{ marginLeft: depth > 0 ? 20 : 0, borderLeft: depth > 0 ? `2px solid ${C.border}` : 'none', paddingLeft: depth > 0 ? 14 : 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 0 8px' }}>
+
+          {/* VOTE COLUMN — vertical, Reddit style */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0, paddingTop: 2 }}>
+            <button
+              onClick={() => vote(c.id, 1)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4, fontSize: 14, lineHeight: 1, color: (votes[c.id] || 0) > 0 ? C.orange : C.muted, transition: 'color .15s' }}
+            >▲</button>
+            <span style={{ fontSize: 11, fontWeight: 800, color: voteCount > 0 ? C.orange : voteCount < 0 ? C.blue : C.muted, minWidth: 18, textAlign: 'center' }}>{voteCount}</span>
+            <button
+              onClick={() => vote(c.id, -1)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4, fontSize: 14, lineHeight: 1, color: (votes[c.id] || 0) < 0 ? C.blue : C.muted, transition: 'color .15s' }}
+            >▼</button>
+          </div>
+
+          {/* AVATAR */}
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: C.orangeL, border: `1px solid rgba(200,115,42,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: C.orange, flexShrink: 0 }}>
             {(c.user_name || 'U')[0].toUpperCase()}
           </div>
+
+          {/* CONTENT */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{c.user_name}</span>
               <span style={{ fontSize: 11, color: C.muted2 }}>• {timeAgo(c.created_at)}</span>
             </div>
-            {/* Content */}
             <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.6, marginBottom: 8 }}>{c.content}</div>
-            {/* Actions row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-             {/* Upvote — Reddit style */}
-<div style={{ display: 'flex', alignItems: 'center', gap: 2, background: C.bg2, borderRadius: 20, padding: '3px 6px', border: `1px solid ${C.border}` }}>
-  <button
-    onClick={() => vote(c.id, 1)}
-    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '1px 5px', borderRadius: 20, lineHeight: 1,
-      color: (votes[c.id] || 0) > 0 ? C.orange : C.muted,
-      fontWeight: 700,
-    }}
-  >▲</button>
-  <span style={{ fontSize: 12, fontWeight: 800, color: C.text, minWidth: 16, textAlign: 'center' }}>{voteCount}</span>
-  <button
-    onClick={() => vote(c.id, -1)}
-    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '1px 5px', borderRadius: 20, lineHeight: 1,
-      color: (votes[c.id] || 0) < 0 ? C.blue : C.muted,
-      fontWeight: 700,
-    }}
-  >▼</button>
-</div>
-              {/* Reply */}
+
+            {/* ACTION ROW */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button
-                onClick={() => setReplyTo(replyTo?.id === c.id ? null : { id: c.id, user_name: c.user_name })}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4 }}
-              >
-                💬 Reply
-              </button>
+                onClick={() => { setReplyTo(isReplying ? null : { id: c.id, user_name: c.user_name }); setLocalReply('') }}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', color: isReplying ? C.orange : C.muted, fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 4, transition: 'color .15s' }}
+              >💬 Reply</button>
             </div>
 
-            {/* Reply input */}
-            {replyTo?.id === c.id && (
-  <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
-    <textarea
-      autoFocus
-      value={replyInput}
-      onChange={e => setReplyInput(e.target.value)}
-      onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); send(c.id) } }}
-      placeholder={`Reply to ${c.user_name}... (Ctrl+Enter to send)`}
-      maxLength={3000}
-      rows={2}
-      style={{ width: '100%', padding: '8px 10px', fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', direction: 'ltr', textAlign: 'left' }}
-      onFocus={e => e.target.style.borderColor = C.orange}
-      onBlur={e => e.target.style.borderColor = C.border}
-    />
-    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
-      <button
-        onClick={() => send(c.id)}
-        disabled={!replyInput.trim() || sending === 'reply'}
-        style={{ padding: '6px 14px', background: replyInput.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: replyInput.trim() ? 'pointer' : 'default' }}
-      >{sending === 'reply' ? '...' : 'Reply'}</button>
-    </div>
-  </div>
-)}
+            {/* REPLY INPUT BOX */}
+            {isReplying && (
+              <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
+                <textarea
+                  autoFocus
+                  value={localReply}
+                  onChange={handleReplyChange}
+                  onKeyDown={handleReplyKeyDown}
+                  onClick={e => e.stopPropagation()}
+                  onFocus={e => { e.stopPropagation(); e.target.style.borderColor = C.orange }}
+                  onBlur={e => e.target.style.borderColor = C.border}
+                  placeholder={`Reply to ${c.user_name}… (Ctrl+Enter to send)`}
+                  maxLength={3000}
+                  rows={3}
+                  style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', direction: 'ltr', textAlign: 'left', pointerEvents: 'auto', userSelect: 'text' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+                  <button
+                    onClick={() => { setReplyTo(null); setLocalReply('') }}
+                    style={{ padding: '7px 14px', background: C.bg2, color: C.muted, border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                  >Cancel</button>
+                  <button
+                    onClick={handleReplySend}
+                    disabled={!localReply.trim() || sending === 'reply'}
+                    style={{ padding: '7px 16px', background: localReply.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: localReply.trim() ? 'pointer' : 'default', transition: 'background .15s' }}
+                  >{sending === 'reply' ? '…' : 'Reply'}</button>
+                </div>
+              </div>
+            )}
 
-            {/* Nested replies */}
+            {/* NESTED REPLIES */}
             {replies.length > 0 && (
               <div style={{ marginTop: 8 }}>
                 {replies.map(r => <CommentBlock key={r.id} c={r} depth={depth + 1} />)}
@@ -17599,8 +17642,10 @@ const timeAgo = (iso) => {
   <textarea
     value={input}
     onChange={e => { e.stopPropagation(); setInput(e.target.value) }}
-     onKeyDown={e => e.stopPropagation()}
-    placeholder={`Write comment on ${areaName} (500 words max)`}
+    onKeyDown={e => e.stopPropagation()}
+    onClick={e => e.stopPropagation()}
+    onFocus={e => { e.stopPropagation(); e.target.style.borderColor = C.orange }}
+    placeholder={`Join the conversation about ${areaName}…`}
     maxLength={3000}
     rows={3}
     style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 7, background: C.bg, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
@@ -17608,12 +17653,20 @@ const timeAgo = (iso) => {
     onBlur={e => e.target.style.borderColor = C.border}
   />
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-    <span style={{ fontSize: 10, color: C.muted2 }}>Posting as <strong style={{ color: C.orange }}>{myName}</strong> · </span>
-    <button
-      onClick={() => send()}
-      disabled={!input.trim() || sending === 'main'}
-      style={{ padding: '8px 18px', background: input.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: input.trim() ? 'pointer' : 'default' }}
-    >{sending === 'main' ? '...' : 'Post'}</button>
+    <span style={{ fontSize: 11, color: C.muted2 }}>Posting as <strong style={{ color: C.orange }}>{myName}</strong></span>
+    <div style={{ display: 'flex', gap: 8 }}>
+      {input.trim() && (
+        <button
+          onClick={() => setInput('')}
+          style={{ padding: '8px 14px', background: C.bg2, color: C.muted, border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+        >Cancel</button>
+      )}
+      <button
+        onClick={() => send()}
+        disabled={!input.trim() || sending === 'main'}
+        style={{ padding: '8px 20px', background: input.trim() ? C.orange : C.border, color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: input.trim() ? 'pointer' : 'default', transition: 'background .15s' }}
+      >{sending === 'main' ? '…' : 'Comment'}</button>
+    </div>
   </div>
 </div>
         
