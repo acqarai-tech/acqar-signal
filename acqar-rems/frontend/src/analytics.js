@@ -15,13 +15,14 @@
 
 
 
-import ReactGA from "react-ga4";
 import posthog from "posthog-js";
 
 posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
   api_host: 'https://app.posthog.com',
   capture_pageview: false,
 })
+
+export function initGA() {}
 
 export function trackPage(path) {
   posthog.capture('$pageview', { path })
