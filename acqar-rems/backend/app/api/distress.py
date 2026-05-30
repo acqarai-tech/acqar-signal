@@ -1273,7 +1273,7 @@
 
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
-import httpx, re, logging, os
+import httpx, re, logging, os, asyncio
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/distress", tags=["distress"])
@@ -1287,14 +1287,14 @@ DISTRESS_KEYWORDS = [
     'transfer in 3', 'transfer in 7',
 ]
 
-SUBREDDITS = ['DubaiRealEstate', 'dubairealestate', 'dubai']
+# ← only 1 subreddit, free plan concurrency limit is 1
+SUBREDDITS = ['DubaiRealEstate']
 
 def normalize_title(title: str) -> str:
     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
 
 SCRAPINGANT_KEY = os.environ.get("SCRAPINGANT_KEY", "")
 
-# ── Cache — 2 HOURS to save credits ──
 _cache = {"data": [], "fetched_at": None}
 CACHE_DURATION = timedelta(hours=2)
 
@@ -1333,7 +1333,9 @@ async def fetch_distress_deals():
     all_deals = []
     seen = set()
 
-    for sub in SUBREDDITS:
+    for i, sub in enumerate(SUBREDDITS):
+        if i > 0:
+            await asyncio.sleep(3)  # ← wait 3s between requests, respects concurrency=1
         try:
             posts = await fetch_reddit_posts(sub)
             for item in posts:
@@ -1381,7 +1383,7 @@ async def get_distress_deals_cached() -> list:
         logger.info("Distress deals: returning from cache")
         return _cache["data"]
     deals = await fetch_distress_deals()
-    if deals:  # only cache if we got results
+    if deals:
         _cache = {"data": deals, "fetched_at": now}
     return deals
 
@@ -1400,7 +1402,7 @@ async def get_distress_deals():
     if _cache["fetched_at"] and (now - _cache["fetched_at"]) < CACHE_DURATION:
         return {"deals": _cache["data"], "cached": True}
     deals = await fetch_distress_deals()
-    if deals:  # only cache if we got results
+    if deals:
         _cache = {"data": deals, "fetched_at": now}
     return {"deals": deals, "cached": False}
 
