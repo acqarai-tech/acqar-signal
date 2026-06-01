@@ -19935,37 +19935,44 @@ function AreaVoteBar({ areaId, areaName, username, commentCount = 0 }) {
 
   useEffect(() => { fetchVotes() }, [areaId])
 
-  const castVote = async (dir) => {
-    if (!myName) return alert('Please log in to vote.')
-    if (loading) return
-    setLoading(true)
-    const newVote = myVote === dir ? null : dir
-    if (newVote === null) {
-      await fetch(
-        `${SUPA_URL}/rest/v1/area_votes?area_id=eq.${areaId}&user_name=eq.${encodeURIComponent(myName)}`,
-        { method: 'DELETE', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
-      )
-    } else {
-      await fetch(`${SUPA_URL}/rest/v1/area_votes`, {
-        method: 'POST',
-        headers: {
-          apikey: SUPA_KEY,
-          Authorization: `Bearer ${SUPA_KEY}`,
-          'Content-Type': 'application/json',
-          Prefer: 'resolution=merge-duplicates',
-        },
-        body: JSON.stringify({
-          area_id: areaId,
-          user_name: myName,
-          vote: newVote,
-          updated_at: new Date().toISOString(),
-        }),
-      })
-    }
-    setMyVote(newVote)
-    await fetchVotes()
-    setLoading(false)
+ const castVote = async (dir) => {
+  if (!myName) return alert('Please log in to vote.')
+  if (loading) return
+  setLoading(true)
+
+  const newVote = myVote === dir ? null : dir
+
+  // Always delete existing vote first (handles switching upvote↔downvote in one click)
+  if (myVote !== null) {
+    await fetch(
+      `${SUPA_URL}/rest/v1/area_votes?area_id=eq.${areaId}&user_name=eq.${encodeURIComponent(myName)}`,
+      { method: 'DELETE', headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+    )
   }
+
+  // Insert new vote only if not toggling off
+  if (newVote !== null) {
+    await fetch(`${SUPA_URL}/rest/v1/area_votes`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPA_KEY,
+        Authorization: `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        area_id: areaId,
+        user_name: myName,
+        vote: newVote,
+        updated_at: new Date().toISOString(),
+      }),
+    })
+  }
+
+  setMyVote(newVote)
+  await fetchVotes()
+  setLoading(false)
+}
 
   const score = upvotes - downvotes
 
@@ -19983,43 +19990,44 @@ function AreaVoteBar({ areaId, areaName, username, commentCount = 0 }) {
   }}>
 
     {/* Vote pill — ▲ COUNT ▼ all in one pill, color changes by vote */}
-   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-  {/* UP button */}
+<div style={{
+  display: 'inline-flex', alignItems: 'center',
+  background: myVote === 1 ? C.orange : myVote === -1 ? C.red : C.muted,
+  borderRadius: 999, overflow: 'hidden',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+  transition: 'background .2s',
+}}>
   <button
     onClick={() => castVote(1)}
     disabled={loading}
     style={{
-      display: 'flex', alignItems: 'center', gap: 6,
-      padding: '7px 14px', borderRadius: 999, cursor: loading ? 'default' : 'pointer',
-      background: myVote === 1 ? '#16A34A' : 'rgba(22,163,74,0.08)',
-      border: `1.5px solid ${myVote === 1 ? '#16A34A' : 'rgba(22,163,74,0.35)'}`,
-      color: myVote === 1 ? '#fff' : '#16A34A',
-      fontWeight: 800, fontSize: 13,
-      transition: 'all .18s',
+      display: 'flex', alignItems: 'center', gap: 5,
+      padding: '8px 12px 8px 16px',
+      background: 'none', border: 'none',
+      color: '#fff', fontWeight: 800, fontSize: 13,
+      cursor: loading ? 'default' : 'pointer',
+      borderRight: '1px solid rgba(255,255,255,0.25)',
       opacity: loading ? 0.6 : 1,
     }}
   >
-    <span style={{ fontSize: 12 }}>▲</span>
+    <span>▲</span>
     <span>{upvotes}</span>
   </button>
 
-  {/* DOWN button */}
   <button
     onClick={() => castVote(-1)}
     disabled={loading}
     style={{
-      display: 'flex', alignItems: 'center', gap: 6,
-      padding: '7px 14px', borderRadius: 999, cursor: loading ? 'default' : 'pointer',
-      background: myVote === -1 ? '#DC2626' : 'rgba(220,38,38,0.08)',
-      border: `1.5px solid ${myVote === -1 ? '#DC2626' : 'rgba(220,38,38,0.35)'}`,
-      color: myVote === -1 ? '#fff' : '#DC2626',
-      fontWeight: 800, fontSize: 13,
-      transition: 'all .18s',
+      display: 'flex', alignItems: 'center', gap: 5,
+      padding: '8px 16px 8px 12px',
+      background: 'none', border: 'none',
+      color: '#fff', fontWeight: 800, fontSize: 13,
+      cursor: loading ? 'default' : 'pointer',
       opacity: loading ? 0.6 : 1,
     }}
   >
-    <span style={{ fontSize: 12 }}>▼</span>
     <span>{downvotes}</span>
+    <span>▼</span>
   </button>
 </div>
     {/* Comment count — same line */}
