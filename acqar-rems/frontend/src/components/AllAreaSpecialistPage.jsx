@@ -19906,7 +19906,7 @@ function PriceHistoryChart({ data }) {
 }
 
 
-function AreaVoteBar({ areaId, areaName, username, commentCount = 0 }) {
+function AreaVoteBar({ areaId, areaName, username, commentCount = 0, onCommentClick, showComments }) {
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
   const myName = username || sessionStorage.getItem('acqar_username') || null
@@ -20030,16 +20030,21 @@ function AreaVoteBar({ areaId, areaName, username, commentCount = 0 }) {
     <span>▼</span>
   </button>
 </div>
-    {/* Comment count — same line */}
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 6,
-      padding: '8px 14px',
-      background: C.bg2, border: `1px solid ${C.border}`,
-      borderRadius: 999,
-    }}>
-      <span style={{ fontSize: 13, color: C.muted }}>💬</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{commentCount}</span>
-    </div>
+   {/* Comment count — clickable */}
+<div
+  onClick={onCommentClick}
+  style={{
+    display: 'flex', alignItems: 'center', gap: 6,
+    padding: '8px 14px',
+    background: showComments ? C.orangeL : C.bg2,
+    border: `1px solid ${showComments ? C.orange : C.border}`,
+    borderRadius: 999, cursor: 'pointer',
+    transition: 'all .15s',
+  }}
+>
+  <span style={{ fontSize: 13, color: showComments ? C.orange : C.muted }}>💬</span>
+  <span style={{ fontSize: 13, fontWeight: 700, color: showComments ? C.orange : C.text }}>{commentCount}</span>
+</div>
 
     {!myName && (
       <span style={{ fontSize: 11, color: C.muted2 }}>(log in to vote)</span>
@@ -20326,6 +20331,7 @@ const [aiBuyerTip, setAiBuyerTip] = useState(null)
 const [groqCatalysts, setGroqCatalysts] = useState(null)
 const [isReady, setIsReady] = useState(false)
 const [commentCount, setCommentCount] = useState(0)
+const [showComments, setShowComments] = useState(false)  // ← ADD THIS
 
   const { events } = useEvents()
 
@@ -21735,11 +21741,24 @@ val: `${offPlanCount} Projects`,
 
 {/* ── COMMUNITY COMMENTS ── */}
 <div style={{ margin: isMobile ? '20px 12px 0' : '20px 28px 0', flexShrink: 0 }}>
-  <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: C.muted, marginBottom: 14, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
-    💬 Community Comments — {area.name}
-  </div>
- <AreaVoteBar areaId={area.area_id} areaName={area.name} username={username} commentCount={commentCount} />
-<AreaComments areaId={area.area_id} areaName={area.name} username={username} onCountChange={setCommentCount} />
+  <AreaVoteBar
+    areaId={area.area_id}
+    areaName={area.name}
+    username={username}
+    commentCount={commentCount}
+    onCommentClick={() => setShowComments(s => !s)}
+    showComments={showComments}
+  />
+  {showComments && (
+    <div style={{ marginTop: 16 }}>
+      <AreaComments
+        areaId={area.area_id}
+        areaName={area.name}
+        username={username}
+        onCountChange={setCommentCount}
+      />
+    </div>
+  )}
 </div>
 
 
