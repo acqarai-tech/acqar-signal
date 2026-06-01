@@ -20151,7 +20151,8 @@ const timeAgo = (iso) => {
     const isReplying = replyTo?.id === c.id
 
     // LOCAL state per comment — fixes typing bug
-    const [localReply, setLocalReply] = useState('')
+   const [localReply, setLocalReply] = useState('')
+const [showReplies, setShowReplies] = useState(false)  // ← ADD
 
     const handleReplyChange = (e) => {
       e.stopPropagation()
@@ -20209,31 +20210,26 @@ const timeAgo = (iso) => {
             </div>
             <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.6, marginBottom: 8 }}>{c.content}</div>
 
-            {/* ACTION ROW — votes + reply all on one line like Reddit */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {/* Upvote */}
-              <button
-                onClick={() => vote(c.id, 1)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) > 0 ? C.orange : C.muted, transition: 'color .15s', fontWeight: 700 }}
-              >▲</button>
-              {/* Score */}
-              <span style={{ fontSize: 12, fontWeight: 800, color: voteCount > 0 ? C.orange : voteCount < 0 ? C.blue : C.muted, minWidth: 16, textAlign: 'center' }}>{voteCount}</span>
-              {/* Downvote */}
-              <button
-                onClick={() => vote(c.id, -1)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) < 0 ? C.blue : C.muted, transition: 'color .15s', fontWeight: 700 }}
-              >▼</button>
-              {/* Divider */}
-              <span style={{ width: 1, height: 14, background: C.border, display: 'inline-block', margin: '0 6px' }} />
-              {/* Reply */}
-              <button
-                onClick={() => { setReplyTo(isReplying ? null : { id: c.id, user_name: c.user_name }); setLocalReply('') }}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', color: isReplying ? C.orange : C.muted, fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 4, transition: 'color .15s' }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Reply
-              </button>
-            </div>
+           <button
+  onClick={() => {
+    setReplyTo(isReplying ? null : { id: c.id, user_name: c.user_name })
+    setLocalReply('')
+    if (!isReplying) setShowReplies(true)
+  }}
+  style={{
+    display: 'flex', alignItems: 'center', gap: 5,
+    background: isReplying ? C.orangeL : 'none',
+    border: `1px solid ${isReplying ? C.orange : 'transparent'}`,
+    cursor: 'pointer',
+    color: isReplying ? C.orange : C.muted,
+    fontSize: 12, fontWeight: 700,
+    padding: '3px 8px', borderRadius: 999,
+    transition: 'all .15s',
+  }}
+>
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  {replies.length > 0 ? replies.length : 'Reply'}
+</button>
             {/* REPLY INPUT BOX */}
             {isReplying && (
               <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
@@ -20264,12 +20260,39 @@ const timeAgo = (iso) => {
               </div>
             )}
 
-            {/* NESTED REPLIES */}
-            {replies.length > 0 && (
-              <div style={{ marginTop: 8 }}>
-                {replies.map(r => <CommentBlock key={r.id} c={r} depth={depth + 1} />)}
-              </div>
-            )}
+{/* NESTED REPLIES */}
+{replies.length > 0 && (
+  <div style={{ marginTop: 4 }}>
+    {!showReplies && (
+      <button
+        onClick={() => setShowReplies(true)}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: 11, fontWeight: 700, color: C.muted,
+          padding: '2px 0', display: 'flex', alignItems: 'center', gap: 4,
+        }}
+      >
+        <span style={{ color: C.border2 }}>└</span>
+        <span style={{ color: C.orange }}>{replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
+      </button>
+    )}
+    {showReplies && (
+      <>
+        <div style={{ marginTop: 8 }}>
+          {replies.map(r => <CommentBlock key={r.id} c={r} depth={depth + 1} />)}
+        </div>
+        <button
+          onClick={() => setShowReplies(false)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 11, fontWeight: 700, color: C.muted,
+            padding: '2px 0', marginTop: 4,
+          }}
+        >Hide replies</button>
+      </>
+    )}
+  </div>
+)}
           </div>
         </div>
         {depth === 0 && <div style={{ height: 1, background: C.border }} />}
