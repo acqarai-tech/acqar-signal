@@ -20210,26 +20210,36 @@ const [showReplies, setShowReplies] = useState(false)  // ← ADD
             </div>
             <div style={{ fontSize: 13, color: C.text2, lineHeight: 1.6, marginBottom: 8 }}>{c.content}</div>
 
-           <button
-  onClick={() => {
-    setReplyTo(isReplying ? null : { id: c.id, user_name: c.user_name })
-    setLocalReply('')
-    if (!isReplying) setShowReplies(true)
-  }}
-  style={{
-    display: 'flex', alignItems: 'center', gap: 5,
-    background: isReplying ? C.orangeL : 'none',
-    border: `1px solid ${isReplying ? C.orange : 'transparent'}`,
-    cursor: 'pointer',
-    color: isReplying ? C.orange : C.muted,
-    fontSize: 12, fontWeight: 700,
-    padding: '3px 8px', borderRadius: 999,
-    transition: 'all .15s',
-  }}
->
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  {replies.length > 0 ? replies.length : 'Reply'}
-</button>
+           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+  <button
+    onClick={() => vote(c.id, 1)}
+    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) > 0 ? C.orange : C.muted, fontWeight: 700 }}
+  >▲</button>
+  <span style={{ fontSize: 12, fontWeight: 800, color: voteCount > 0 ? C.orange : voteCount < 0 ? C.blue : C.muted, minWidth: 16, textAlign: 'center' }}>{voteCount}</span>
+  <button
+    onClick={() => vote(c.id, -1)}
+    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) < 0 ? C.blue : C.muted, fontWeight: 700 }}
+  >▼</button>
+  <span style={{ width: 1, height: 14, background: C.border, display: 'inline-block', margin: '0 6px' }} />
+  <button
+    onClick={() => {
+      setReplyTo(isReplying ? null : { id: c.id, user_name: c.user_name })
+      setLocalReply('')
+      if (!isReplying) setShowReplies(true)
+    }}
+    style={{
+      display: 'flex', alignItems: 'center', gap: 5,
+      background: isReplying ? C.orangeL : 'none',
+      border: `1px solid ${isReplying ? C.orange : 'transparent'}`,
+      cursor: 'pointer', color: isReplying ? C.orange : C.muted,
+      fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 999,
+      transition: 'all .15s',
+    }}
+  >
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    {replies.length > 0 ? replies.length : 'Reply'}
+  </button>
+</div>
             {/* REPLY INPUT BOX */}
             {isReplying && (
               <div style={{ marginTop: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12 }}>
