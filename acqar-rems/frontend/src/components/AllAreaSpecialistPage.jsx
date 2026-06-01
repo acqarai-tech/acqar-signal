@@ -20071,7 +20071,8 @@ const [input, setInput] = useState('')
   const [replyTo, setReplyTo] = useState(null) // { id, user_name }
   const [replyInput, setReplyInput] = useState('')
   const [replyName, setReplyName] = useState('')
-  const [votes, setVotes] = useState({}) // { commentId: count }
+ const [votes, setVotes] = useState({})      // { commentId: delta } — for optimistic UI
+const [myVotes, setMyVotes] = useState({})  // { commentId: 1 | -1 | 0 }
 
   const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
   const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -20121,11 +20122,19 @@ const timeAgo = (iso) => {
     fetchComments()
   }
 
- const vote = async (id, dir) => {
-  setVotes(v => ({ ...v, [id]: (v[id] || 0) + dir }))
+const vote = async (id, dir) => {
+  const current = myVotes[id] || 0
+  const newDir = current === dir ? 0 : dir        // toggle off if same button clicked
+  const delta = newDir - current                   // e.g. was +1, now -1 → delta = -2
+
+  // Optimistic UI update
+  setMyVotes(v => ({ ...v, [id]: newDir }))
+  setVotes(v => ({ ...v, [id]: (v[id] || 0) + delta }))
+
   const target = comments.find(c => c.id === id)
   if (!target) return
-  const newCount = (target.upvotes || 0) + dir
+  const newCount = (target.upvotes || 0) + delta
+
   await fetch(
     `${SUPA_URL}/rest/v1/area_comments?id=eq.${id}`,
     {
@@ -20140,7 +20149,6 @@ const timeAgo = (iso) => {
     }
   )
 }
-
   // Build threaded structure
   const topLevel = comments.filter(c => !c.parent_id)
   const getReplies = (id) => comments.filter(c => c.parent_id === id)
@@ -20213,12 +20221,12 @@ const [showReplies, setShowReplies] = useState(false)  // ← ADD
            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
   <button
     onClick={() => vote(c.id, 1)}
-    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) > 0 ? C.orange : C.muted, fontWeight: 700 }}
+   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: myVotes[c.id] === 1 ? C.orange : C.muted, fontWeight: 700 }}
   >▲</button>
   <span style={{ fontSize: 12, fontWeight: 800, color: voteCount > 0 ? C.orange : voteCount < 0 ? C.blue : C.muted, minWidth: 16, textAlign: 'center' }}>{voteCount}</span>
   <button
     onClick={() => vote(c.id, -1)}
-    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: (votes[c.id] || 0) < 0 ? C.blue : C.muted, fontWeight: 700 }}
+    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 6px', borderRadius: 4, fontSize: 13, lineHeight: 1, color: myVotes[c.id] === -1 ? C.blue : C.muted, fontWeight: 700 }}
   >▼</button>
   <span style={{ width: 1, height: 14, background: C.border, display: 'inline-block', margin: '0 6px' }} />
   <button
@@ -20237,7 +20245,7 @@ const [showReplies, setShowReplies] = useState(false)  // ← ADD
     }}
   >
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    {replies.length > 0 ? replies.length : 'Reply'}
+    Reply
   </button>
 </div>
             {/* REPLY INPUT BOX */}
