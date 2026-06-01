@@ -20261,7 +20261,7 @@ const [showReplies, setShowReplies] = useState(false)  // ← ADD
                   onClick={e => e.stopPropagation()}
                   onFocus={e => { e.stopPropagation(); e.target.style.borderColor = C.orange }}
                   onBlur={e => e.target.style.borderColor = C.border}
-                  placeholder={`Reply to ${c.user_name}… (Ctrl+Enter to send)`}
+                  placeholder={`Reply … `}
                   maxLength={3000}
                   rows={3}
                   style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 6, background: C.card, color: C.text, outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box', direction: 'ltr', textAlign: 'left', pointerEvents: 'auto', userSelect: 'text' }}
