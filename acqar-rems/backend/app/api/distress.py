@@ -1271,6 +1271,161 @@
 
 
 
+# from fastapi import APIRouter
+# from datetime import datetime, timezone, timedelta
+# import httpx, re, logging, os, asyncio
+# logger = logging.getLogger(__name__)
+
+# router = APIRouter(prefix="/api/distress", tags=["distress"])
+
+# DISTRESS_KEYWORDS = [
+#     'distress deal', 'distress sale', 'panic sell', 'panic sale',
+#     'forced sale', 'urgent sale', 'must sell', 'need to sell',
+#     'quick sale', 'below op', 'below original price', 'below market',
+#     'selling at loss', 'below asking', 'price reduced', 'motivated seller',
+#     'investor exit', 'relocation sale', 'genuine seller', 'sp below',
+#     'transfer in 3', 'transfer in 7',
+# ]
+
+# # ← only 1 subreddit, free plan concurrency limit is 1
+# SUBREDDITS = ['DubaiRealEstate']
+
+# def normalize_title(title: str) -> str:
+#     return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9\s]', '', title.lower())).strip()
+
+# SCRAPINGANT_KEY = os.environ.get("SCRAPINGANT_KEY", "")
+
+# _cache = {"data": [], "fetched_at": None}
+# CACHE_DURATION = timedelta(hours=2)
+
+
+# async def fetch_reddit_posts(sub: str, limit: int = 100) -> list:
+#     if not SCRAPINGANT_KEY:
+#         logger.warning("SCRAPINGANT_KEY not set — skipping Reddit fetch")
+#         return []
+
+#     target_url = f"https://www.reddit.com/r/{sub}/new.json?limit={limit}&raw_json=1"
+
+#     try:
+#         async with httpx.AsyncClient(timeout=60, follow_redirects=True) as c:
+#             resp = await c.get(
+#                 "https://api.scrapingant.com/v2/general",
+#                 params={
+#                     "url": target_url,
+#                     "x-api-key": SCRAPINGANT_KEY,
+#                 }
+#             )
+#             if resp.status_code != 200:
+#                 logger.warning(f"ScrapingAnt: status {resp.status_code} for r/{sub}")
+#                 return []
+
+#             data = resp.json()
+#             return data.get("data", {}).get("children", [])
+
+#     except Exception as e:
+#         logger.warning(f"ScrapingAnt error r/{sub}: {e}")
+#         return []
+
+
+# async def fetch_distress_deals():
+#     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+#     week_ago_ts = week_ago.timestamp()
+#     all_deals = []
+#     seen = set()
+
+#     for i, sub in enumerate(SUBREDDITS):
+#         if i > 0:
+#             await asyncio.sleep(3)  # ← wait 3s between requests, respects concurrency=1
+#         try:
+#             posts = await fetch_reddit_posts(sub)
+#             for item in posts:
+#                 post = item.get("data", {})
+#                 if not post:
+#                     continue
+#                 if post.get("created_utc", 0) < week_ago_ts:
+#                     continue
+#                 if post.get("selftext") in ("[removed]", "[deleted]"):
+#                     continue
+#                 combined = (post.get("title", "") + " " + post.get("selftext", "")).lower()
+#                 if not any(kw in combined for kw in DISTRESS_KEYWORDS):
+#                     continue
+#                 norm_title = normalize_title(post.get("title", ""))
+#                 body_snippet = post.get("selftext", "")[:100].lower().strip()
+#                 if norm_title in seen or (body_snippet and body_snippet in seen):
+#                     continue
+#                 seen.add(norm_title)
+#                 if body_snippet:
+#                     seen.add(body_snippet)
+#                 all_deals.append({
+#                     "id": post.get("id"),
+#                     "title": post.get("title"),
+#                     "body": post.get("selftext", "")[:800],
+#                     "url": "https://www.reddit.com" + post.get("permalink", ""),
+#                     "source": f"r/{sub}",
+#                     "score": post.get("score", 0),
+#                     "posted_at": datetime.utcfromtimestamp(
+#                         post.get("created_utc", 0)
+#                     ).replace(tzinfo=timezone.utc).isoformat(),
+#                     "flair": post.get("link_flair_text") or "",
+#                 })
+#         except Exception as e:
+#             logger.warning(f"Reddit fetch failed for r/{sub}: {e}")
+#             continue
+
+#     all_deals.sort(key=lambda x: x["posted_at"], reverse=True)
+#     return all_deals
+
+
+# async def get_distress_deals_cached() -> list:
+#     global _cache
+#     now = datetime.now(timezone.utc)
+#     if _cache["fetched_at"] and (now - _cache["fetched_at"]) < CACHE_DURATION:
+#         logger.info("Distress deals: returning from cache")
+#         return _cache["data"]
+#     deals = await fetch_distress_deals()
+#     if deals:
+#         _cache = {"data": deals, "fetched_at": now}
+#     return deals
+
+
+# @router.get("/deals/clear-cache")
+# async def clear_cache():
+#     global _cache
+#     _cache = {"data": [], "fetched_at": None}
+#     return {"cleared": True}
+
+
+# @router.get("/deals")
+# async def get_distress_deals():
+#     global _cache
+#     now = datetime.now(timezone.utc)
+#     if _cache["fetched_at"] and (now - _cache["fetched_at"]) < CACHE_DURATION:
+#         return {"deals": _cache["data"], "cached": True}
+#     deals = await fetch_distress_deals()
+#     if deals:
+#         _cache = {"data": deals, "fetched_at": now}
+#     return {"deals": deals, "cached": False}
+
+
+# @router.get("/reddit/new")
+# async def reddit_proxy(sub: str, limit: int = 100):
+#     cached = await get_distress_deals_cached()
+#     posts = [d for d in cached if d.get("source", "").lower() == f"r/{sub}".lower()]
+#     return {"data": {"children": posts}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
 import httpx, re, logging, os, asyncio
@@ -1287,7 +1442,6 @@ DISTRESS_KEYWORDS = [
     'transfer in 3', 'transfer in 7',
 ]
 
-# ← only 1 subreddit, free plan concurrency limit is 1
 SUBREDDITS = ['DubaiRealEstate']
 
 def normalize_title(title: str) -> str:
@@ -1297,6 +1451,9 @@ SCRAPINGANT_KEY = os.environ.get("SCRAPINGANT_KEY", "")
 
 _cache = {"data": [], "fetched_at": None}
 CACHE_DURATION = timedelta(hours=2)
+
+# ── Asyncio lock: prevents concurrent ScrapingAnt calls ──
+_fetch_lock = asyncio.Lock()
 
 
 async def fetch_reddit_posts(sub: str, limit: int = 100) -> list:
@@ -1315,6 +1472,12 @@ async def fetch_reddit_posts(sub: str, limit: int = 100) -> list:
                     "x-api-key": SCRAPINGANT_KEY,
                 }
             )
+            if resp.status_code == 409:
+                logger.warning(f"ScrapingAnt 409 Conflict for r/{sub} — concurrent request detected, returning empty")
+                return []
+            if resp.status_code == 423:
+                logger.warning(f"ScrapingAnt 423 Locked for r/{sub} — key temporarily locked, returning empty")
+                return []
             if resp.status_code != 200:
                 logger.warning(f"ScrapingAnt: status {resp.status_code} for r/{sub}")
                 return []
@@ -1327,7 +1490,7 @@ async def fetch_reddit_posts(sub: str, limit: int = 100) -> list:
         return []
 
 
-async def fetch_distress_deals():
+async def fetch_distress_deals() -> list:
     week_ago = datetime.now(timezone.utc) - timedelta(days=7)
     week_ago_ts = week_ago.timestamp()
     all_deals = []
@@ -1335,7 +1498,7 @@ async def fetch_distress_deals():
 
     for i, sub in enumerate(SUBREDDITS):
         if i > 0:
-            await asyncio.sleep(3)  # ← wait 3s between requests, respects concurrency=1
+            await asyncio.sleep(3)  # wait 3s between subreddits
         try:
             posts = await fetch_reddit_posts(sub)
             for item in posts:
@@ -1377,15 +1540,39 @@ async def fetch_distress_deals():
 
 
 async def get_distress_deals_cached() -> list:
+    """
+    Thread-safe cached fetch.
+    Uses asyncio.Lock so only ONE ScrapingAnt call happens at a time.
+    Any concurrent callers wait for the lock, then read from cache.
+    """
     global _cache
     now = datetime.now(timezone.utc)
+
+    # Fast path: cache is fresh, no lock needed
     if _cache["fetched_at"] and (now - _cache["fetched_at"]) < CACHE_DURATION:
-        logger.info("Distress deals: returning from cache")
+        logger.info("Distress deals: returning from cache (fast path)")
         return _cache["data"]
-    deals = await fetch_distress_deals()
-    if deals:
-        _cache = {"data": deals, "fetched_at": now}
-    return deals
+
+    # Slow path: need to fetch — acquire lock so only one fetch happens
+    async with _fetch_lock:
+        # Re-check cache after acquiring lock (another coroutine may have just fetched)
+        now = datetime.now(timezone.utc)
+        if _cache["fetched_at"] and (now - _cache["fetched_at"]) < CACHE_DURATION:
+            logger.info("Distress deals: returning from cache (post-lock check)")
+            return _cache["data"]
+
+        # Actually fetch
+        logger.info("Distress deals: cache expired, fetching from ScrapingAnt...")
+        deals = await fetch_distress_deals()
+        if deals:
+            _cache = {"data": deals, "fetched_at": datetime.now(timezone.utc)}
+            logger.info(f"Distress deals: cached {len(deals)} deals")
+        else:
+            # Even if empty, mark fetched_at so we don't hammer ScrapingAnt
+            _cache = {"data": _cache["data"], "fetched_at": datetime.now(timezone.utc)}
+            logger.info("Distress deals: fetch returned 0 deals, keeping old cache data")
+
+    return _cache["data"]
 
 
 @router.get("/deals/clear-cache")
@@ -1397,18 +1584,22 @@ async def clear_cache():
 
 @router.get("/deals")
 async def get_distress_deals():
-    global _cache
-    now = datetime.now(timezone.utc)
-    if _cache["fetched_at"] and (now - _cache["fetched_at"]) < CACHE_DURATION:
-        return {"deals": _cache["data"], "cached": True}
-    deals = await fetch_distress_deals()
-    if deals:
-        _cache = {"data": deals, "fetched_at": now}
-    return {"deals": deals, "cached": False}
+    deals = await get_distress_deals_cached()
+    cached = _cache["fetched_at"] is not None
+    return {"deals": deals, "cached": cached, "count": len(deals)}
 
 
 @router.get("/reddit/new")
 async def reddit_proxy(sub: str, limit: int = 100):
+    """
+    Returns distress posts filtered by subreddit.
+    Uses the same shared cache as /deals — no extra ScrapingAnt calls.
+    """
     cached = await get_distress_deals_cached()
     posts = [d for d in cached if d.get("source", "").lower() == f"r/{sub}".lower()]
-    return {"data": {"children": posts}}
+    return {
+        "posts": posts,
+        "sub": sub,
+        "count": len(posts),
+        "cached": True,
+    }
