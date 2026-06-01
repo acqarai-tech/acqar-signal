@@ -20084,8 +20084,10 @@ const [myVotes, setMyVotes] = useState({})  // { commentId: 1 | -1 | 0 }
     )
       .then(r => r.json())
       .then(data => { 
-        const list = data || []
+       const list = data || []
         setComments(list)
+        setVotes({})
+        setMyVotes({})
         setLoading(false)
         if (onCountChange) onCountChange(list.filter(c => !c.parent_id).length)
       })
@@ -21801,7 +21803,7 @@ val: `${offPlanCount} Projects`,
     showComments={showComments}
   />
   {showComments && (
-    <div style={{ marginTop: 16 }}>
+    <div style={{ marginTop: 16 }} onClick={e => e.stopPropagation()}>
       <AreaComments
         areaId={area.area_id}
         areaName={area.name}
