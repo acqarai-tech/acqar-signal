@@ -19915,6 +19915,7 @@ function AreaVoteBar({ areaId, areaName, username, commentCount = 0, onCommentCl
   const [downvotes, setDownvotes] = useState(0)
   const [myVote, setMyVote] = useState(null)
   const [loading, setLoading] = useState(false)
+const [localCommentCount, setLocalCommentCount] = useState(commentCount)
 
   const fetchVotes = async () => {
     try {
@@ -19933,7 +19934,16 @@ function AreaVoteBar({ areaId, areaName, username, commentCount = 0, onCommentCl
     } catch {}
   }
 
-  useEffect(() => { fetchVotes() }, [areaId])
+ useEffect(() => {
+  fetchVotes()
+  fetch(
+    `${SUPA_URL}/rest/v1/area_comments?area_id=eq.${areaId}&parent_id=is.null&select=id`,
+    { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+  )
+    .then(r => r.json())
+    .then(data => { if (Array.isArray(data)) setLocalCommentCount(data.length) })
+    .catch(() => {})
+}, [areaId])
 
  const castVote = async (dir) => {
   if (!myName) return alert('Please log in to vote.')
@@ -20043,7 +20053,7 @@ function AreaVoteBar({ areaId, areaName, username, commentCount = 0, onCommentCl
   }}
 >
   <span style={{ fontSize: 13, color: showComments ? C.orange : C.muted }}>💬</span>
-  <span style={{ fontSize: 13, fontWeight: 700, color: showComments ? C.orange : C.text }}>{commentCount}</span>
+  <span style={{ fontSize: 13, fontWeight: 700, color: showComments ? C.orange : C.text }}>{localCommentCount}</span>
 </div>
 
     {!myName && (
