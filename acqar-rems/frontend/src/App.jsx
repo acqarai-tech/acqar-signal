@@ -1327,7 +1327,7 @@ import Login from './pages/Login'
 import RegisterPage from './pages/RegisterPage'
 import SummaryPage from './pages/SummaryPage'
 import AreaJVC from './pages/AreaJVC'
-import { useSearchParams } from 'react-router-dom'
+
 import AllAreaSpecialistPage from './components/AllAreaSpecialistPage'
 import AllAreasPage from './pages/AllAreasPage'
 import { trackPage } from './analytics'  // ← ADD THIS
@@ -1527,23 +1527,6 @@ function ProtectedRoute({ children }) {
     </SocketProvider>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
