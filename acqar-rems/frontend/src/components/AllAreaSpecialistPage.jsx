@@ -34779,8 +34779,8 @@ val: `${offPlanCount} Projects`,
     })}
   />
   <div style={{ padding: '0 18px 18px' }}>
-    <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
-  📋 Source: DLD data + market research · {devTrackRecords ? `${devTrackRecords.length} developers tracked in ${area.name}` : 'DLD data + market research'}
+   <p style={{ fontSize: 10, color: C.muted, marginTop: 8 }}>
+  📋 Source: DLD data + market research · {devTrackRecords ? `${devTrackRecords.length} developers tracked in ${area.name}` : ''}
 </p>
   </div>
 </Card>
