@@ -23483,12 +23483,13 @@ const fiveYrAppreciationReal = priceHistory?.length
     .slice(0, 6)
 
 
-    if (!isReady) {
+   if (!isReady) {
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', background: C.bg, gap: 16 }}>
-        <div style={{ fontSize: 17, fontWeight: 900, color: C.text }}>
-          ACQ<span style={{ color: C.orange }}>AR</span> SIGNAL™
+        <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>
+          <span style={{ color: C.orange }}>ACQ</span><span style={{ color: C.text }}>AR</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: C.orange, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '3px 10px', borderRadius: 4, background: C.orangeL, border: `1px solid rgba(200,115,42,0.35)`, marginLeft: 8, verticalAlign: 'middle' }}>SIGNAL™</span>
         </div>
         <div style={{ width: 36, height: 36, borderRadius: '50%',
           border: `4px solid ${C.border}`, borderTopColor: C.orange,
