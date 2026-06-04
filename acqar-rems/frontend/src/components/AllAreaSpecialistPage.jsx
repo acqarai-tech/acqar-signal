@@ -2675,8 +2675,6 @@
 
 
 
-
-
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 import TickerBar from './TickkerBar'
@@ -3067,7 +3065,7 @@ function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status,
         <div style={{ height: 4, borderRadius: 2, background: status === 'delayed' && builtPct < 25 ? C.red : C.blue, width: `${builtPct}%` }} />
       </div>
       <div style={{ fontSize: 10, color: C.muted, textAlign: 'right' }}>{builtPct}% built</div>
-      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', padding: '2px 7px', borderRadius: 4, display: 'inline-block', marginTop: 8, background: st.bg, color: st.color }}>{name.includes('Sky') ? '⚠ Delayed +8M' : status === 'delayed' ? 'Delayed +4M' : st.label}</span>
+      {!hideDev && <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', padding: '2px 7px', borderRadius: 4, display: 'inline-block', marginTop: 8, background: st.bg, color: st.color }}>{name.includes('Sky') ? '⚠ Delayed +8M' : status === 'delayed' ? 'Delayed +4M' : st.label}</span>}
     </div>
   )
 }
@@ -5118,6 +5116,7 @@ val: `${offPlanCount} Projects`,
             sold={builtPct > 0 ? Math.min(95, builtPct + 30) : Math.round(30 + Math.random() * 40)}
             builtPct={builtPct}
             status={status}
+            hideDev
           />
         )
       })
@@ -5342,3 +5341,4 @@ modal.addEventListener('click', e => { if (e.target === modal) modal.remove() })
 
   )
 }
+
