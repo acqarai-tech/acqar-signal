@@ -5117,6 +5117,7 @@ val: `${offPlanCount} Projects`,
             builtPct={builtPct}
             status={status}
             hideDev
+            
           />
         )
       })
@@ -5162,6 +5163,7 @@ val: `${offPlanCount} Projects`,
             sold={Math.round(p.percent_completed + 30)}
             builtPct={p.percent_completed}
             status="ontime"
+            hideDev
           />
         </div>
       ))
@@ -5341,4 +5343,3 @@ modal.addEventListener('click', e => { if (e.target === modal) modal.remove() })
 
   )
 }
-
