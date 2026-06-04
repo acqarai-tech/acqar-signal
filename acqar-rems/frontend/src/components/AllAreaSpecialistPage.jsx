@@ -2675,6 +2675,8 @@
 
 
 
+
+
 import { useState, useEffect, useRef } from 'react'
 import { useEvents } from '../context/EventsContext'
 import TickerBar from './TickkerBar'
@@ -3065,7 +3067,7 @@ function PipeCard({ dev, name, delivery, units, psfFrom, sold, builtPct, status,
         <div style={{ height: 4, borderRadius: 2, background: status === 'delayed' && builtPct < 25 ? C.red : C.blue, width: `${builtPct}%` }} />
       </div>
       <div style={{ fontSize: 10, color: C.muted, textAlign: 'right' }}>{builtPct}% built</div>
-      {!hideDev && <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', padding: '2px 7px', borderRadius: 4, display: 'inline-block', marginTop: 8, background: st.bg, color: st.color }}>{name.includes('Sky') ? '⚠ Delayed +8M' : status === 'delayed' ? 'Delayed +4M' : st.label}</span>}
+      
     </div>
   )
 }
@@ -5343,3 +5345,9 @@ modal.addEventListener('click', e => { if (e.target === modal) modal.remove() })
 
   )
 }
+
+
+
+
+
+
