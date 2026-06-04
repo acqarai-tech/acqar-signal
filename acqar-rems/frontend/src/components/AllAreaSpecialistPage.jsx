@@ -5116,7 +5116,7 @@ val: `${offPlanCount} Projects`,
             sold={builtPct > 0 ? Math.min(95, builtPct + 30) : Math.round(30 + Math.random() * 40)}
             builtPct={builtPct}
             status={status}
-            hideDev
+            
             
           />
         )
