@@ -31,6 +31,10 @@
       "destination": "https://acqar-signal-production.up.railway.app/socket.io/$1"
     },
     {
+  "source": "/googlee8b9f4b21ffe6523.html",
+  "destination": "/googlee8b9f4b21ffe6523.html"
+},
+    {
       "source": "/robots.txt",
       "destination": "/robots.txt"
     },
