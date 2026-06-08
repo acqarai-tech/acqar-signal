@@ -7,11 +7,13 @@
       "source": "/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "X-Frame-Options", "value": "ALLOWALL" }
+        { "key": "X-Frame-Options", "value": "ALLOWALL" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
   ],
-   "redirects": [
+  "redirects": [
     {
       "source": "/(.*)",
       "has": [{ "type": "host", "value": "[www.signal.acqar.com](https://www.signal.acqar.com)" }],
@@ -27,6 +29,14 @@
     {
       "source": "/socket.io/(.*)",
       "destination": "https://acqar-signal-production.up.railway.app/socket.io/$1"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/sitemap.xml"
     },
     {
       "source": "/(.*)",
