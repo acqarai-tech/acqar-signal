@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "react-snap",
+    "postbuild": "node -e \"if(!process.env.VERCEL) require('react-snap').run()\"",
     "preview": "vite preview"
   },
   "dependencies": {
